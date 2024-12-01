@@ -1,2 +1,3 @@
 # ceng-407-408-2024-2025-NoteWiz
-NoteWiz
+NoteWiz is an AI-powered note-taking, planning, and organization application aimed at helping users maintain high levels of focus and productivity. The application integrates various functionalities such as note creation, project organization, and task scheduling within a streamlined, distraction-free interface. NoteWiz eliminates the need for multiple external tools by offering built-in AI tools that assist users with note generation, content summarization, and image creation. Additionally, the app allows seamless note sharing and collaboration across multiple devices, ensuring users can access and manage their projects from anywhere. The design prioritizes minimalism and clarity to prevent distractions, enabling users to focus on their work.
+
