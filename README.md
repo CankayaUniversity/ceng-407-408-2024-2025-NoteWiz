@@ -1,6 +1,6 @@
 # ceng-407-408-2024-2025-NoteWiz
 
-See the  [Wiki](https://github.com/CankayaUniversity/ceng-407-408-2024-2025-NoteWiz.wiki.git) for available documents
+See the  [Wiki](https://github.com/CankayaUniversity/ceng-407-408-2024-2025-NoteWiz/wiki) for available documents
 
 In recent years, advances in artificial intelligence (AI) and natural language processing (NLP) have led to the emergence of innovative applications in various fields such as education, productivity, and personal organization. One of these areas that has benefited greatly from AI integration is digital note-taking. While traditional note-taking tools aim to help users organize their thoughts and create structured content, the new generation of AI-powered applications have broken through these boundaries.
 
