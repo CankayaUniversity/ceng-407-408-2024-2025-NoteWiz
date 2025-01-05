@@ -32,7 +32,7 @@ For more details and documentation, visit the [NoteWiz GitHub page](https://gith
 
 
 ### Advisor
-* Dr. Öğr. Üyesi Faris Serdar TAŞEL
+* [Dr. Öğr. Üyesi Faris Serdar TAŞEL](https://github.com/fstasel)
 
 ### Project Website
 * [web page](https://675d4bc9df3c7db9b74ba8d6--boisterous-belekoy-c54f50.netlify.app/)
