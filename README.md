@@ -1,4 +1,4 @@
-# ceng-407-408-2024-2025-NoteWiz
+# CENG-407-408-2024-2024 NoteWiz
 
 See the  [Wiki](https://github.com/CankayaUniversity/ceng-407-408-2024-2025-NoteWiz/wiki) for available documents
 
