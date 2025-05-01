@@ -11,12 +11,17 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { useNotes } from '../contexts/NotesContext';
+import { useAuth } from '../contexts/AuthContext';
 import { StarIcon } from '../components/icons';
+import Pdf from 'react-native-pdf';
+import DocumentPicker from 'react-native-document-picker';
+import storage from '@react-native-firebase/storage';
 
 const CATEGORIES = [
   'Work',
@@ -34,6 +39,7 @@ const NoteDetailScreen = () => {
   const navigation = useNavigation<NoteDetailScreenNavigationProp>();
   const route = useRoute<NoteDetailScreenRouteProp>();
   const { addNote, updateNote, deleteNote } = useNotes();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const noteId = route.params?.noteId;
@@ -41,11 +47,108 @@ const NoteDetailScreen = () => {
   const [content, setContent] = useState(route.params?.content || '');
   const [category, setCategory] = useState(route.params?.category || 'Other');
   const [isImportant, setIsImportant] = useState(route.params?.isImportant || false);
+  
+  // PDF için yeni state'ler
+  const [isPdf, setIsPdf] = useState(route.params?.isPdf || false);
+  const [pdfUrl, setPdfUrl] = useState(route.params?.pdfUrl || '');
+  const [pdfName, setPdfName] = useState(route.params?.pdfName || '');
+
+  // PDF Görüntüleyici Bileşeni
+  const PdfViewer = ({ uri }: { uri: string }) => {
+    const source = { uri, cache: true };
+    return (
+      <View style={styles.pdfContainer}>
+        <Text style={styles.pdfNameText}>{pdfName || 'PDF Dosyası'}</Text>
+        <Pdf
+          source={source}
+          onLoadComplete={(numberOfPages, filePath) => {
+            console.log(`PDF loaded: ${numberOfPages} pages`);
+          }}
+          onPageChanged={(page, numberOfPages) => {
+            console.log(`Current page: ${page}`);
+          }}
+          onError={(error) => {
+            console.error(error);
+          }}
+          style={styles.pdf}
+        />
+      </View>
+    );
+  };
+
+  // PDF Dosyası Seçme
+
+const selectPdf = async () => {
+  try {
+    const result = await DocumentPicker.pick({
+      type: [DocumentPicker.types.pdf],
+    });
+    
+    console.log('PDF seçildi:', result);
+    
+    const selectedPdf = result[0];
+    
+    // PDF seçildiğinde kullanıcıya bu PDF'i kullanmak isteyip istemediğini sor
+    Alert.alert(
+      'PDF Seçildi',
+      `"${selectedPdf.name || 'Adsız PDF'}" dosyası seçildi.`,
+      [
+        {
+          text: 'İptal',
+          style: 'cancel',
+          onPress: () => {
+            // İptal edilirse hiçbir değişiklik yapma - PDF moduna geçme
+            console.log('PDF seçimi iptal edildi');
+          }
+        },
+        {
+          text: 'Kullan',
+          onPress: () => {
+            // Kullanıcı onaylarsa PDF moduna geç
+            setPdfName(selectedPdf.name || 'Adsız PDF');
+            setIsPdf(true);
+            setContent('');
+            setPdfUrl(selectedPdf.uri);
+          }
+        }
+      ]
+    );
+    
+  } catch (err) {
+    if (DocumentPicker.isCancel(err)) {
+      console.log('Kullanıcı dosya seçimini iptal etti');
+    } else {
+      console.error('Dosya seçim hatası:', err);
+    }
+  }
+};
+
+  // PDF Yükleme
+  const uploadPdf = async (pdfUri: string): Promise<string> => {
+    if (!user) {
+      throw new Error('Kullanıcı girişi yapılmamış');
+    }
+    
+    const fileName = `pdfs/${user.id}/${Date.now()}_${pdfName || 'document.pdf'}`;
+    const reference = storage().ref(fileName);
+    
+    // PDF'i yükle
+    await reference.putFile(pdfUri);
+    
+    // İndirme URL'ini al
+    return await reference.getDownloadURL();
+  };
 
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         <View style={styles.headerButtons}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={selectPdf}
+          >
+            <Text style={styles.headerButtonText}>📄 PDF</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             style={styles.headerButton}
             onPress={() => navigation.navigate('Drawing', { noteId: undefined })}
@@ -69,21 +172,32 @@ const NoteDetailScreen = () => {
         </View>
       ),
     });
-  }, [navigation, title, content, category, isImportant]);
+  }, [navigation, title, content, category, isImportant, isPdf, pdfUrl, pdfName]);
 
   const handleSave = async () => {
-    if (!title.trim()) {
-      Alert.alert('Warning', 'Please enter a title');
+    if (!isPdf && !title.trim()) {
+      Alert.alert('Uyarı', 'Lütfen bir başlık girin');
       return;
     }
 
     setIsLoading(true);
     try {
+      let finalPdfUrl = pdfUrl;
+      
+      // Eğer yeni bir PDF seçildiyse ve henüz yüklenmediyse
+      if (isPdf && pdfUrl && !pdfUrl.startsWith('https://')) {
+        // PDF'i Firebase Storage'a yükle
+        finalPdfUrl = await uploadPdf(pdfUrl);
+      }
+      
       const noteData = {
-        title: title.trim(),
-        content: content.trim(),
+        title: title.trim() || (isPdf ? pdfName : 'Not'),
+        content: isPdf ? '' : content.trim(), // PDF ise içerik boş olabilir
         category,
         isImportant,
+        isPdf,
+        pdfUrl: isPdf ? finalPdfUrl : undefined,
+        pdfName: isPdf ? pdfName : undefined,
       };
 
       if (noteId) {
@@ -93,7 +207,8 @@ const NoteDetailScreen = () => {
       }
       navigation.goBack();
     } catch (error) {
-      Alert.alert('Error', 'An error occurred while saving the note');
+      console.error('Not kaydetme hatası:', error);
+      Alert.alert('Hata', 'Not kaydedilirken bir hata oluştu');
     } finally {
       setIsLoading(false);
     }
@@ -101,26 +216,40 @@ const NoteDetailScreen = () => {
 
   const handleDelete = () => {
     Alert.alert(
-      'Delete Note',
-      'Are you sure you want to delete this note?',
+      'Notu Sil',
+      'Bu notu silmek istediğinizden emin misiniz?',
       [
         {
-          text: 'Cancel',
+          text: 'İptal',
           style: 'cancel',
         },
         {
-          text: 'Delete',
+          text: 'Sil',
           style: 'destructive',
           onPress: async () => {
             setIsLoading(true);
             try {
               if (!noteId) {
-                throw new Error('Note ID is missing');
+                throw new Error('Note ID bulunamadı');
               }
+              
+              // Eğer PDF varsa, Storage'dan da sil
+              if (isPdf && pdfUrl) {
+                try {
+                  // PDF URL'inden Storage yolunu çıkar
+                  const storageRef = storage().refFromURL(pdfUrl);
+                  await storageRef.delete();
+                  console.log('PDF Storage\'dan silindi');
+                } catch (storageError) {
+                  console.error('PDF silinirken hata:', storageError);
+                  // Storage hatası olsa bile notu silmeye devam et
+                }
+              }
+              
               await deleteNote(noteId);
               navigation.goBack();
             } catch (error) {
-              Alert.alert('Error', 'An error occurred while deleting the note');
+              Alert.alert('Hata', 'Not silinirken bir hata oluştu');
             } finally {
               setIsLoading(false);
             }
@@ -158,7 +287,7 @@ const NoteDetailScreen = () => {
 
         <TextInput
           style={styles.titleInput}
-          placeholder="Title"
+          placeholder={isPdf ? "PDF Başlığı" : "Başlık"}
           value={title}
           onChangeText={setTitle}
           maxLength={100}
@@ -190,14 +319,33 @@ const NoteDetailScreen = () => {
           ))}
         </ScrollView>
 
-        <TextInput
-          style={styles.contentInput}
-          placeholder="Note content..."
-          value={content}
-          onChangeText={setContent}
-          multiline
-          textAlignVertical="top"
-        />
+        {/* PDF veya normal not içeriği */}
+        {isPdf && pdfUrl ? (
+          <PdfViewer uri={pdfUrl} />
+        ) : (
+          <TextInput
+            style={styles.contentInput}
+            placeholder="Not içeriği..."
+            value={content}
+            onChangeText={setContent}
+            multiline
+            textAlignVertical="top"
+          />
+        )}
+        
+        {/* PDF modundayken not-pdf geçişi için buton */}
+        {isPdf && (
+          <TouchableOpacity
+            style={styles.switchModeButton}
+            onPress={() => {
+              setIsPdf(false);
+              setPdfUrl('');
+              setPdfName('');
+            }}
+          >
+            <Text style={styles.switchModeButtonText}>Metin Notuna Dön</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -275,6 +423,43 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     minHeight: 200,
     color: '#333333',
+  },
+  // PDF Stilleri
+  pdfContainer: {
+    flex: 1,
+    marginHorizontal: 16,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    overflow: 'hidden',
+    minHeight: 500,
+  },
+  pdfNameText: {
+    padding: 8,
+    backgroundColor: '#F5F5F5',
+    fontSize: 14,
+    color: '#666666',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  pdf: {
+    flex: 1,
+    width: Dimensions.get('window').width - 32,
+    height: 500,
+    backgroundColor: '#F5F5F5',
+  },
+  switchModeButton: {
+    backgroundColor: '#F5F5F5',
+    padding: 12,
+    borderRadius: 8,
+    margin: 16,
+    alignItems: 'center',
+  },
+  switchModeButtonText: {
+    color: '#4C6EF5',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

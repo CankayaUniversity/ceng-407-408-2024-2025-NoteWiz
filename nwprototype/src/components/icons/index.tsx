@@ -135,3 +135,41 @@ export const TimeIcon: React.FC<IconProps> = ({ color = '#666', size = 24, style
     />
   </Svg>
 );
+
+export const TaskIcon: React.FC<IconProps> = ({ color = '#666', size = 24, style }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+    <Path
+      d="M21 12.5v5C21 19.4 19.4 21 17.5 21h-11C4.6 21 3 19.4 3 17.5v-11C3 4.6 4.6 3 6.5 3h5"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M7.5 12.5l2.5 2.5 7-7"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+export const CalendarIcon: React.FC<IconProps> = ({ color = '#666', size = 24, style }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+    <Path
+      d="M19 4H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2z"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M16 2v4M8 2v4M3 10h18"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);

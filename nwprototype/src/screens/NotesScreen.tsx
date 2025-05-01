@@ -152,7 +152,10 @@ const NotesScreen = () => {
                     title: note.title,
                     content: note.content,
                     category: note.category,
-                    isImportant: note.isImportant
+                    isImportant: note.isImportant,
+                    isPdf: note.isPdf,
+                    pdfUrl: note.pdfUrl,
+                    pdfName: note.pdfName
                   })}
                 />
               </Animated.View>

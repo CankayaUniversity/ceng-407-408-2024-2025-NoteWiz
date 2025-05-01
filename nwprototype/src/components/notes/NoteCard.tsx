@@ -17,6 +17,10 @@ interface NoteCardProps {
     content: string;
     isImportant: boolean;
     updatedAt: Date;
+    // PDF özellikleri için eklenen alanlar
+    isPdf?: boolean;
+    pdfUrl?: string;
+    pdfName?: string;
   };
   category?: {
     id: string;
@@ -62,10 +66,15 @@ export const NoteCard: React.FC<NoteCardProps> = ({ note, category, onPress }) =
           styles.iconContainer,
           { backgroundColor: `${categoryColor}20` }
         ]}>
-          <NotesIcon
-            size={24}
-            color={categoryColor}
-          />
+          {/* PDF ise PDF ikonu göster */}
+          {note.isPdf ? (
+            <Text style={[styles.pdfIcon, { color: categoryColor }]}>📄</Text>
+          ) : (
+            <NotesIcon
+              size={24}
+              color={categoryColor}
+            />
+          )}
         </View>
 
         {/* Orta kısım - başlık ve içerik */}
@@ -73,9 +82,18 @@ export const NoteCard: React.FC<NoteCardProps> = ({ note, category, onPress }) =
           <Text style={styles.title} numberOfLines={2}>
             {note.title}
           </Text>
-          <Text style={styles.preview} numberOfLines={1}>
-            {note.content}
-          </Text>
+          {/* PDF veya normal not içeriği gösterimi */}
+          {note.isPdf ? (
+            <View style={styles.pdfPreview}>
+              <Text style={styles.preview} numberOfLines={1}>
+                {note.pdfName || 'PDF Document'}
+              </Text>
+            </View>
+          ) : (
+            <Text style={styles.preview} numberOfLines={1}>
+              {note.content}
+            </Text>
+          )}
           <View style={styles.footer}>
             <Text style={styles.date}>
               {new Date(note.updatedAt).toLocaleDateString('tr-TR', {
@@ -159,5 +177,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: SPACING.md,
     right: SPACING.md,
+  },
+  // PDF Stilleri
+  pdfIcon: {
+    fontSize: 24,
+  },
+  pdfPreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
   }
 });

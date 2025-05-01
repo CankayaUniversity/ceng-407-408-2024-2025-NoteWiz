@@ -12,12 +12,22 @@ export type RootStackParamList = {
     content?: string;
     category?: string;
     isImportant?: boolean;
+    isPdf?: boolean;
+    pdfUrl?: string;
+    pdfName?: string;
   };
+  TaskDetail: {
+    taskId?: string;
+    presetDueDate?: string; // Takvimden seçilen tarih için
+  };
+  Calendar: undefined; // Yeni eklenen takvim ekranı
 };
 
 export type MainTabParamList = {
   Home: undefined;
   Notes: undefined;
+  Tasks: undefined;
+  Calendar: undefined; // Tab navigator'a Calendar ekledik
   Stats: undefined;
   Settings: undefined;
 };

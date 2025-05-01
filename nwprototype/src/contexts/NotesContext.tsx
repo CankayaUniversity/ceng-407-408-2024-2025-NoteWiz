@@ -29,6 +29,9 @@ export interface Note {
   isImportant: boolean;
   category: string;
   drawings?: DrawPath[];
+  isPdf?: boolean;
+  pdfUrl?: string;
+  pdfName?: string;
 }
 
 interface NotesContextType {
