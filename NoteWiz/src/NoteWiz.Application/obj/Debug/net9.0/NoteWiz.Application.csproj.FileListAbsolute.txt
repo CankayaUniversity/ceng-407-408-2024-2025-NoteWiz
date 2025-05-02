@@ -1,0 +1,15 @@
+D:\codes\back_end\NoteWiz\src\NoteWiz.Application\bin\Debug\net9.0\NoteWiz.Application.deps.json
+D:\codes\back_end\NoteWiz\src\NoteWiz.Application\bin\Debug\net9.0\NoteWiz.Application.dll
+D:\codes\back_end\NoteWiz\src\NoteWiz.Application\bin\Debug\net9.0\NoteWiz.Application.pdb
+D:\codes\back_end\NoteWiz\src\NoteWiz.Application\bin\Debug\net9.0\NoteWiz.Core.dll
+D:\codes\back_end\NoteWiz\src\NoteWiz.Application\bin\Debug\net9.0\NoteWiz.Core.pdb
+D:\codes\back_end\NoteWiz\src\NoteWiz.Application\obj\Debug\net9.0\NoteWiz.Application.csproj.AssemblyReference.cache
+D:\codes\back_end\NoteWiz\src\NoteWiz.Application\obj\Debug\net9.0\NoteWiz.Application.GeneratedMSBuildEditorConfig.editorconfig
+D:\codes\back_end\NoteWiz\src\NoteWiz.Application\obj\Debug\net9.0\NoteWiz.Application.AssemblyInfoInputs.cache
+D:\codes\back_end\NoteWiz\src\NoteWiz.Application\obj\Debug\net9.0\NoteWiz.Application.AssemblyInfo.cs
+D:\codes\back_end\NoteWiz\src\NoteWiz.Application\obj\Debug\net9.0\NoteWiz.Application.csproj.CoreCompileInputs.cache
+D:\codes\back_end\NoteWiz\src\NoteWiz.Application\obj\Debug\net9.0\NoteWiz..C9F91BD9.Up2Date
+D:\codes\back_end\NoteWiz\src\NoteWiz.Application\obj\Debug\net9.0\NoteWiz.Application.dll
+D:\codes\back_end\NoteWiz\src\NoteWiz.Application\obj\Debug\net9.0\refint\NoteWiz.Application.dll
+D:\codes\back_end\NoteWiz\src\NoteWiz.Application\obj\Debug\net9.0\NoteWiz.Application.pdb
+D:\codes\back_end\NoteWiz\src\NoteWiz.Application\obj\Debug\net9.0\ref\NoteWiz.Application.dll
