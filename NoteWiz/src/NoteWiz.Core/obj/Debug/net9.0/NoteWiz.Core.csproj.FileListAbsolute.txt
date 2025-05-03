@@ -9,3 +9,15 @@ D:\codes\back_end\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.dll
 D:\codes\back_end\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\refint\NoteWiz.Core.dll
 D:\codes\back_end\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.pdb
 D:\codes\back_end\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\ref\NoteWiz.Core.dll
+D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.Core\bin\Debug\net9.0\NoteWiz.Core.deps.json
+D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.Core\bin\Debug\net9.0\NoteWiz.Core.dll
+D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.Core\bin\Debug\net9.0\NoteWiz.Core.pdb
+D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.GeneratedMSBuildEditorConfig.editorconfig
+D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.AssemblyInfoInputs.cache
+D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.AssemblyInfo.cs
+D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.csproj.CoreCompileInputs.cache
+D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.sourcelink.json
+D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.dll
+D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\refint\NoteWiz.Core.dll
+D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.pdb
+D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\ref\NoteWiz.Core.dll

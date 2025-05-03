@@ -4465,11 +4465,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\codes\\back_end\\NoteWiz\\src\\NoteWiz.Infrastructure\\NoteWiz.Infrastructure.csproj",
+      "projectUniqueName": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\NoteWiz.Infrastructure.csproj",
       "projectName": "NoteWiz.Infrastructure",
-      "projectPath": "D:\\codes\\back_end\\NoteWiz\\src\\NoteWiz.Infrastructure\\NoteWiz.Infrastructure.csproj",
+      "projectPath": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\NoteWiz.Infrastructure.csproj",
       "packagesPath": "C:\\Users\\eray-\\.nuget\\packages\\",
-      "outputPath": "D:\\codes\\back_end\\NoteWiz\\src\\NoteWiz.Infrastructure\\obj\\",
+      "outputPath": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -4490,8 +4490,8 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "D:\\codes\\back_end\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj": {
-              "projectPath": "D:\\codes\\back_end\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj"
+            "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj": {
+              "projectPath": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj"
             }
           }
         }
