@@ -1,5 +1,4 @@
-// App.tsx - Değişiklikleri ekleyin
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -7,7 +6,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar, Platform } from 'react-native';
 import { COLORS, SHADOWS } from './src/constants/theme';
 import notifee from '@notifee/react-native';
-
+import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth'; // Make sure this import is included
 // Screens
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import AuthScreen from './src/screens/AuthScreen';
@@ -63,7 +63,7 @@ const TabNavigator = () => {
             case 'Settings':
               return <SettingsIcon size={24} color={color} />;
             default:
-              return null;
+              return <HomeIcon size={24} color={color} />;
           }
         },
         tabBarActiveTintColor: COLORS.primary.main,
@@ -90,150 +90,143 @@ const TabNavigator = () => {
         tabBarShowLabel: true,
       })}
     >
-      <Tab.Screen 
-        name="Home" 
-        component={HomeScreen}
-        options={{
-          title: 'Ana Sayfa',
-        }}
-      />
-      <Tab.Screen 
-        name="Notes" 
-        component={NotesScreen}
-        options={{
-          title: 'Notlar',
-        }}
-      />
-      <Tab.Screen 
-        name="Tasks" 
-        component={TasksScreen}
-        options={{
-          title: 'Görevler',
-        }}
-      />
-      <Tab.Screen 
-        name="Calendar" 
-        component={CalendarScreen}
-        options={{
-          title: 'Takvim',
-        }}
-      />
-      <Tab.Screen 
-        name="Stats" 
-        component={StatsScreen}
-        options={{
-          title: 'İstatistik',
-        }}
-      />
-      <Tab.Screen 
-        name="Settings" 
-        component={SettingsScreen}
-        options={{
-          title: 'Ayarlar',
-        }}
-      />
+      <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Ana Sayfa' }} />
+      <Tab.Screen name="Notes" component={NotesScreen} options={{ title: 'Notlar' }} />
+      <Tab.Screen name="Tasks" component={TasksScreen} options={{ title: 'Görevler' }} />
+      <Tab.Screen name="Calendar" component={CalendarScreen} options={{ title: 'Takvim' }} />
+      <Tab.Screen name="Stats" component={StatsScreen} options={{ title: 'İstatistik' }} />
+      <Tab.Screen name="Settings" component={SettingsScreen} options={{ title: 'Ayarlar' }} />
     </Tab.Navigator>
   );
 };
 
 const App = () => {
-  // Uygulama başlatıldığında bildirim izinlerini kontrol et
+  const [user, setUser] = useState<any | null>(null);  // Initialize user state here
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
+    firestore()
+      .clearPersistence()
+      .then(() => {
+        console.log('Cache temizlendi ve yeni kurallar uygulanabilir');
+      })
+      .catch((error) => {
+        console.error('Cache temizlenirken bir hata oluştu:', error);
+      });
+
     const checkNotificationPermission = async () => {
       const settings = await notifee.requestPermission();
-      
+
       if (settings.authorizationStatus) {
         console.log('Bildirim izinleri alındı');
       } else {
         console.log('Bildirim izinleri reddedildi');
       }
     };
-    
+
     checkNotificationPermission();
+
+    const unsubscribe = auth().onAuthStateChanged(async (firebaseUser) => {
+      if (firebaseUser) {
+        const userDoc = await firestore()
+          .collection('users')
+          .doc(firebaseUser.uid)
+          .get();
+
+        if (userDoc.exists) {
+          const userData = userDoc.data();
+          setUser({
+            id: firebaseUser.uid,
+            email: firebaseUser.email || '',
+            fullName: userData?.fullName || '',
+          });
+        } else {
+          const userData = {
+            email: firebaseUser.email,
+            fullName: firebaseUser.displayName || '',
+            createdAt: firestore.FieldValue.serverTimestamp(),
+          };
+          await firestore()
+            .collection('users')
+            .doc(firebaseUser.uid)
+            .set(userData);
+
+          setUser({
+            id: firebaseUser.uid,
+            email: firebaseUser.email || '',
+            fullName: firebaseUser.displayName || '',
+          });
+        }
+      } else {
+        setUser(null);
+      }
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   return (
     <SafeAreaProvider>
-      <StatusBar
-        translucent
-        backgroundColor="transparent"
-        barStyle="light-content"
-      />
+      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
       <ThemeProvider>
         <AuthProvider>
           <CategoriesProvider>
             <NotesProvider>
               <TaskProvider>
                 <NavigationContainer>
-                 <Stack.Navigator
-                  screenOptions={{
-                    headerShown: false,
-                    animation: 'slide_from_right',
-                  }}
-                 >
-                  <Stack.Screen 
-                    name="Welcome" 
-                    component={WelcomeScreen}
-                  />
-                  <Stack.Screen 
-                    name="Auth" 
-                    component={AuthScreen}
-                  />
-                  <Stack.Screen 
-                    name="MainApp" 
-                    component={TabNavigator}
-                  />
-                  <Stack.Screen 
-                    name="NoteDetail" 
-                    component={NoteDetailScreen}
-                    options={{ 
-                      headerShown: true,
-                      presentation: 'modal',
-                      animation: 'slide_from_bottom',
-                      headerTitle: '',
-                      headerShadowVisible: false,
-                      headerStyle: {
-                        backgroundColor: COLORS.background.default,
-                      },
-                      headerTintColor: COLORS.primary.main,
-                    }}
-                  />
-                  <Stack.Screen 
-                    name="Drawing" 
-                    component={DrawingScreen}
-                    options={{ 
-                      presentation: 'fullScreenModal',
-                      animation: 'fade_from_bottom',
-                    }}
-                  />
-                  <Stack.Screen 
-                    name="TaskDetail" 
-                    component={TaskDetailScreen}
-                    options={{ 
-                      headerShown: true,
-                      presentation: 'modal',
-                      animation: 'slide_from_bottom',
-                      headerTitle: '',
-                      headerShadowVisible: false,
-                      headerStyle: {
-                        backgroundColor: COLORS.background.default,
-                      },
-                      headerTintColor: COLORS.primary.main,
-                    }}
-                  />
-                  <Stack.Screen 
-                    name="Calendar" 
-                    component={CalendarScreen}
-                    options={{ 
-                      headerShown: true,
-                      headerTitle: 'Takvim',
-                      headerStyle: {
-                        backgroundColor: COLORS.background.default,
-                      },
-                      headerTintColor: COLORS.primary.main,
-                    }}
-                  />
-                 </Stack.Navigator>
+                  <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+                    <Stack.Screen name="Welcome" component={WelcomeScreen} />
+                    <Stack.Screen name="Auth" component={AuthScreen} />
+                    <Stack.Screen name="MainApp" component={TabNavigator} />
+                    <Stack.Screen
+                      name="NoteDetail"
+                      component={NoteDetailScreen}
+                      options={{
+                        headerShown: true,
+                        presentation: 'modal',
+                        animation: 'slide_from_bottom',
+                        headerTitle: '',
+                        headerShadowVisible: false,
+                        headerStyle: {
+                          backgroundColor: COLORS.background.default,
+                        },
+                        headerTintColor: COLORS.primary.main,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="Drawing"
+                      component={DrawingScreen}
+                      options={{ presentation: 'fullScreenModal', animation: 'fade_from_bottom' }}
+                    />
+                    <Stack.Screen
+                      name="TaskDetail"
+                      component={TaskDetailScreen}
+                      options={{
+                        headerShown: true,
+                        presentation: 'modal',
+                        animation: 'slide_from_bottom',
+                        headerTitle: '',
+                        headerShadowVisible: false,
+                        headerStyle: {
+                          backgroundColor: COLORS.background.default,
+                        },
+                        headerTintColor: COLORS.primary.main,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="Calendar"
+                      component={CalendarScreen}
+                      options={{
+                        headerShown: true,
+                        headerTitle: 'Takvim',
+                        headerStyle: {
+                          backgroundColor: COLORS.background.default,
+                        },
+                        headerTintColor: COLORS.primary.main,
+                      }}
+                    />
+                  </Stack.Navigator>
                 </NavigationContainer>
               </TaskProvider>
             </NotesProvider>

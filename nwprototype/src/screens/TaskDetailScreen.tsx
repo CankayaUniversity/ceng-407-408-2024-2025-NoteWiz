@@ -210,32 +210,44 @@ const TaskDetailScreen = () => {
         reminder: hasReminder ? reminderDate : undefined,
       };
 
-      let savedTaskId: string | undefined = taskId;
-
       if (taskId) {
         await updateTask(taskId, taskData);
         console.log('Task updated successfully');
-      } else {
-        await addTask(taskData);  // Burada 'addTask' bir değer döndürmüyorsa, savedTaskId undefined olacak
-        savedTaskId = undefined; // Eğer addTask bir id döndürmüyorsa, savedTaskId'yi undefined olarak atayın.
-        console.log('Task added successfully');
-      }
-
-      // Eğer görev kaydedildiyse ve hatırlatıcı varsa
-      if (savedTaskId && hasReminder && reminderDate) {
-        const task = {
-          id: savedTaskId,
-          ...taskData,
-          userId: '', // NotificationService içinde bu alan kullanılmıyor
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
         
-        // Bildirimi programla
-        await NotificationService.scheduleTaskReminder(task);
-      } else if (savedTaskId) {
-        // Eğer hatırlatıcı kaldırıldıysa ilgili bildirimleri iptal et
-        await NotificationService.cancelTaskNotifications(savedTaskId);
+        // Eğer hatırlatıcı varsa ve görev güncellendiyse
+        if (hasReminder && reminderDate) {
+          const updatedTask = {
+            id: taskId,
+            ...taskData,
+            userId: '', // NotificationService içinde bu alan kullanılıyor olabilir
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+          
+          // Bildirimi güncelle
+          await NotificationService.scheduleTaskReminder(updatedTask);
+        } else {
+          // Eğer hatırlatıcı kaldırıldıysa bildirimleri iptal et
+          await NotificationService.cancelTaskNotifications(taskId);
+        }
+      } else {
+        // Yeni görev ekle
+        const newTaskId = await addTask(taskData);
+        console.log('Task added successfully with ID:', newTaskId);
+        
+        // Eğer hatırlatıcı varsa ve görev eklendiyse
+        if (newTaskId && hasReminder && reminderDate) {
+          const newTask = {
+            id: newTaskId,
+            ...taskData,
+            userId: '', // NotificationService içinde bu alan kullanılıyor olabilir
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+          
+          // Bildirimi programla
+          await NotificationService.scheduleTaskReminder(newTask);
+        }
       }
       
       navigation.goBack();
@@ -309,18 +321,17 @@ const TaskDetailScreen = () => {
             </TouchableOpacity>
             
             <TouchableOpacity
-            style={styles.dateTimeButton}
-            onPress={() => {
-                if (reminderDate) {
-                setShowReminderTimePicker(true);
+              style={styles.dateTimeButton}
+              onPress={() => {
+                if (dueDate) {
+                  setShowTimePicker(true);
                 }
-            }}
+              }}
             >
-            <Text style={styles.dateTimeText}>
-                {formatTime(reminderDate)}
-            </Text>
+              <Text style={styles.dateTimeText}>
+                {formatTime(dueDate)}
+              </Text>
             </TouchableOpacity>
-
           </View>
           
           {showDatePicker && (

@@ -3,7 +3,7 @@
 export type CategoryType = 'work' | 'personal' | 'shopping' | 'ideas' | 'todo' | 'other';
 
 export const COLORS = {
-  // Ana renkler
+  // Main colors
   primary: {
     light: '#6B8AF2',
     main: '#4361DE',
@@ -34,7 +34,7 @@ export const COLORS = {
     900: '#054D3C'
   },
 
-  // Durum renkleri (success, warning, error, info vs.)
+  // Status colors (success, warning, error, info etc.)
   success: {
     light: '#69DB7C',
     main: '#40C057',
@@ -60,7 +60,7 @@ export const COLORS = {
     contrastText: '#FFFFFF'
   },
 
-  // Nötr renkler (neutral)
+  // Neutral colors
   neutral: {
     50: '#F8F9FA',
     100: '#F1F3F5',
@@ -74,24 +74,30 @@ export const COLORS = {
     900: '#212529'
   },
 
-  // Yeni text objesi
+  // Text colors
   text: {
     primary: '#212529',
     secondary: '#495057',
-    tertiary: '#666666',   // ya da başka bir renk
+    tertiary: '#666666',
     inverted: '#FFFFFF',
-    disabled: '#ADB5BD',  
+    disabled: '#ADB5BD',
     hint: '#868E96',
   },
 
-  // Arka planlar
+  // Background colors
   background: {
     default: '#FFFFFF',
     paper: '#F8F9FA',
-    surface: '#FFFFFF', // surface ekledik!
+    surface: '#FFFFFF',
   },
 
-  // Kategori renkleri
+  // Border colors - added to fix FolderNavigation error
+  border: {
+    light: '#DEE2E6',
+    main: '#CED4DA'
+  },
+
+  // Category colors
   categories: {
     work: '#4C6EF5',
     personal: '#82C91E',
@@ -102,7 +108,7 @@ export const COLORS = {
   } as Record<CategoryType, string>
 };
 
-// Boşluk ve mesafeler
+// Spacing and distances
 export const SPACING = {
   xs: 4,
   sm: 8,
@@ -116,7 +122,7 @@ export const SPACING = {
   sectionSpacing: 24
 } as const;
 
-// Burada FONTS yok, onun yerine:
+// Typography
 export const TYPOGRAPHY = {
   sizes: {
     xs: 12,
@@ -146,7 +152,7 @@ export const TYPOGRAPHY = {
   } as const
 };
 
-// Gölgeler
+// Shadows
 export const SHADOWS = {
   none: {
     shadowColor: 'transparent',
@@ -192,8 +198,7 @@ export const SHADOWS = {
   }
 } as const;
 
-
-// Kenar yuvarlaklıkları
+// Border radius
 export const BORDER_RADIUS = {
  none: 0,
  xs: 4,
@@ -205,7 +210,7 @@ export const BORDER_RADIUS = {
  full: 9999
 } as const;
 
-// Animasyon süreleri
+// Animation durations
 export const ANIMATION = {
  durations: {
    shortest: 150,
@@ -225,7 +230,7 @@ export const ANIMATION = {
  } as const
 };
 
-// Düzen sabitleri
+// Layout constants
 export const LAYOUT = {
  maxWidth: 420,
  headerHeight: 56,
@@ -233,7 +238,7 @@ export const LAYOUT = {
  tabBarHeight: 48
 } as const;
 
-// z-index değerleri
+// z-index values
 export const Z_INDEX = {
  drawer: 1200,
  modal: 1300,

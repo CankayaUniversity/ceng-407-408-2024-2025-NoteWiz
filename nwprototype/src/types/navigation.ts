@@ -15,6 +15,9 @@ export type RootStackParamList = {
     isPdf?: boolean;
     pdfUrl?: string;
     pdfName?: string;
+    // Added new properties:
+    folderId?: string | null;
+    coverImage?: any;
   };
   TaskDetail: {
     taskId?: string;

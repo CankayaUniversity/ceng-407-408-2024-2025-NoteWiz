@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import firestore from '@react-native-firebase/firestore';
 import { useAuth } from './AuthContext';
+import auth from '@react-native-firebase/auth';
 
 export interface Task {
   id: string;
@@ -20,7 +21,7 @@ export interface Task {
 
 interface TaskContextType {
   tasks: Task[];
-  addTask: (task: Omit<Task, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  addTask: (task: Omit<Task, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => Promise<string>;
   updateTask: (id: string, task: Partial<Task>) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   toggleCompleted: (id: string) => Promise<void>;
@@ -38,72 +39,98 @@ export const TaskProvider: React.FC<{children: React.ReactNode}> = ({ children }
     if (!user) {
       setTasks([]);
       setIsLoading(false);
-      return;
+      return () => {};
     }
-
-    // Firestore'dan görevleri dinle
+    
+    console.log('Setting up Firestore listener for tasks with user ID:', user.id);
+    setIsLoading(true);
+  
     const unsubscribe = firestore()
-    .collection('tasks')
-    .where('userId', '==', user.id)
-    .orderBy('dueDate', 'asc')  // Önce yaklaşan görevler
-    .onSnapshot(
-      (snapshot) => {
-        try {
-          const newTasks = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            createdAt: doc.data().createdAt?.toDate(),
-            updatedAt: doc.data().updatedAt?.toDate(),
-            dueDate: doc.data().dueDate?.toDate(),
-            reminder: doc.data().reminder?.toDate(),
-          })) as Task[];
-          console.log('Tasks fetched:', newTasks.length);
-          setTasks(newTasks);
-          setIsLoading(false);
-        } catch (error) {
-          console.error('Error processing tasks:', error);
+      .collection('tasks')
+      .where('userId', '==', user.id)
+      .orderBy('createdAt', 'desc') // Changed to createdAt to avoid potential issues with null dueDate
+      .onSnapshot(
+        (snapshot) => {
+          try {
+            console.log('Snapshot received, docs count:', snapshot.docs.length);
+            const newTasks = snapshot.docs.map(doc => {
+              const data = doc.data();
+              return {
+                id: doc.id,
+                ...data,
+                createdAt: data.createdAt?.toDate() || new Date(),
+                updatedAt: data.updatedAt?.toDate() || new Date(),
+                dueDate: data.dueDate?.toDate(),
+                reminder: data.reminder?.toDate(),
+              };
+            }) as Task[];
+            
+            setTasks(newTasks);
+          } catch (error) {
+            console.error('Error processing tasks:', error);
+            setTasks([]);
+          } finally {
+            setIsLoading(false);
+          }
+        },
+        (error) => {
+          console.error('Tasks listening error:', error);
           setTasks([]);
           setIsLoading(false);
         }
-      },
-      (error) => {
-        console.error('Tasks listening error:', error);
-        setTasks([]);
-        setIsLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
+      );
+  
+    return () => {
+      console.log('Cleaning up Firestore listener');
+      unsubscribe();
+    };
   }, [user]);
-
-  const addTask = async (task: Omit<Task, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
-    if (!user) return;
+  
+  const addTask = async (task: Omit<Task, 'id' | 'userId' | 'createdAt' | 'updatedAt'>): Promise<string> => {
+    if (!user) {
+      throw new Error('Kullanıcı doğrulanmadı');
+    }
+  
     console.log('Adding task:', task.title);
     try {
-      await firestore().collection('tasks').add({
+      const docRef = await firestore().collection('tasks').add({
         ...task,
         userId: user.id,
-        completed: task.completed || false,
+        completed: task.completed ?? false,
         priority: task.priority || 'medium',
         createdAt: firestore.FieldValue.serverTimestamp(),
         updatedAt: firestore.FieldValue.serverTimestamp(),
       });
-      console.log('Task added successfully');
+      
+      console.log('Task added successfully with ID:', docRef.id);
+      return docRef.id;
     } catch (error) {
       console.error('Error adding task:', error);
       throw new Error('Görev eklenirken bir hata oluştu.');
     }
   };
-
+  
   const updateTask = async (id: string, taskUpdate: Partial<Task>) => {
+    if (!user) {
+      throw new Error('Kullanıcı doğrulanmadı');
+    }
+    
     try {
+      const updateData: any = {
+        ...taskUpdate,
+        updatedAt: firestore.FieldValue.serverTimestamp(),
+      };
+      
+      // Make sure we don't try to update id or userId
+      delete updateData.id;
+      delete updateData.userId;
+      
       await firestore()
         .collection('tasks')
         .doc(id)
-        .update({
-          ...taskUpdate,
-          updatedAt: firestore.FieldValue.serverTimestamp(),
-        });
+        .update(updateData);
+        
+      console.log('Task updated successfully:', id);
     } catch (error) {
       console.error('Error updating task:', error);
       throw new Error('Görev güncellenirken bir hata oluştu.');
@@ -111,11 +138,17 @@ export const TaskProvider: React.FC<{children: React.ReactNode}> = ({ children }
   };
 
   const deleteTask = async (id: string) => {
+    if (!user) {
+      throw new Error('Kullanıcı doğrulanmadı');
+    }
+    
     try {
       await firestore()
         .collection('tasks')
         .doc(id)
         .delete();
+        
+      console.log('Task deleted successfully:', id);
     } catch (error) {
       console.error('Error deleting task:', error);
       throw new Error('Görev silinirken bir hata oluştu.');
