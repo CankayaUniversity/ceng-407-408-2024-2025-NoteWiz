@@ -29,3 +29,5 @@ D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.Appli
 D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.Application\obj\Debug\net9.0\refint\NoteWiz.Application.dll
 D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.Application\obj\Debug\net9.0\NoteWiz.Application.pdb
 D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.Application\obj\Debug\net9.0\ref\NoteWiz.Application.dll
+D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.Application\bin\Debug\net9.0\NoteWiz.Infrastructure.dll
+D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.Application\bin\Debug\net9.0\NoteWiz.Infrastructure.pdb

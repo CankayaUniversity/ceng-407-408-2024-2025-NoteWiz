@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using NoteWiz.Core.Entities;
+using NoteWiz.Core.Interfaces;
 
 namespace NoteWiz.Infrastructure.Data
 {
@@ -16,11 +17,18 @@ namespace NoteWiz.Infrastructure.Data
         public DbSet<NoteShare> NoteShares { get; set; }
         public DbSet<NoteDrawing> NoteDrawings { get; set; }
         public DbSet<NoteImage> NoteImages { get; set; }
-        public DbSet<Friendship> Friendships { get; set; }
+        public DbSet<NoteText> NoteTexts { get; set; }
+        public DbSet<NotePdfPage> NotePdfPages { get; set; }
+        public DbSet<NoteTemplate> NoteTemplates { get; set; }
         public DbSet<DocumentUpload> DocumentUploads { get; set; }
         public DbSet<AuthToken> AuthTokens { get; set; }
         public DbSet<UserDevice> UserDevices { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<NoteAISelection> NoteAISelections { get; set; }
+        public DbSet<NoteAIPopup> NoteAIPopups { get; set; }
+        public DbSet<AIInteractionLog> AIInteractionLogs { get; set; }
+        public DbSet<Friendship> Friendships { get; set; }
+        public DbSet<FriendshipRequest> FriendshipRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -80,6 +88,19 @@ namespace NoteWiz.Infrastructure.Data
                 .HasOne(f => f.Friend)
                 .WithMany(u => u.FriendshipsReceived)
                 .HasForeignKey(f => f.FriendId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure FriendshipRequest relationships
+            modelBuilder.Entity<FriendshipRequest>()
+                .HasOne(f => f.Sender)
+                .WithMany()
+                .HasForeignKey(f => f.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<FriendshipRequest>()
+                .HasOne(f => f.Receiver)
+                .WithMany()
+                .HasForeignKey(f => f.ReceiverId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

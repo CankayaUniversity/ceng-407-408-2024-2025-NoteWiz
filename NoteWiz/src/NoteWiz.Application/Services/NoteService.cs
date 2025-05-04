@@ -1,94 +1,94 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NoteWiz.Core.Entities;
 using NoteWiz.Core.Interfaces;
+using NoteWiz.Infrastructure.Data;
 
 namespace NoteWiz.Application.Services
 {
     public class NoteService : INoteService
     {
-        private readonly INoteRepository _noteRepository;
-        private readonly IUserRepository _userRepository;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IFriendshipService _friendshipService;
 
-        public NoteService(INoteRepository noteRepository, IUserRepository userRepository)
+        public NoteService(IUnitOfWork unitOfWork, IFriendshipService friendshipService)
         {
-            _noteRepository = noteRepository;
-            _userRepository = userRepository;
+            _unitOfWork = unitOfWork;
+            _friendshipService = friendshipService;
         }
 
-        public async Task<Note> GetNoteByIdAsync(int id, int userId)
+        public async Task<Note> GetNoteByIdAsync(int id)
         {
-            var note = await _noteRepository.GetByIdAsync(id);
-            if (note == null || (note.UserId != userId && !await HasAccessToNote(userId, id)))
-                return null;
-            return note;
+            return await _unitOfWork.Notes.GetByIdAsync(id);
         }
 
         public async Task<IEnumerable<Note>> GetUserNotesAsync(int userId)
         {
-            return await _noteRepository.GetUserNotesAsync(userId);
+            return await _unitOfWork.Notes.GetUserNotesAsync(userId);
+        }
+
+        public async Task<IEnumerable<Note>> GetFriendsNotesAsync(int userId)
+        {
+            var friends = await _unitOfWork.Friendships.GetUserFriendshipsAsync(userId);
+            var friendIds = friends.Select(f => f.UserId == userId ? f.FriendId : f.UserId).ToList();
+            
+            var publicNotes = new List<Note>();
+            foreach (var friendId in friendIds)
+            {
+                var friendNotes = await _unitOfWork.Notes.GetUserNotesAsync(friendId);
+                publicNotes.AddRange(friendNotes.Where(n => !n.IsPrivate));
+            }
+
+            return publicNotes;
         }
 
         public async Task<Note> CreateNoteAsync(Note note)
         {
-            note.CreatedAt = System.DateTime.UtcNow;
-            return await _noteRepository.AddAsync(note);
+            await _unitOfWork.Notes.AddAsync(note);
+            await _unitOfWork.SaveChangesAsync();
+            return note;
         }
 
         public async Task<Note> UpdateNoteAsync(Note note)
         {
-            var existingNote = await _noteRepository.GetByIdAsync(note.Id);
-            if (existingNote == null || existingNote.UserId != note.UserId)
-                return null;
-
-            note.UpdatedAt = System.DateTime.UtcNow;
-            return await _noteRepository.UpdateAsync(note);
+            _unitOfWork.Notes.Update(note);
+            await _unitOfWork.SaveChangesAsync();
+            return note;
         }
 
-        public async Task<bool> DeleteNoteAsync(int id, int userId)
+        public async Task DeleteNoteAsync(Note note)
         {
-            var note = await _noteRepository.GetByIdAsync(id);
-            if (note == null || note.UserId != userId)
-                return false;
-
-            await _noteRepository.DeleteAsync(note);
-            return true;
+            _unitOfWork.Notes.Remove(note);
+            await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<bool> ShareNoteAsync(int noteId, int userId, int sharedWithUserId, bool canEdit)
+        public async Task ShareNoteAsync(Note note, int sharedWithUserId, bool canEdit)
         {
-            var note = await _noteRepository.GetByIdAsync(noteId);
-            if (note == null || note.UserId != userId)
-                return false;
-
-            var noteShare = new NoteShare
+            var share = new NoteShare
             {
-                NoteId = noteId,
+                NoteId = note.Id,
                 SharedWithUserId = sharedWithUserId,
-                CanEdit = canEdit
+                CanEdit = canEdit,
+                SharedAt = DateTime.UtcNow
             };
 
-            await _noteRepository.AddNoteShareAsync(noteShare);
-            return true;
+            await _unitOfWork.NoteShares.AddAsync(share);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<Note>> GetSharedNotesAsync(int userId)
         {
-            return await _noteRepository.GetSharedNotesAsync(userId);
+            return await _unitOfWork.Notes.GetSharedNotesAsync(userId);
         }
 
         public async Task<IEnumerable<NoteShare>> GetNoteSharesAsync(int noteId, int? userId = null)
         {
             if (userId.HasValue)
-                return await _noteRepository.GetNoteSharesByNoteIdAndUserIdAsync(noteId, userId.Value);
+                return await _unitOfWork.NoteShares.GetNoteSharesByNoteIdAndUserIdAsync(noteId, userId.Value);
             else
-                return await _noteRepository.GetNoteSharesByNoteIdAsync(noteId);
-        }
-
-        private async Task<bool> HasAccessToNote(int userId, int noteId)
-        {
-            var noteShare = await _noteRepository.GetNoteShareAsync(noteId, userId);
-            return noteShare != null;
+                return await _unitOfWork.NoteShares.GetNoteSharesByNoteIdAsync(noteId);
         }
     }
 } 

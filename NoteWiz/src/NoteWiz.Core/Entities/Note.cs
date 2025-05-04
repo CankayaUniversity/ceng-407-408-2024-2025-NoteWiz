@@ -21,6 +21,7 @@ namespace NoteWiz.Core.Entities
         public List<string> Tags { get; set; } = new();
         public string Color { get; set; } = "#FFFFFF";
         public bool IsPinned { get; set; }
+        public bool IsPrivate { get; set; } = true; // Default to private
 
         // Navigation properties
         public virtual User User { get; set; }
@@ -34,6 +35,7 @@ namespace NoteWiz.Core.Entities
             NoteDrawings = new HashSet<NoteDrawing>();
             NoteImages = new HashSet<NoteImage>();
             Tags = new List<string>();
+            IsPrivate = true; // Default to private
         }
     }
 } 

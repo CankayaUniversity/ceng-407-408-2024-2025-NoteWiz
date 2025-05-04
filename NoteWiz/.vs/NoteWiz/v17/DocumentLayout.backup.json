@@ -1,40 +1,7 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "D:\\codes\\back_end\\NoteWiz\\",
-  "Documents": [
-    {
-      "AbsoluteMoniker": "D:0:0:{1569A404-9934-48E8-BF30-02A996205620}|src\\NoteWiz.Infrastructure\\NoteWiz.Infrastructure.csproj|d:\\codes\\back_end\\notewiz\\src\\notewiz.infrastructure\\repositories\\repository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1569A404-9934-48E8-BF30-02A996205620}|src\\NoteWiz.Infrastructure\\NoteWiz.Infrastructure.csproj|solutionrelative:src\\notewiz.infrastructure\\repositories\\repository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{71E0B019-445D-40FE-A746-6B50C6A0A531}|src\\NoteWiz.Core\\NoteWiz.Core.csproj|d:\\codes\\back_end\\notewiz\\src\\notewiz.core\\entities\\authtoken.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{71E0B019-445D-40FE-A746-6B50C6A0A531}|src\\NoteWiz.Core\\NoteWiz.Core.csproj|solutionrelative:src\\notewiz.core\\entities\\authtoken.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|d:\\codes\\back_end\\notewiz\\src\\notewiz.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|solutionrelative:src\\notewiz.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|d:\\codes\\back_end\\notewiz\\src\\notewiz.api\\controllers\\notesharescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|solutionrelative:src\\notewiz.api\\controllers\\notesharescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|d:\\codes\\back_end\\notewiz\\src\\notewiz.api\\controllers\\notescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|solutionrelative:src\\notewiz.api\\controllers\\notescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{1569A404-9934-48E8-BF30-02A996205620}|src\\NoteWiz.Infrastructure\\NoteWiz.Infrastructure.csproj|d:\\codes\\back_end\\notewiz\\src\\notewiz.infrastructure\\repositories\\userrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1569A404-9934-48E8-BF30-02A996205620}|src\\NoteWiz.Infrastructure\\NoteWiz.Infrastructure.csproj|solutionrelative:src\\notewiz.infrastructure\\repositories\\userrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{71E0B019-445D-40FE-A746-6B50C6A0A531}|src\\NoteWiz.Core\\NoteWiz.Core.csproj|d:\\codes\\back_end\\notewiz\\src\\notewiz.core\\interfaces\\iauthservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{71E0B019-445D-40FE-A746-6B50C6A0A531}|src\\NoteWiz.Core\\NoteWiz.Core.csproj|solutionrelative:src\\notewiz.core\\interfaces\\iauthservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|d:\\codes\\back_end\\notewiz\\src\\notewiz.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|solutionrelative:src\\notewiz.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    }
-  ],
+  "WorkspaceRootPath": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\",
+  "Documents": [],
   "DocumentGroupContainers": [
     {
       "Orientation": 1,
@@ -42,7 +9,7 @@
       "DocumentGroups": [
         {
           "DockedHeight": 200,
-          "SelectedChildIndex": 8,
+          "SelectedChildIndex": -1,
           "Children": [
             {
               "$type": "Bookmark",
@@ -51,110 +18,6 @@
             {
               "$type": "Bookmark",
               "Name": "ST:128:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "NotesController.cs",
-              "DocumentMoniker": "D:\\codes\\back_end\\NoteWiz\\src\\NoteWiz.API\\Controllers\\NotesController.cs",
-              "RelativeDocumentMoniker": "src\\NoteWiz.API\\Controllers\\NotesController.cs",
-              "ToolTip": "D:\\codes\\back_end\\NoteWiz\\src\\NoteWiz.API\\Controllers\\NotesController.cs",
-              "RelativeToolTip": "src\\NoteWiz.API\\Controllers\\NotesController.cs",
-              "ViewState": "AgIAAOAAAAAAAAAAAAAAAPMAAAAZAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-02T21:14:07.919Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "NoteSharesController.cs",
-              "DocumentMoniker": "D:\\codes\\back_end\\NoteWiz\\src\\NoteWiz.API\\Controllers\\NoteSharesController.cs",
-              "RelativeDocumentMoniker": "src\\NoteWiz.API\\Controllers\\NoteSharesController.cs",
-              "ToolTip": "D:\\codes\\back_end\\NoteWiz\\src\\NoteWiz.API\\Controllers\\NoteSharesController.cs",
-              "RelativeToolTip": "src\\NoteWiz.API\\Controllers\\NoteSharesController.cs",
-              "ViewState": "AgIAAP0AAAAAAAAAAAAYwAIBAABMAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-02T21:14:02.467Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "UserRepository.cs",
-              "DocumentMoniker": "D:\\codes\\back_end\\NoteWiz\\src\\NoteWiz.Infrastructure\\Repositories\\UserRepository.cs",
-              "RelativeDocumentMoniker": "src\\NoteWiz.Infrastructure\\Repositories\\UserRepository.cs",
-              "ToolTip": "D:\\codes\\back_end\\NoteWiz\\src\\NoteWiz.Infrastructure\\Repositories\\UserRepository.cs",
-              "RelativeToolTip": "src\\NoteWiz.Infrastructure\\Repositories\\UserRepository.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-02T19:24:49.96Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "IAuthService.cs",
-              "DocumentMoniker": "D:\\codes\\back_end\\NoteWiz\\src\\NoteWiz.Core\\Interfaces\\IAuthService.cs",
-              "RelativeDocumentMoniker": "src\\NoteWiz.Core\\Interfaces\\IAuthService.cs",
-              "ToolTip": "D:\\codes\\back_end\\NoteWiz\\src\\NoteWiz.Core\\Interfaces\\IAuthService.cs",
-              "RelativeToolTip": "src\\NoteWiz.Core\\Interfaces\\IAuthService.cs",
-              "ViewState": "AgIAAAsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-02T19:24:30.471Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "AuthToken.cs",
-              "DocumentMoniker": "D:\\codes\\back_end\\NoteWiz\\src\\NoteWiz.Core\\Entities\\AuthToken.cs",
-              "RelativeDocumentMoniker": "src\\NoteWiz.Core\\Entities\\AuthToken.cs",
-              "ToolTip": "D:\\codes\\back_end\\NoteWiz\\src\\NoteWiz.Core\\Entities\\AuthToken.cs",
-              "RelativeToolTip": "src\\NoteWiz.Core\\Entities\\AuthToken.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAqwAsAAAAWAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-02T19:24:25.586Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "D:\\codes\\back_end\\NoteWiz\\src\\NoteWiz.API\\appsettings.json",
-              "RelativeDocumentMoniker": "src\\NoteWiz.API\\appsettings.json",
-              "ToolTip": "D:\\codes\\back_end\\NoteWiz\\src\\NoteWiz.API\\appsettings.json",
-              "RelativeToolTip": "src\\NoteWiz.API\\appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-05-02T19:24:21.814Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Repository.cs",
-              "DocumentMoniker": "D:\\codes\\back_end\\NoteWiz\\src\\NoteWiz.Infrastructure\\Repositories\\Repository.cs",
-              "RelativeDocumentMoniker": "src\\NoteWiz.Infrastructure\\Repositories\\Repository.cs",
-              "ToolTip": "D:\\codes\\back_end\\NoteWiz\\src\\NoteWiz.Infrastructure\\Repositories\\Repository.cs",
-              "RelativeToolTip": "src\\NoteWiz.Infrastructure\\Repositories\\Repository.cs",
-              "ViewState": "AgIAACMAAAAAAAAAAAAiwDgAAAAJAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-30T21:37:46.994Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "Program.cs",
-              "DocumentMoniker": "D:\\codes\\back_end\\NoteWiz\\src\\NoteWiz.API\\Program.cs",
-              "RelativeDocumentMoniker": "src\\NoteWiz.API\\Program.cs",
-              "ToolTip": "D:\\codes\\back_end\\NoteWiz\\src\\NoteWiz.API\\Program.cs",
-              "RelativeToolTip": "src\\NoteWiz.API\\Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAmAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-30T21:39:15.71Z",
-              "EditorCaption": ""
             }
           ]
         }

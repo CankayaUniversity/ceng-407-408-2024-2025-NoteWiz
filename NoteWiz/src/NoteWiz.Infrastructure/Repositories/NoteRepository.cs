@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using NoteWiz.Core.Entities;
@@ -7,30 +8,27 @@ using NoteWiz.Infrastructure.Data;
 
 namespace NoteWiz.Infrastructure.Repositories
 {
-    public class NoteRepository : INoteRepository
+    public class NoteRepository : GenericRepository<Note>, INoteRepository
     {
-        private readonly NoteWizDbContext _context;
-
-        public NoteRepository(NoteWizDbContext context)
+        public NoteRepository(NoteWizDbContext context) : base(context)
         {
-            _context = context;
-        }
-
-        public async Task<Note> GetByIdAsync(int id)
-        {
-            return await _context.Notes
-                .Include(n => n.User)
-                .Include(n => n.SharedWith)
-                .Include(n => n.NoteDrawings)
-                .Include(n => n.NoteImages)
-                .FirstOrDefaultAsync(n => n.Id == id);
         }
 
         public async Task<IEnumerable<Note>> GetUserNotesAsync(int userId)
         {
             return await _context.Notes
+                .Include(n => n.User)
                 .Include(n => n.SharedWith)
                 .Where(n => n.UserId == userId)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Note>> GetSharedNotesAsync(int userId)
+        {
+            return await _context.Notes
+                .Include(n => n.User)
+                .Include(n => n.SharedWith)
+                .Where(n => n.SharedWith.Any(s => s.SharedWithUserId == userId))
                 .ToListAsync();
         }
 
@@ -65,14 +63,6 @@ namespace NoteWiz.Infrastructure.Repositories
         {
             return await _context.NoteShares
                 .FirstOrDefaultAsync(ns => ns.NoteId == noteId && ns.SharedWithUserId == userId);
-        }
-
-        public async Task<IEnumerable<Note>> GetSharedNotesAsync(int userId)
-        {
-            return await _context.Notes
-                .Include(n => n.SharedWith)
-                .Where(n => n.SharedWith.Any(s => s.SharedWithUserId == userId))
-                .ToListAsync();
         }
 
         public async Task<IEnumerable<NoteShare>> GetNoteSharesByNoteIdAndUserIdAsync(int noteId, int userId)

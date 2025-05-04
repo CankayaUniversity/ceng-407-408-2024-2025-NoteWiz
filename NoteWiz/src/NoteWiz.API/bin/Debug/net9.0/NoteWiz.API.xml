@@ -54,26 +54,6 @@
             Note content
             </summary>
         </member>
-        <member name="P:NoteWiz.API.DTOs.NoteResponseDTO.Tags">
-            <summary>
-            Tags associated with the note
-            </summary>
-        </member>
-        <member name="P:NoteWiz.API.DTOs.NoteResponseDTO.Color">
-            <summary>
-            Color of the note
-            </summary>
-        </member>
-        <member name="P:NoteWiz.API.DTOs.NoteResponseDTO.IsPinned">
-            <summary>
-            Whether the note is pinned
-            </summary>
-        </member>
-        <member name="P:NoteWiz.API.DTOs.NoteResponseDTO.UserId">
-            <summary>
-            ID of the user who created the note
-            </summary>
-        </member>
         <member name="P:NoteWiz.API.DTOs.NoteResponseDTO.CreatedAt">
             <summary>
             Creation date
@@ -87,21 +67,6 @@
         <member name="P:NoteWiz.API.DTOs.NoteResponseDTO.SharedWith">
             <summary>
             List of users who have shared the note
-            </summary>
-        </member>
-        <member name="T:NoteWiz.API.DTOs.NoteShareDTO">
-            <summary>
-            Data Transfer Object for sharing a note
-            </summary>
-        </member>
-        <member name="P:NoteWiz.API.DTOs.NoteShareDTO.SharedWithUserId">
-            <summary>
-            ID of the user to share the note with
-            </summary>
-        </member>
-        <member name="P:NoteWiz.API.DTOs.NoteShareDTO.CanEdit">
-            <summary>
-            Whether the shared user can edit the note
             </summary>
         </member>
         <member name="T:NoteWiz.API.DTOs.CreateNoteShareDTO">
@@ -132,6 +97,26 @@
         <member name="P:NoteWiz.API.DTOs.UpdateNoteShareDTO.CanEdit">
             <summary>
             Whether the user can edit the note
+            </summary>
+        </member>
+        <member name="T:NoteWiz.API.DTOs.UserBriefDTO">
+            <summary>
+            Data Transfer Object for user brief information
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.UserBriefDTO.Id">
+            <summary>
+            User ID
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.UserBriefDTO.Email">
+            <summary>
+            User email
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.UserBriefDTO.Username">
+            <summary>
+            Username
             </summary>
         </member>
         <member name="T:NoteWiz.API.DTOs.NoteShareResponseDTO">
@@ -172,26 +157,6 @@
         <member name="P:NoteWiz.API.DTOs.NoteShareResponseDTO.SharedWithUser">
             <summary>
             User response data for the shared user
-            </summary>
-        </member>
-        <member name="T:NoteWiz.API.DTOs.UserBriefDTO">
-            <summary>
-            Data Transfer Object for user brief information
-            </summary>
-        </member>
-        <member name="P:NoteWiz.API.DTOs.UserBriefDTO.Id">
-            <summary>
-            User ID
-            </summary>
-        </member>
-        <member name="P:NoteWiz.API.DTOs.UserBriefDTO.Email">
-            <summary>
-            User email
-            </summary>
-        </member>
-        <member name="P:NoteWiz.API.DTOs.UserBriefDTO.Username">
-            <summary>
-            Username
             </summary>
         </member>
     </members>

@@ -10,13 +10,20 @@ namespace NoteWiz.Core.Entities
     {
         public int Id { get; set; }
         public string Token { get; set; }
-        public DateTime ExpiryDate { get; set; }
-        public DateTime CreatedAt { get; set; }
         public int UserId { get; set; }
+        public bool IsRevoked { get; set; }
+        public DateTime ExpiresAt { get; set; }
         public string DeviceInfo { get; set; } // Stores device information for React Native clients
-        public DateTime LastUsedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
 
         // Navigation properties
         public virtual User User { get; set; }
+
+        public AuthToken()
+        {
+            CreatedAt = DateTime.UtcNow;
+            IsRevoked = false;
+        }
     }
 } 

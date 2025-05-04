@@ -6,6 +6,195 @@
     "version": "v1"
   },
   "paths": {
+    "/api/Friendship": {
+      "get": {
+        "tags": [
+          "Friendship"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FriendshipResponseDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FriendshipResponseDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FriendshipResponseDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Friendship/requests": {
+      "get": {
+        "tags": [
+          "Friendship"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FriendshipRequestResponseDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FriendshipRequestResponseDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FriendshipRequestResponseDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Friendship"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FriendshipRequestDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FriendshipRequestDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/FriendshipRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/FriendshipRequestResponseDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FriendshipRequestResponseDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FriendshipRequestResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Friendship/requests/{id}": {
+      "put": {
+        "tags": [
+          "Friendship"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFriendshipRequestDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFriendshipRequestDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFriendshipRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/Friendship/{friendId}": {
+      "delete": {
+        "tags": [
+          "Friendship"
+        ],
+        "parameters": [
+          {
+            "name": "friendId",
+            "in": "path",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/api/Notes/test": {
       "get": {
         "tags": [
@@ -63,17 +252,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateNoteDTO"
+                "$ref": "#/components/schemas/NoteCreateDTO"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateNoteDTO"
+                "$ref": "#/components/schemas/NoteCreateDTO"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateNoteDTO"
+                "$ref": "#/components/schemas/NoteCreateDTO"
               }
             }
           }
@@ -95,6 +284,82 @@
               "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/NoteResponseDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Notes/friends": {
+      "get": {
+        "tags": [
+          "Notes"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NoteResponseDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NoteResponseDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NoteResponseDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Notes/shared": {
+      "get": {
+        "tags": [
+          "Notes"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NoteResponseDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NoteResponseDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NoteResponseDTO"
+                  }
                 }
               }
             }
@@ -162,17 +427,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateNoteDTO"
+                "$ref": "#/components/schemas/NoteUpdateDTO"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateNoteDTO"
+                "$ref": "#/components/schemas/NoteUpdateDTO"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateNoteDTO"
+                "$ref": "#/components/schemas/NoteUpdateDTO"
               }
             }
           }
@@ -244,59 +509,38 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NoteShareDTO"
+                "$ref": "#/components/schemas/NoteShareCreateDTO"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/NoteShareDTO"
+                "$ref": "#/components/schemas/NoteShareCreateDTO"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/NoteShareDTO"
+                "$ref": "#/components/schemas/NoteShareCreateDTO"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Success"
-          }
-        }
-      }
-    },
-    "/api/Notes/shared": {
-      "get": {
-        "tags": [
-          "Notes"
-        ],
-        "responses": {
-          "200": {
             "description": "Success",
             "content": {
               "text/plain": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/NoteResponseDTO"
-                  }
+                  "$ref": "#/components/schemas/NoteShareResponseDTO"
                 }
               },
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/NoteResponseDTO"
-                  }
+                  "$ref": "#/components/schemas/NoteShareResponseDTO"
                 }
               },
               "text/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/NoteResponseDTO"
-                  }
+                  "$ref": "#/components/schemas/NoteShareResponseDTO"
                 }
               }
             }
@@ -910,43 +1154,6 @@
   },
   "components": {
     "schemas": {
-      "CreateNoteDTO": {
-        "required": [
-          "content",
-          "title"
-        ],
-        "type": "object",
-        "properties": {
-          "title": {
-            "maxLength": 200,
-            "minLength": 0,
-            "type": "string",
-            "description": "Note title"
-          },
-          "content": {
-            "minLength": 1,
-            "type": "string",
-            "description": "Note content"
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "nullable": true
-          },
-          "color": {
-            "pattern": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
-            "type": "string",
-            "nullable": true
-          },
-          "isPinned": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false,
-        "description": "Data Transfer Object for creating a note"
-      },
       "CreateNoteShareDTO": {
         "required": [
           "noteId",
@@ -1005,6 +1212,76 @@
         },
         "additionalProperties": false
       },
+      "FriendshipRequestDTO": {
+        "required": [
+          "receiverId"
+        ],
+        "type": "object",
+        "properties": {
+          "receiverId": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "FriendshipRequestResponseDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "senderId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "receiverId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/UserResponseDTO"
+          },
+          "receiver": {
+            "$ref": "#/components/schemas/UserResponseDTO"
+          }
+        },
+        "additionalProperties": false
+      },
+      "FriendshipResponseDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "userId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "friendId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "friend": {
+            "$ref": "#/components/schemas/UserResponseDTO"
+          }
+        },
+        "additionalProperties": false
+      },
       "LoginDTO": {
         "required": [
           "email",
@@ -1025,7 +1302,28 @@
         },
         "additionalProperties": false
       },
+      "NoteCreateDTO": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "string",
+            "nullable": true
+          },
+          "isPrivate": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
       "NoteResponseDTO": {
+        "required": [
+          "content",
+          "title"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -1034,35 +1332,35 @@
             "format": "int32"
           },
           "title": {
+            "minLength": 1,
             "type": "string",
-            "description": "Note title",
-            "nullable": true
+            "description": "Note title"
           },
           "content": {
+            "minLength": 1,
             "type": "string",
-            "description": "Note content",
-            "nullable": true
+            "description": "Note content"
           },
           "tags": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Tags associated with the note",
             "nullable": true
           },
           "color": {
+            "pattern": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
             "type": "string",
-            "description": "Color of the note",
             "nullable": true
           },
           "isPinned": {
-            "type": "boolean",
-            "description": "Whether the note is pinned"
+            "type": "boolean"
+          },
+          "isPrivate": {
+            "type": "boolean"
           },
           "userId": {
             "type": "integer",
-            "description": "ID of the user who created the note",
             "format": "int32"
           },
           "createdAt": {
@@ -1088,24 +1386,18 @@
         "additionalProperties": false,
         "description": "Data Transfer Object for note response data"
       },
-      "NoteShareDTO": {
-        "required": [
-          "sharedWithUserId"
-        ],
+      "NoteShareCreateDTO": {
         "type": "object",
         "properties": {
-          "sharedWithUserId": {
-            "type": "integer",
-            "description": "ID of the user to share the note with",
-            "format": "int32"
+          "sharedWithUserEmail": {
+            "type": "string",
+            "nullable": true
           },
           "canEdit": {
-            "type": "boolean",
-            "description": "Whether the shared user can edit the note"
+            "type": "boolean"
           }
         },
-        "additionalProperties": false,
-        "description": "Data Transfer Object for sharing a note"
+        "additionalProperties": false
       },
       "NoteShareResponseDTO": {
         "type": "object",
@@ -1145,6 +1437,23 @@
         },
         "additionalProperties": false,
         "description": "Data Transfer Object for note share response data"
+      },
+      "NoteUpdateDTO": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "string",
+            "nullable": true
+          },
+          "isPrivate": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
       },
       "RegisterDTO": {
         "required": [
@@ -1221,42 +1530,18 @@
         },
         "additionalProperties": false
       },
-      "UpdateNoteDTO": {
+      "UpdateFriendshipRequestDTO": {
         "required": [
-          "content",
-          "title"
+          "status"
         ],
         "type": "object",
         "properties": {
-          "title": {
-            "maxLength": 200,
-            "minLength": 0,
-            "type": "string",
-            "description": "Note title"
-          },
-          "content": {
+          "status": {
             "minLength": 1,
-            "type": "string",
-            "description": "Note content"
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "nullable": true
-          },
-          "color": {
-            "pattern": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
-            "type": "string",
-            "nullable": true
-          },
-          "isPinned": {
-            "type": "boolean"
+            "type": "string"
           }
         },
-        "additionalProperties": false,
-        "description": "Data Transfer Object for updating a note"
+        "additionalProperties": false
       },
       "UpdateNoteShareDTO": {
         "required": [

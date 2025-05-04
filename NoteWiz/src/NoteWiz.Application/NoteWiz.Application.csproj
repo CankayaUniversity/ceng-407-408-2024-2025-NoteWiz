@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NoteWiz.Core\NoteWiz.Core.csproj" />
+    <ProjectReference Include="..\NoteWiz.Infrastructure\NoteWiz.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project> 

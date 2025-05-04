@@ -3,36 +3,16 @@
   "WorkspaceRootPath": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{1569A404-9934-48E8-BF30-02A996205620}|src\\NoteWiz.Infrastructure\\NoteWiz.Infrastructure.csproj|d:\\codes\\notewiz_github\\ceng-407-408-2024-2025-notewiz\\notewiz\\src\\notewiz.infrastructure\\repositories\\repository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1569A404-9934-48E8-BF30-02A996205620}|src\\NoteWiz.Infrastructure\\NoteWiz.Infrastructure.csproj|solutionrelative:src\\notewiz.infrastructure\\repositories\\repository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{71E0B019-445D-40FE-A746-6B50C6A0A531}|src\\NoteWiz.Core\\NoteWiz.Core.csproj|d:\\codes\\notewiz_github\\ceng-407-408-2024-2025-notewiz\\notewiz\\src\\notewiz.core\\entities\\authtoken.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{71E0B019-445D-40FE-A746-6B50C6A0A531}|src\\NoteWiz.Core\\NoteWiz.Core.csproj|solutionrelative:src\\notewiz.core\\entities\\authtoken.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|d:\\codes\\notewiz_github\\ceng-407-408-2024-2025-notewiz\\notewiz\\src\\notewiz.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|solutionrelative:src\\notewiz.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|d:\\codes\\notewiz_github\\ceng-407-408-2024-2025-notewiz\\notewiz\\src\\notewiz.api\\controllers\\notesharescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|solutionrelative:src\\notewiz.api\\controllers\\notesharescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|d:\\codes\\notewiz_github\\ceng-407-408-2024-2025-notewiz\\notewiz\\src\\notewiz.api\\controllers\\notescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|solutionrelative:src\\notewiz.api\\controllers\\notescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1569A404-9934-48E8-BF30-02A996205620}|src\\NoteWiz.Infrastructure\\NoteWiz.Infrastructure.csproj|d:\\codes\\notewiz_github\\ceng-407-408-2024-2025-notewiz\\notewiz\\src\\notewiz.infrastructure\\repositories\\userrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1569A404-9934-48E8-BF30-02A996205620}|src\\NoteWiz.Infrastructure\\NoteWiz.Infrastructure.csproj|solutionrelative:src\\notewiz.infrastructure\\repositories\\userrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{71E0B019-445D-40FE-A746-6B50C6A0A531}|src\\NoteWiz.Core\\NoteWiz.Core.csproj|d:\\codes\\notewiz_github\\ceng-407-408-2024-2025-notewiz\\notewiz\\src\\notewiz.core\\interfaces\\iauthservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{71E0B019-445D-40FE-A746-6B50C6A0A531}|src\\NoteWiz.Core\\NoteWiz.Core.csproj|solutionrelative:src\\notewiz.core\\interfaces\\iauthservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|d:\\codes\\notewiz_github\\ceng-407-408-2024-2025-notewiz\\notewiz\\src\\notewiz.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|solutionrelative:src\\notewiz.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+      "AbsoluteMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|d:\\codes\\notewiz_github\\ceng-407-408-2024-2025-notewiz\\notewiz\\src\\notewiz.api\\controllers\\friendshipcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|solutionrelative:src\\notewiz.api\\controllers\\friendshipcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -42,7 +22,7 @@
       "DocumentGroups": [
         {
           "DockedHeight": 200,
-          "SelectedChildIndex": 6,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Bookmark",
@@ -54,100 +34,42 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "UserRepository.cs",
-              "DocumentMoniker": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Repositories\\UserRepository.cs",
-              "RelativeDocumentMoniker": "src\\NoteWiz.Infrastructure\\Repositories\\UserRepository.cs",
-              "ToolTip": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Repositories\\UserRepository.cs",
-              "RelativeToolTip": "src\\NoteWiz.Infrastructure\\Repositories\\UserRepository.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-02T19:24:49.96Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "IAuthService.cs",
-              "DocumentMoniker": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Core\\Interfaces\\IAuthService.cs",
-              "RelativeDocumentMoniker": "src\\NoteWiz.Core\\Interfaces\\IAuthService.cs",
-              "ToolTip": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Core\\Interfaces\\IAuthService.cs",
-              "RelativeToolTip": "src\\NoteWiz.Core\\Interfaces\\IAuthService.cs",
-              "ViewState": "AgIAAAsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-02T19:24:30.471Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "AuthToken.cs",
-              "DocumentMoniker": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Core\\Entities\\AuthToken.cs",
-              "RelativeDocumentMoniker": "src\\NoteWiz.Core\\Entities\\AuthToken.cs",
-              "ToolTip": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Core\\Entities\\AuthToken.cs",
-              "RelativeToolTip": "src\\NoteWiz.Core\\Entities\\AuthToken.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAqwAsAAAAWAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-02T19:24:25.586Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.API\\appsettings.json",
-              "RelativeDocumentMoniker": "src\\NoteWiz.API\\appsettings.json",
-              "ToolTip": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.API\\appsettings.json",
-              "RelativeToolTip": "src\\NoteWiz.API\\appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-05-02T19:24:21.814Z"
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "Repository.cs",
-              "DocumentMoniker": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Repositories\\Repository.cs",
-              "RelativeDocumentMoniker": "src\\NoteWiz.Infrastructure\\Repositories\\Repository.cs",
-              "ToolTip": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Repositories\\Repository.cs",
-              "RelativeToolTip": "src\\NoteWiz.Infrastructure\\Repositories\\Repository.cs",
-              "ViewState": "AgIAACMAAAAAAAAAAAA4wC4AAAAJAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-30T21:37:46.994Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "NoteSharesController.cs",
-              "DocumentMoniker": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.API\\Controllers\\NoteSharesController.cs",
-              "RelativeDocumentMoniker": "src\\NoteWiz.API\\Controllers\\NoteSharesController.cs",
-              "ToolTip": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.API\\Controllers\\NoteSharesController.cs",
-              "RelativeToolTip": "src\\NoteWiz.API\\Controllers\\NoteSharesController.cs",
-              "ViewState": "AgIAAP0AAAAAAAAAAAAYwAIBAABMAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-02T21:14:02.467Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "NotesController.cs",
-              "DocumentMoniker": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.API\\Controllers\\NotesController.cs",
-              "RelativeDocumentMoniker": "src\\NoteWiz.API\\Controllers\\NotesController.cs",
-              "ToolTip": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.API\\Controllers\\NotesController.cs",
-              "RelativeToolTip": "src\\NoteWiz.API\\Controllers\\NotesController.cs",
-              "ViewState": "AgIAAOAAAAAAAAAAAAAAAPMAAAAZAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-02T21:14:07.919Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
               "Title": "Program.cs",
               "DocumentMoniker": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.API\\Program.cs",
               "RelativeDocumentMoniker": "src\\NoteWiz.API\\Program.cs",
               "ToolTip": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.API\\Program.cs",
               "RelativeToolTip": "src\\NoteWiz.API\\Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAmAAAAAAAAAA==",
+              "ViewState": "AgIAAH0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-30T21:39:15.71Z"
+              "WhenOpened": "2025-05-04T16:48:53.747Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "NotesController.cs",
+              "DocumentMoniker": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.API\\Controllers\\NotesController.cs",
+              "RelativeDocumentMoniker": "src\\NoteWiz.API\\Controllers\\NotesController.cs",
+              "ToolTip": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.API\\Controllers\\NotesController.cs",
+              "RelativeToolTip": "src\\NoteWiz.API\\Controllers\\NotesController.cs",
+              "ViewState": "AgIAADsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-04T16:48:09.411Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "FriendshipController.cs",
+              "DocumentMoniker": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.API\\Controllers\\FriendshipController.cs",
+              "RelativeDocumentMoniker": "src\\NoteWiz.API\\Controllers\\FriendshipController.cs",
+              "ToolTip": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.API\\Controllers\\FriendshipController.cs",
+              "RelativeToolTip": "src\\NoteWiz.API\\Controllers\\FriendshipController.cs",
+              "ViewState": "AgIAACoAAAAAAAAAAAAAABsAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-04T16:24:20.043Z",
+              "EditorCaption": ""
             }
           ]
         }

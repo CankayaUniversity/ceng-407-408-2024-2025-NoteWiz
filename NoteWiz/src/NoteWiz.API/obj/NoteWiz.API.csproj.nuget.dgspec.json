@@ -136,6 +136,9 @@
             "projectReferences": {
               "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj": {
                 "projectPath": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj"
+              },
+              "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\NoteWiz.Infrastructure.csproj": {
+                "projectPath": "D:\\codes\\NoteWiz_Github\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\NoteWiz.Infrastructure.csproj"
               }
             }
           }
@@ -310,7 +313,15 @@
               "target": "Package",
               "version": "[9.0.4, )"
             },
+            "Microsoft.Extensions.Configuration": {
+              "target": "Package",
+              "version": "[9.0.4, )"
+            },
             "Microsoft.Extensions.Configuration.Abstractions": {
+              "target": "Package",
+              "version": "[9.0.4, )"
+            },
+            "Microsoft.Extensions.Configuration.Json": {
               "target": "Package",
               "version": "[9.0.4, )"
             },

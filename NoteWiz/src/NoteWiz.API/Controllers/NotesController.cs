@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,10 +17,14 @@ namespace NoteWiz.API.Controllers
     public class NotesController : ControllerBase
     {
         private readonly INoteService _noteService;
+        private readonly IFriendshipService _friendshipService;
+        private readonly IUserService _userService;
 
-        public NotesController(INoteService noteService)
+        public NotesController(INoteService noteService, IFriendshipService friendshipService, IUserService userService)
         {
             _noteService = noteService;
+            _friendshipService = friendshipService;
+            _userService = userService;
         }
 
         [AllowAnonymous]
@@ -31,264 +37,346 @@ namespace NoteWiz.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<NoteResponseDTO>>> GetUserNotes()
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim?.Value == null)
-            {
-                return Unauthorized();
-            }
-            var userId = int.Parse(userIdClaim.Value);
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             var notes = await _noteService.GetUserNotesAsync(userId);
-            var noteDtos = notes.Select(n => new NoteResponseDTO
+            var noteDTOs = notes.Select(n => new NoteResponseDTO
             {
                 Id = n.Id,
                 Title = n.Title,
                 Content = n.Content,
-                Tags = n.Tags ?? new List<string>(),
-                Color = n.Color,
-                IsPinned = n.IsPinned,
-                UserId = n.UserId,
+                IsPrivate = n.IsPrivate,
+                Color = n.Color ?? "#FFFFFF",
                 CreatedAt = n.CreatedAt,
                 UpdatedAt = n.UpdatedAt,
-                SharedWith = n.SharedWith?.Select(s => new NoteShareResponseDTO
+                SharedWith = n.SharedWith?.Select(sw => new NoteShareResponseDTO
                 {
-                    Id = s.Id,
-                    NoteId = s.NoteId,
-                    SharedWithUserId = s.SharedWithUserId,
-                    SharedWithUserEmail = s.SharedWithUser?.Email ?? "Unknown",
-                    CanEdit = s.CanEdit,
-                    SharedAt = s.SharedAt,
-                    SharedWithUser = s.SharedWithUser != null ? new UserResponseDTO
+                    Id = sw.Id,
+                    NoteId = sw.NoteId,
+                    SharedWithUserId = sw.SharedWithUserId,
+                    SharedWithUserEmail = sw.SharedWithUser?.Email ?? string.Empty,
+                    CanEdit = sw.CanEdit,
+                    SharedAt = sw.SharedAt,
+                    SharedWithUser = sw.SharedWithUser != null ? new UserResponseDTO
                     {
-                        Id = s.SharedWithUser.Id,
-                        Username = s.SharedWithUser.Username,
-                        Email = s.SharedWithUser.Email,
-                        FullName = s.SharedWithUser.FullName,
-                        CreatedAt = s.SharedWithUser.CreatedAt
-                    } : null!
+                        Id = sw.SharedWithUser.Id,
+                        Username = sw.SharedWithUser.Username,
+                        Email = sw.SharedWithUser.Email,
+                        FullName = sw.SharedWithUser.FullName,
+                        CreatedAt = sw.SharedWithUser.CreatedAt
+                    } : new UserResponseDTO
+                    {
+                        Id = 0,
+                        Username = string.Empty,
+                        Email = string.Empty,
+                        FullName = string.Empty,
+                        CreatedAt = DateTime.MinValue
+                    }
                 }).ToList() ?? new List<NoteShareResponseDTO>()
             });
-            return Ok(noteDtos);
+            return Ok(noteDTOs);
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<NoteResponseDTO>> GetNote(int id)
+        [HttpGet("friends")]
+        public async Task<ActionResult<IEnumerable<NoteResponseDTO>>> GetFriendsNotes()
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim?.Value == null)
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var notes = await _noteService.GetFriendsNotesAsync(userId);
+            var noteDTOs = notes.Select(n => new NoteResponseDTO
             {
-                return Unauthorized();
-            }
-            var userId = int.Parse(userIdClaim.Value);
-            var note = await _noteService.GetNoteByIdAsync(id, userId);
-            
-            if (note == null)
-                return NotFound();
-
-            var noteDto = new NoteResponseDTO
-            {
-                Id = note.Id,
-                Title = note.Title,
-                Content = note.Content,
-                Tags = note.Tags ?? new List<string>(),
-                Color = note.Color,
-                IsPinned = note.IsPinned,
-                UserId = note.UserId,
-                CreatedAt = note.CreatedAt,
-                UpdatedAt = note.UpdatedAt,
-                SharedWith = note.SharedWith?.Select(s => new NoteShareResponseDTO
+                Id = n.Id,
+                Title = n.Title,
+                Content = n.Content,
+                IsPrivate = n.IsPrivate,
+                Color = n.Color ?? "#FFFFFF",
+                CreatedAt = n.CreatedAt,
+                UpdatedAt = n.UpdatedAt,
+                SharedWith = n.SharedWith?.Select(sw => new NoteShareResponseDTO
                 {
-                    Id = s.Id,
-                    NoteId = s.NoteId,
-                    SharedWithUserId = s.SharedWithUserId,
-                    SharedWithUserEmail = s.SharedWithUser?.Email ?? "Unknown",
-                    CanEdit = s.CanEdit,
-                    SharedAt = s.SharedAt,
-                    SharedWithUser = s.SharedWithUser != null ? new UserResponseDTO
+                    Id = sw.Id,
+                    NoteId = sw.NoteId,
+                    SharedWithUserId = sw.SharedWithUserId,
+                    SharedWithUserEmail = sw.SharedWithUser?.Email ?? string.Empty,
+                    CanEdit = sw.CanEdit,
+                    SharedAt = sw.SharedAt,
+                    SharedWithUser = sw.SharedWithUser != null ? new UserResponseDTO
                     {
-                        Id = s.SharedWithUser.Id,
-                        Username = s.SharedWithUser.Username,
-                        Email = s.SharedWithUser.Email,
-                        FullName = s.SharedWithUser.FullName,
-                        CreatedAt = s.SharedWithUser.CreatedAt
-                    } : null!
-                }).ToList() ?? new List<NoteShareResponseDTO>()
-            };
-
-            return Ok(noteDto);
-        }
-
-        [HttpPost]
-        public async Task<ActionResult<NoteResponseDTO>> CreateNote([FromBody] CreateNoteDTO dto)
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim?.Value == null)
-            {
-                return Unauthorized();
-            }
-            var userId = int.Parse(userIdClaim.Value);
-            
-            var note = new Note
-            {
-                Title = dto.Title,
-                Content = dto.Content,
-                Tags = dto.Tags ?? new List<string>(),
-                Color = dto.Color,
-                IsPinned = dto.IsPinned,
-                UserId = userId,
-                CreatedAt = DateTime.UtcNow
-            };
-            
-            var createdNote = await _noteService.CreateNoteAsync(note);
-            
-            var responseDto = new NoteResponseDTO
-            {
-                Id = createdNote.Id,
-                Title = createdNote.Title,
-                Content = createdNote.Content,
-                Tags = createdNote.Tags ?? new List<string>(),
-                Color = createdNote.Color,
-                IsPinned = createdNote.IsPinned,
-                UserId = createdNote.UserId,
-                CreatedAt = createdNote.CreatedAt,
-                UpdatedAt = createdNote.UpdatedAt,
-                SharedWith = new List<NoteShareResponseDTO>()
-            };
-
-            return CreatedAtAction(nameof(GetNote), new { id = responseDto.Id }, responseDto);
-        }
-
-        [HttpPut("{id}")]
-        public async Task<ActionResult<NoteResponseDTO>> UpdateNote(int id, [FromBody] UpdateNoteDTO dto)
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim?.Value == null)
-            {
-                return Unauthorized();
-            }
-            var userId = int.Parse(userIdClaim.Value);
-            
-            var existingNote = await _noteService.GetNoteByIdAsync(id, userId);
-            if (existingNote == null)
-                return NotFound();
-
-            existingNote.Title = dto.Title;
-            existingNote.Content = dto.Content;
-            existingNote.Tags = dto.Tags ?? new List<string>();
-            existingNote.Color = dto.Color;
-            existingNote.IsPinned = dto.IsPinned;
-            existingNote.UpdatedAt = DateTime.UtcNow;
-
-            var updatedNote = await _noteService.UpdateNoteAsync(existingNote);
-            
-            var responseDto = new NoteResponseDTO
-            {
-                Id = updatedNote.Id,
-                Title = updatedNote.Title,
-                Content = updatedNote.Content,
-                Tags = updatedNote.Tags ?? new List<string>(),
-                Color = updatedNote.Color,
-                IsPinned = updatedNote.IsPinned,
-                UserId = updatedNote.UserId,
-                CreatedAt = updatedNote.CreatedAt,
-                UpdatedAt = updatedNote.UpdatedAt,
-                SharedWith = updatedNote.SharedWith?.Select(s => new NoteShareResponseDTO
-                {
-                    Id = s.Id,
-                    NoteId = s.NoteId,
-                    SharedWithUserId = s.SharedWithUserId,
-                    SharedWithUserEmail = s.SharedWithUser?.Email ?? "Unknown",
-                    CanEdit = s.CanEdit,
-                    SharedAt = s.SharedAt,
-                    SharedWithUser = s.SharedWithUser != null ? new UserResponseDTO
+                        Id = sw.SharedWithUser.Id,
+                        Username = sw.SharedWithUser.Username,
+                        Email = sw.SharedWithUser.Email,
+                        FullName = sw.SharedWithUser.FullName,
+                        CreatedAt = sw.SharedWithUser.CreatedAt
+                    } : new UserResponseDTO
                     {
-                        Id = s.SharedWithUser.Id,
-                        Username = s.SharedWithUser.Username,
-                        Email = s.SharedWithUser.Email,
-                        FullName = s.SharedWithUser.FullName,
-                        CreatedAt = s.SharedWithUser.CreatedAt
-                    } : null!
+                        Id = 0,
+                        Username = string.Empty,
+                        Email = string.Empty,
+                        FullName = string.Empty,
+                        CreatedAt = DateTime.MinValue
+                    }
                 }).ToList() ?? new List<NoteShareResponseDTO>()
-            };
-
-            return Ok(responseDto);
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteNote(int id)
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim?.Value == null)
-            {
-                return Unauthorized();
-            }
-            var userId = int.Parse(userIdClaim.Value);
-            var success = await _noteService.DeleteNoteAsync(id, userId);
-            
-            if (!success)
-                return NotFound();
-
-            return NoContent();
-        }
-
-        [HttpPost("{id}/share")]
-        public async Task<IActionResult> ShareNote(int id, [FromBody] NoteShareDTO dto)
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim?.Value == null)
-            {
-                return Unauthorized();
-            }
-            var userId = int.Parse(userIdClaim.Value);
-            var success = await _noteService.ShareNoteAsync(id, userId, dto.SharedWithUserId, dto.CanEdit);
-            
-            if (!success)
-                return NotFound();
-
-            return Ok();
+            });
+            return Ok(noteDTOs);
         }
 
         [HttpGet("shared")]
         public async Task<ActionResult<IEnumerable<NoteResponseDTO>>> GetSharedNotes()
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim?.Value == null)
-            {
-                return Unauthorized();
-            }
-            var userId = int.Parse(userIdClaim.Value);
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             var notes = await _noteService.GetSharedNotesAsync(userId);
-            
-            var noteDtos = notes.Select(n => new NoteResponseDTO
+            var noteDTOs = notes.Select(n => new NoteResponseDTO
             {
                 Id = n.Id,
                 Title = n.Title,
                 Content = n.Content,
-                Tags = n.Tags ?? new List<string>(),
-                Color = n.Color,
-                IsPinned = n.IsPinned,
-                UserId = n.UserId,
+                IsPrivate = n.IsPrivate,
+                Color = n.Color ?? "#FFFFFF",
                 CreatedAt = n.CreatedAt,
                 UpdatedAt = n.UpdatedAt,
-                SharedWith = n.SharedWith?.Select(s => new NoteShareResponseDTO
+                SharedWith = n.SharedWith?.Select(sw => new NoteShareResponseDTO
                 {
-                    Id = s.Id,
-                    NoteId = s.NoteId,
-                    SharedWithUserId = s.SharedWithUserId,
-                    SharedWithUserEmail = s.SharedWithUser?.Email ?? "Unknown",
-                    CanEdit = s.CanEdit,
-                    SharedAt = s.SharedAt,
-                    SharedWithUser = s.SharedWithUser != null ? new UserResponseDTO
+                    Id = sw.Id,
+                    NoteId = sw.NoteId,
+                    SharedWithUserId = sw.SharedWithUserId,
+                    SharedWithUserEmail = sw.SharedWithUser?.Email ?? string.Empty,
+                    CanEdit = sw.CanEdit,
+                    SharedAt = sw.SharedAt,
+                    SharedWithUser = sw.SharedWithUser != null ? new UserResponseDTO
                     {
-                        Id = s.SharedWithUser.Id,
-                        Username = s.SharedWithUser.Username,
-                        Email = s.SharedWithUser.Email,
-                        FullName = s.SharedWithUser.FullName,
-                        CreatedAt = s.SharedWithUser.CreatedAt
-                    } : null!
+                        Id = sw.SharedWithUser.Id,
+                        Username = sw.SharedWithUser.Username,
+                        Email = sw.SharedWithUser.Email,
+                        FullName = sw.SharedWithUser.FullName,
+                        CreatedAt = sw.SharedWithUser.CreatedAt
+                    } : new UserResponseDTO
+                    {
+                        Id = 0,
+                        Username = string.Empty,
+                        Email = string.Empty,
+                        FullName = string.Empty,
+                        CreatedAt = DateTime.MinValue
+                    }
                 }).ToList() ?? new List<NoteShareResponseDTO>()
             });
+            return Ok(noteDTOs);
+        }
 
-            return Ok(noteDtos);
+        [HttpGet("{id}")]
+        public async Task<ActionResult<NoteResponseDTO>> GetNote(int id)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var note = await _noteService.GetNoteByIdAsync(id);
+
+            if (note == null)
+                return NotFound();
+
+            if (note.UserId != userId && note.IsPrivate)
+            {
+                var shares = await _noteService.GetNoteSharesAsync(id, userId);
+                if (!shares.Any())
+                    return Forbid();
+            }
+
+            return Ok(new NoteResponseDTO
+            {
+                Id = note.Id,
+                Title = note.Title,
+                Content = note.Content,
+                IsPrivate = note.IsPrivate,
+                Color = note.Color ?? "#FFFFFF",
+                CreatedAt = note.CreatedAt,
+                UpdatedAt = note.UpdatedAt,
+                SharedWith = note.SharedWith?.Select(sw => new NoteShareResponseDTO
+                {
+                    Id = sw.Id,
+                    NoteId = sw.NoteId,
+                    SharedWithUserId = sw.SharedWithUserId,
+                    SharedWithUserEmail = sw.SharedWithUser?.Email ?? string.Empty,
+                    CanEdit = sw.CanEdit,
+                    SharedAt = sw.SharedAt,
+                    SharedWithUser = sw.SharedWithUser != null ? new UserResponseDTO
+                    {
+                        Id = sw.SharedWithUser.Id,
+                        Username = sw.SharedWithUser.Username,
+                        Email = sw.SharedWithUser.Email,
+                        FullName = sw.SharedWithUser.FullName,
+                        CreatedAt = sw.SharedWithUser.CreatedAt
+                    } : new UserResponseDTO
+                    {
+                        Id = 0,
+                        Username = string.Empty,
+                        Email = string.Empty,
+                        FullName = string.Empty,
+                        CreatedAt = DateTime.MinValue
+                    }
+                }).ToList() ?? new List<NoteShareResponseDTO>()
+            });
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<NoteResponseDTO>> CreateNote(NoteCreateDTO noteDTO)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var note = new Note
+            {
+                Title = noteDTO.Title,
+                Content = noteDTO.Content,
+                IsPrivate = noteDTO.IsPrivate,
+                UserId = userId,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            note = await _noteService.CreateNoteAsync(note);
+
+            return CreatedAtAction(nameof(GetNote), new { id = note.Id }, new NoteResponseDTO
+            {
+                Id = note.Id,
+                Title = note.Title,
+                Content = note.Content,
+                IsPrivate = note.IsPrivate,
+                Color = note.Color ?? "#FFFFFF",
+                CreatedAt = note.CreatedAt,
+                UpdatedAt = note.UpdatedAt,
+                SharedWith = note.SharedWith?.Select(sw => new NoteShareResponseDTO
+                {
+                    Id = sw.Id,
+                    NoteId = sw.NoteId,
+                    SharedWithUserId = sw.SharedWithUserId,
+                    SharedWithUserEmail = sw.SharedWithUser?.Email ?? string.Empty,
+                    CanEdit = sw.CanEdit,
+                    SharedAt = sw.SharedAt,
+                    SharedWithUser = sw.SharedWithUser != null ? new UserResponseDTO
+                    {
+                        Id = sw.SharedWithUser.Id,
+                        Username = sw.SharedWithUser.Username,
+                        Email = sw.SharedWithUser.Email,
+                        FullName = sw.SharedWithUser.FullName,
+                        CreatedAt = sw.SharedWithUser.CreatedAt
+                    } : new UserResponseDTO
+                    {
+                        Id = 0,
+                        Username = string.Empty,
+                        Email = string.Empty,
+                        FullName = string.Empty,
+                        CreatedAt = DateTime.MinValue
+                    }
+                }).ToList() ?? new List<NoteShareResponseDTO>()
+            });
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<NoteResponseDTO>> UpdateNote(int id, NoteUpdateDTO noteDTO)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var note = await _noteService.GetNoteByIdAsync(id);
+
+            if (note == null)
+                return NotFound();
+
+            if (note.UserId != userId)
+            {
+                var shares = await _noteService.GetNoteSharesAsync(id, userId);
+                if (!shares.Any(s => s.CanEdit))
+                    return Forbid();
+            }
+
+            note.Title = noteDTO.Title;
+            note.Content = noteDTO.Content;
+            note.IsPrivate = noteDTO.IsPrivate;
+            note.UpdatedAt = DateTime.UtcNow;
+
+            note = await _noteService.UpdateNoteAsync(note);
+
+            return Ok(new NoteResponseDTO
+            {
+                Id = note.Id,
+                Title = note.Title,
+                Content = note.Content,
+                IsPrivate = note.IsPrivate,
+                Color = note.Color ?? "#FFFFFF",
+                CreatedAt = note.CreatedAt,
+                UpdatedAt = note.UpdatedAt,
+                SharedWith = note.SharedWith?.Select(sw => new NoteShareResponseDTO
+                {
+                    Id = sw.Id,
+                    NoteId = sw.NoteId,
+                    SharedWithUserId = sw.SharedWithUserId,
+                    SharedWithUserEmail = sw.SharedWithUser?.Email ?? string.Empty,
+                    CanEdit = sw.CanEdit,
+                    SharedAt = sw.SharedAt,
+                    SharedWithUser = sw.SharedWithUser != null ? new UserResponseDTO
+                    {
+                        Id = sw.SharedWithUser.Id,
+                        Username = sw.SharedWithUser.Username,
+                        Email = sw.SharedWithUser.Email,
+                        FullName = sw.SharedWithUser.FullName,
+                        CreatedAt = sw.SharedWithUser.CreatedAt
+                    } : new UserResponseDTO
+                    {
+                        Id = 0,
+                        Username = string.Empty,
+                        Email = string.Empty,
+                        FullName = string.Empty,
+                        CreatedAt = DateTime.MinValue
+                    }
+                }).ToList() ?? new List<NoteShareResponseDTO>()
+            });
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteNote(int id)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var note = await _noteService.GetNoteByIdAsync(id);
+
+            if (note == null)
+                return NotFound();
+
+            if (note.UserId != userId)
+                return Forbid();
+
+            await _noteService.DeleteNoteAsync(note);
+
+            return NoContent();
+        }
+
+        [HttpPost("{id}/share")]
+        public async Task<ActionResult<NoteShareResponseDTO>> ShareNote(int id, NoteShareCreateDTO shareDTO)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var note = await _noteService.GetNoteByIdAsync(id);
+
+            if (note == null)
+                return NotFound();
+
+            if (note.UserId != userId)
+                return Forbid();
+
+            var sharedWithUser = await _userService.GetUserByEmailAsync(shareDTO.SharedWithUserEmail);
+            if (sharedWithUser == null)
+                return BadRequest("User not found");
+
+            await _noteService.ShareNoteAsync(note, sharedWithUser.Id, shareDTO.CanEdit);
+
+            var shares = await _noteService.GetNoteSharesAsync(id, sharedWithUser.Id);
+            var share = shares.First();
+
+            return Ok(new NoteShareResponseDTO
+            {
+                Id = share.Id,
+                NoteId = share.NoteId,
+                SharedWithUserId = share.SharedWithUserId,
+                SharedWithUserEmail = sharedWithUser.Email,
+                CanEdit = share.CanEdit,
+                SharedAt = share.SharedAt,
+                SharedWithUser = new UserResponseDTO
+                {
+                    Id = sharedWithUser.Id,
+                    Username = sharedWithUser.Username,
+                    Email = sharedWithUser.Email,
+                    FullName = sharedWithUser.FullName,
+                    CreatedAt = sharedWithUser.CreatedAt
+                }
+            });
         }
     }
 } 

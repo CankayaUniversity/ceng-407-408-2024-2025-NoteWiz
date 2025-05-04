@@ -107,10 +107,26 @@ builder.Services.AddDbContext<NoteWizDbContext>(options =>
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<INoteRepository, NoteRepository>();
+builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+builder.Services.AddScoped<IDocumentUploadRepository, DocumentUploadRepository>();
+builder.Services.AddScoped<IAuthTokenRepository, AuthTokenRepository>();
+builder.Services.AddScoped<IUserDeviceRepository, UserDeviceRepository>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<IFriendshipRepository, FriendshipRepository>();
+builder.Services.AddScoped<IFriendshipRequestRepository, FriendshipRequestRepository>();
+builder.Services.AddScoped<INoteShareRepository, NoteShareRepository>();
+
+// Register UnitOfWork
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Register services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<INoteService, NoteService>();
+builder.Services.AddScoped<IFriendshipService, FriendshipService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddScoped<IDocumentUploadService, DocumentUploadService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // Add JWT Authentication
 builder.Services.AddAuthentication(options =>

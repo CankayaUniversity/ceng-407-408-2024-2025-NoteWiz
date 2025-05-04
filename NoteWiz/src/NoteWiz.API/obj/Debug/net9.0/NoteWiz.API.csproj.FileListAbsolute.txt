@@ -360,3 +360,10 @@ D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.API\o
 D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.API\obj\Debug\net9.0\NoteWiz.API.pdb
 D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.API\obj\Debug\net9.0\NoteWiz.API.genruntimeconfig.cache
 D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.API\obj\Debug\net9.0\ref\NoteWiz.API.dll
+D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.API\bin\Debug\net9.0\Microsoft.Extensions.Configuration.dll
+D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.API\bin\Debug\net9.0\Microsoft.Extensions.Configuration.FileExtensions.dll
+D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.API\bin\Debug\net9.0\Microsoft.Extensions.Configuration.Json.dll
+D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.API\bin\Debug\net9.0\Microsoft.Extensions.FileProviders.Abstractions.dll
+D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.API\bin\Debug\net9.0\Microsoft.Extensions.FileProviders.Physical.dll
+D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.API\bin\Debug\net9.0\Microsoft.Extensions.FileSystemGlobbing.dll
+D:\codes\NoteWiz_Github\ceng-407-408-2024-2025-NoteWiz\NoteWiz\src\NoteWiz.API\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
