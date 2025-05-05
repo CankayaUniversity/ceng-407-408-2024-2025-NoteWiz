@@ -7,6 +7,7 @@ import { StatusBar, Platform } from 'react-native';
 import { COLORS, SHADOWS } from './src/constants/theme';
 import notifee from '@notifee/react-native';
 import { NoteProvider } from './src/contexts/NoteContext';
+import ApiDiagnostic from './src/components/debug/ApiDiagnostic';
 
 // Screens
 import WelcomeScreen from './src/screens/WelcomeScreen';
@@ -188,6 +189,18 @@ const App = () => {
                         options={{
                           headerShown: true,
                           headerTitle: 'Takvim',
+                          headerStyle: {
+                            backgroundColor: COLORS.background.default,
+                          },
+                          headerTintColor: COLORS.primary.main,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="Diagnostic"
+                        component={ApiDiagnostic}
+                        options={{
+                          headerShown: true,
+                          headerTitle: 'API Tanılama',
                           headerStyle: {
                             backgroundColor: COLORS.background.default,
                           },

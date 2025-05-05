@@ -30,6 +30,7 @@ export type RootStackParamList = {
   ShareNote: {
     noteId: number;
   };
+  Diagnostic: undefined;
 };
 
 export type RootStackScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<

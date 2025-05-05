@@ -1,63 +1,33 @@
 // src/services/openai.ts
 import axios from 'axios';
-import { OPENAI_API_KEY } from '@env';
+import { noteService } from '../services/noteService'; // veya api
+import { Alert } from 'react-native';
 
-/** 
- * Metin özeti almak için 
+const API_BASE_URL = 'http://localhost:5263/api/ai'; // Adjust if needed
+
+/**
+ * Genel AI fonksiyonu: prompt gönderir
  */
-export const getSummary = async (text: string) => {
+export const askAI = async (prompt: string) => {
   try {
-    const response = await axios.post(
-      'https://api.openai.com/v1/chat/completions',
-      {
-        model: 'gpt-3.5-turbo',
-        messages: [
-          { role: 'system', content: 'You are a helpful assistant that summarizes text.' },
-          { role: 'user', content: `Lütfen şu metni özetle: "${text}"` },
-        ],
-        temperature: 0.7,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-        },
-      }
-    );
-    const aiMessage = response.data.choices[0].message?.content;
-    return aiMessage; // null olabilir, string olabilir
+    const response = await axios.post(`${API_BASE_URL}/ask`, { prompt });
+    return response.data.response;
   } catch (error) {
-    console.error('getSummary error:', error);
+    console.error('askAI error:', error);
     throw error;
   }
 };
 
 /**
- * Örnek: farklı bir fonksiyon, 'düzelt' veya 'yeniden yaz' gibi
+ * Metin özeti almak için
+ */
+export const getSummary = async (text: string) => {
+  return askAI(`Lütfen şu metni özetle: \"${text}\"`);
+};
+
+/**
+ * Metni yeniden yazmak için
  */
 export const rewriteText = async (text: string) => {
-  try {
-    const response = await axios.post(
-      'https://api.openai.com/v1/chat/completions',
-      {
-        model: 'gpt-3.5-turbo',
-        messages: [
-          { role: 'system', content: 'Rewrite or rephrase the user text in a better way.' },
-          { role: 'user', content: text },
-        ],
-        temperature: 0.7,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-        },
-      }
-    );
-    const aiMessage = response.data.choices[0].message?.content;
-    return aiMessage;
-  } catch (error) {
-    console.error('rewriteText error:', error);
-    throw error;
-  }
+  return askAI(`Lütfen bu metni daha iyi bir şekilde yeniden yaz: ${text}`);
 };

@@ -1,5 +1,5 @@
 // src/screens/SettingsScreen.tsx
-import React, { FC } from 'react';
+import React, { FC, useState } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   SafeAreaView,
   Platform,
   StatusBar,
+  TextInput,
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -22,8 +23,9 @@ import {
   StarIcon,
   CloudIcon,
   TimeIcon,
-  IconProps,
+  IconProps
 } from '../components/icons';
+import { getSummary, rewriteText } from '../services/openai';
 
 type SettingsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -40,6 +42,10 @@ const SettingsScreen: FC = () => {
   const { theme, toggleTheme } = useTheme();
   const navigation = useNavigation<SettingsScreenNavigationProp>();
   const [isDarkMode, setIsDarkMode] = React.useState(theme === 'dark');
+  const [aiModalVisible, setAiModalVisible] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiResponse, setAiResponse] = useState('');
+  const [selectedText, setSelectedText] = useState('');
 
   const handleLogout = async () => {
     Alert.alert(
@@ -178,6 +184,14 @@ const SettingsScreen: FC = () => {
               />
             }
           />
+          <MenuItem
+            icon={SettingsIcon} // Farklı bir icon da kullanabilirsiniz
+            title="API Tanılama"
+            subtitle="Bağlantı sorunlarını tespit edin"
+            onPress={() => navigation.navigate('Diagnostic')}
+            rightElement={null}
+          />
+
         </View>
 
         <TouchableOpacity 
@@ -190,6 +204,16 @@ const SettingsScreen: FC = () => {
         <View style={styles.versionContainer}>
           <Text style={styles.versionText}>NoteWiz v1.0.0</Text>
         </View>
+
+        <TouchableOpacity
+          style={{ backgroundColor: '#4C6EF5', padding: 12, borderRadius: 8, margin: 16, alignItems: 'center' }}
+          onPress={() => {
+            setAiPrompt(selectedText || '');
+            setAiModalVisible(true);
+          }}
+        >
+          <Text style={{ color: '#FFF', fontWeight: 'bold' }}>AI'ye Soru Sor</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );

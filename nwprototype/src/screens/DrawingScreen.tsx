@@ -30,9 +30,6 @@ import { DrawingToolbar } from '../components/drawing/DrawingToolbar';
 import { DrawingTools } from '../components/drawing/DrawingTools';
 import { ColorPicker } from '../components/drawing/ColorPicker';
 
-// AI fonksiyonlarımız
-import { getSummary, rewriteText } from '../services/openai';
-
 import { COLORS, SHADOWS, SPACING } from '../constants/theme';
 import Animated, { useSharedValue } from 'react-native-reanimated';
 
@@ -55,7 +52,6 @@ interface TextNoteItem {
   content: string;
   x: number;
   y: number;
-  aiResponses: string[];
 }
 
 type DrawingScreenRouteProp = RouteProp<RootStackParamList, 'Drawing'>;
@@ -158,7 +154,6 @@ const DrawingScreen: React.FC = () => {
       content: 'Yeni not',
       x: width / 2 - 50, // ortalarda bir yer
       y: height / 2 - 50,
-      aiResponses: [],
     };
     setTextNotes((prev) => [...prev, newNote]);
   };
@@ -179,70 +174,6 @@ const DrawingScreen: React.FC = () => {
     );
     setEditingNote(null);
     setTempContent('');
-  };
-
-  // AI ÖZET
-  const handleAISummary = async () => {
-    if (!editingNote) return;
-    try {
-      if (!tempContent.trim()) {
-        Alert.alert('Uyarı', 'Not içeriği boş');
-        return;
-      }
-      const summary = await getSummary(tempContent);
-      if (summary) {
-        // Bu summary'i notun aiResponses dizisine ekliyoruz
-        setTextNotes((prev) =>
-          prev.map((item) => {
-            if (item.id === editingNote.id) {
-              return {
-                ...item,
-                aiResponses: [...item.aiResponses, `Özet:\n${summary}`],
-              };
-            }
-            return item;
-          })
-        );
-        Alert.alert('AI', 'Özet eklendi, notun altına kaydedildi.');
-      } else {
-        Alert.alert('AI', 'Özet boş döndü.');
-      }
-    } catch (error) {
-      console.error('AI error:', error);
-      Alert.alert('Hata', 'AI isteğinde hata oluştu.');
-    }
-  };
-
-  // Diğer AI özelliği (örnek: rewrite)
-  const handleAIRewrite = async () => {
-    if (!editingNote) return;
-    try {
-      if (!tempContent.trim()) {
-        Alert.alert('Uyarı', 'Not içeriği boş');
-        return;
-      }
-      const result = await rewriteText(tempContent);
-      if (result) {
-        // Bunu da aiResponses dizisine ekleyelim
-        setTextNotes((prev) =>
-          prev.map((item) => {
-            if (item.id === editingNote.id) {
-              return {
-                ...item,
-                aiResponses: [...item.aiResponses, `Rewrite:\n${result}`],
-              };
-            }
-            return item;
-          })
-        );
-        Alert.alert('AI', 'Rewrite sonucu eklendi.');
-      } else {
-        Alert.alert('AI', 'Rewrite boş döndü.');
-      }
-    } catch (error) {
-      console.error('AI rewrite error:', error);
-      Alert.alert('Hata', 'AI rewrite isteğinde hata oluştu.');
-    }
   };
 
   return (
@@ -302,12 +233,6 @@ const DrawingScreen: React.FC = () => {
               activeOpacity={0.8}
             >
               <Text style={styles.noteText}>{note.content}</Text>
-              {/* AI cevaplarını da altına koyabiliriz */}
-              {note.aiResponses.map((resp, i) => (
-                <Text key={i} style={styles.aiResponse}>
-                  {resp}
-                </Text>
-              ))}
             </TouchableOpacity>
           ))}
         </View>
@@ -350,21 +275,13 @@ const DrawingScreen: React.FC = () => {
       >
         <View style={styles.modalBackdrop}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Not Düzenle / AI</Text>
+            <Text style={styles.modalTitle}>Not Düzenle</Text>
             <TextInput
               style={styles.modalInput}
               multiline
               value={tempContent}
               onChangeText={setTempContent}
             />
-            <ScrollView horizontal style={{ marginVertical: 8 }}>
-              <TouchableOpacity style={styles.aiButton} onPress={handleAISummary}>
-                <Text style={styles.aiButtonText}>Özetle</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.aiButton} onPress={handleAIRewrite}>
-                <Text style={styles.aiButtonText}>Rewrite</Text>
-              </TouchableOpacity>
-            </ScrollView>
 
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.saveButton} onPress={saveNoteEdits}>
@@ -435,14 +352,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
   },
-  aiResponse: {
-    marginTop: 4,
-    fontSize: 12,
-    color: '#666',
-    borderTopWidth: 0.5,
-    borderTopColor: '#ccc',
-    paddingTop: 2,
-  },
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
@@ -471,19 +380,6 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     fontSize: 14,
     color: '#333',
-  },
-  aiButton: {
-    backgroundColor: '#12B886',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    marginRight: 12,
-    marginTop: 8,
-  },
-  aiButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
   },
   modalButtons: {
     flexDirection: 'row',

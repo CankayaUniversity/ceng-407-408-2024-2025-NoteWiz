@@ -30,6 +30,7 @@ import { COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '../constants/theme';
 import NoteCoverPicker from '../components/notes/NotesCoverPicker';
 import { notesService } from '../services/api';
 import { UpdateNoteDto } from '../types/note';
+import { askAI, getSummary, rewriteText } from '../services/openai';
 
 const CATEGORIES = [
   'Work',
@@ -85,6 +86,12 @@ const NoteDetailScreen = () => {
 
   // UI states
   const [showMoreOptions, setShowMoreOptions] = useState(false);
+
+  // AI related state
+  const [aiModalVisible, setAiModalVisible] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiResponse, setAiResponse] = useState('');
+  const [selectedText, setSelectedText] = useState('');
 
   // PDF Viewer Component
   const PdfViewer = ({ uri }: { uri: string }) => {
@@ -451,8 +458,27 @@ const handleSave = async () => {
             onChangeText={setContent}
             multiline
             textAlignVertical="top"
+            onSelectionChange={e => {
+              const { start, end } = e.nativeEvent.selection;
+              if (start !== end) {
+                setSelectedText(content.substring(start, end));
+              } else {
+                setSelectedText('');
+              }
+            }}
           />
         )}
+        
+        {/* AI'ye Soru Sor Butonu */}
+        <TouchableOpacity
+          style={{ backgroundColor: '#4C6EF5', padding: 12, borderRadius: 8, margin: 16, alignItems: 'center' }}
+          onPress={() => {
+            setAiPrompt(selectedText || '');
+            setAiModalVisible(true);
+          }}
+        >
+          <Text style={{ color: '#FFF', fontWeight: 'bold' }}>AI'ye Soru Sor</Text>
+        </TouchableOpacity>
         
         {/* PDF mode switch button */}
         {isPdf && (
@@ -522,6 +548,55 @@ const handleSave = async () => {
         onSelectCover={handleCoverSelect}
         selectedCoverId={coverImage ? 'custom' : 'none'}
       />
+
+      {/* AI Modal */}
+      <Modal visible={aiModalVisible} transparent animationType="slide">
+        <View style={{
+          flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.4)'
+        }}>
+          <View style={{ backgroundColor: '#FFF', borderRadius: 12, padding: 20, width: '80%' }}>
+            <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 8 }}>AI'ye Soru Sor</Text>
+            <TextInput
+              value={aiPrompt}
+              onChangeText={setAiPrompt}
+              placeholder="AI'ye sorulacak metni girin"
+              style={{ borderWidth: 1, borderColor: '#E5E5E5', borderRadius: 8, padding: 8, minHeight: 60, marginBottom: 12 }}
+              multiline
+            />
+            <TouchableOpacity
+              style={{ backgroundColor: '#12B886', borderRadius: 8, padding: 12, alignItems: 'center', marginBottom: 8 }}
+              onPress={async () => {
+                const result = await askAI(aiPrompt);
+                setAiResponse(result);
+              }}
+            >
+              <Text style={{ color: '#FFF', fontWeight: 'bold' }}>AI'ye Sor</Text>
+            </TouchableOpacity>
+            {aiResponse ? (
+              <>
+                <Text style={{ fontWeight: 'bold', marginTop: 8 }}>Cevap:</Text>
+                <Text style={{ marginVertical: 8 }}>{aiResponse}</Text>
+                <TouchableOpacity
+                  style={{ backgroundColor: '#4C6EF5', borderRadius: 8, padding: 10, alignItems: 'center', marginBottom: 8 }}
+                  onPress={() => {
+                    setContent(content + '\n' + aiResponse);
+                    setAiModalVisible(false);
+                    setAiResponse('');
+                  }}
+                >
+                  <Text style={{ color: '#FFF' }}>Notuma Ekle</Text>
+                </TouchableOpacity>
+              </>
+            ) : null}
+            <TouchableOpacity
+              style={{ backgroundColor: '#868E96', borderRadius: 8, padding: 10, alignItems: 'center' }}
+              onPress={() => setAiModalVisible(false)}
+            >
+              <Text style={{ color: '#FFF' }}>Kapat</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };

@@ -2,7 +2,7 @@ import React from 'react';
 import Svg, { Path, Circle, G, Rect, Polyline } from 'react-native-svg';
 import { StyleProp, ViewStyle } from 'react-native';
 
-interface IconProps {
+export interface IconProps {
   size?: number;
   color?: string;
   style?: StyleProp<ViewStyle>;
