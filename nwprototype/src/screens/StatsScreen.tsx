@@ -10,7 +10,7 @@ import {
   StatusBar,
   Dimensions,
 } from 'react-native';
-import { useNotes } from '../contexts/NotesContext';
+import { useNotes } from '../contexts/NoteContext';
 import Animated, {
   FadeInDown,
   Layout,
@@ -40,9 +40,12 @@ const StatsScreen = () => {
 
     // Category-based statistics
     const categoryStats = notes.reduce((acc, note) => {
-      acc[note.category] = (acc[note.category] || 0) + 1;
+      // Fix: Check if category exists and is a string before using as an index
+      if (note.category && typeof note.category === 'string') {
+        acc[note.category] = (acc[note.category] || 0) + 1;
+      }
       return acc;
-    }, {} as { [key: string]: number });
+    }, {} as Record<string, number>);
 
     // Time-based statistics
     const today = new Date();
@@ -71,12 +74,31 @@ const StatsScreen = () => {
   }, [notes]);
 
   const renderCategoryStats = () => {
+    // Fix: Handle the case where there are no notes
+    if (stats.totalNotes === 0) {
+      return (
+        <Animated.View entering={FadeInDown.delay(100)}>
+          <Text style={styles.emptyStateText}>No notes available to analyze</Text>
+        </Animated.View>
+      );
+    }
+
     const categories = Object.entries(stats.categoryStats).sort((a, b) => b[1] - a[1]);
-    const maxValue = Math.max(...categories.map(([_, value]) => value));
+    const maxValue = categories.length > 0 
+      ? Math.max(...categories.map(([_, value]) => value))
+      : 0;
     
     return categories.map(([category, count], index) => {
-      const percentage = (count / stats.totalNotes) * 100;
-      const barWidth = (count / maxValue) * 100;
+      const percentage = stats.totalNotes > 0 
+        ? (count / stats.totalNotes) * 100
+        : 0;
+      const barWidth = maxValue > 0 
+        ? (count / maxValue) * 100
+        : 0;
+      
+      // Get the color with a safe type assertion
+      const categoryColor = 
+        (CATEGORY_COLORS as Record<string, string>)[category] || '#868E96';
       
       return (
         <Animated.View
@@ -85,7 +107,7 @@ const StatsScreen = () => {
           style={styles.categoryItem}
         >
           <View style={styles.categoryHeader}>
-            <View style={[styles.categoryDot, { backgroundColor: CATEGORY_COLORS[category as keyof typeof CATEGORY_COLORS] || '#868E96' }]} />
+            <View style={[styles.categoryDot, { backgroundColor: categoryColor }]} />
             <Text style={styles.categoryName}>{category}</Text>
             <Text style={styles.categoryCount}>{count} notes</Text>
             <Text style={styles.categoryPercentage}>{percentage.toFixed(1)}%</Text>
@@ -96,7 +118,7 @@ const StatsScreen = () => {
                 styles.bar,
                 { 
                   width: `${barWidth}%`,
-                  backgroundColor: CATEGORY_COLORS[category as keyof typeof CATEGORY_COLORS] || '#868E96'
+                  backgroundColor: categoryColor
                 }
               ]} 
             />
@@ -321,6 +343,12 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: 32,
+  },
+  emptyStateText: {
+    textAlign: 'center',
+    color: '#666666',
+    fontSize: 16,
+    paddingVertical: 20,
   },
 });
 

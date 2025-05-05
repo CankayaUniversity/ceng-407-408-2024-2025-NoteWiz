@@ -6,8 +6,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar, Platform } from 'react-native';
 import { COLORS, SHADOWS } from './src/constants/theme';
 import notifee from '@notifee/react-native';
-import firestore from '@react-native-firebase/firestore';
-import auth from '@react-native-firebase/auth'; // Make sure this import is included
+import { NoteProvider } from './src/contexts/NoteContext';
+
 // Screens
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import AuthScreen from './src/screens/AuthScreen';
@@ -19,7 +19,8 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import DrawingScreen from './src/screens/DrawingScreen';
 import TasksScreen from './src/screens/TasksScreen';
 import TaskDetailScreen from './src/screens/TaskDetailScreen';
-import CalendarScreen from './src/screens/CalendarScreen'; // Yeni eklenen ekran
+import CalendarScreen from './src/screens/CalendarScreen';
+import DocumentUploadScreen from './src/screens/DocumentUploadScreen';
 
 // Types
 import { RootStackParamList, MainTabParamList } from './src/types/navigation';
@@ -31,15 +32,15 @@ import {
   SettingsIcon,
   StarIcon,
   TaskIcon,
-  CalendarIcon, // Yeni ikon eklemeniz gerekebilir
+  CalendarIcon,
 } from './src/components/icons';
 
 // Contexts
 import { ThemeProvider } from './src/contexts/ThemeContext';
 import { AuthProvider } from './src/contexts/AuthContext';
 import { CategoriesProvider } from './src/contexts/CategoriesContext';
-import { NotesProvider } from './src/contexts/NotesContext';
 import { TaskProvider } from './src/contexts/TaskContext';
+import { NotificationProvider } from './src/contexts/NotificationContext';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -67,7 +68,7 @@ const TabNavigator = () => {
           }
         },
         tabBarActiveTintColor: COLORS.primary.main,
-        tabBarInactiveTintColor: COLORS.neutral[400],
+        tabBarInactiveTintColor: COLORS.text.secondary,
         headerShown: false,
         tabBarStyle: {
           backgroundColor: COLORS.background.paper,
@@ -101,19 +102,9 @@ const TabNavigator = () => {
 };
 
 const App = () => {
-  const [user, setUser] = useState<any | null>(null);  // Initialize user state here
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    firestore()
-      .clearPersistence()
-      .then(() => {
-        console.log('Cache temizlendi ve yeni kurallar uygulanabilir');
-      })
-      .catch((error) => {
-        console.error('Cache temizlenirken bir hata oluştu:', error);
-      });
-
     const checkNotificationPermission = async () => {
       const settings = await notifee.requestPermission();
 
@@ -125,45 +116,7 @@ const App = () => {
     };
 
     checkNotificationPermission();
-
-    const unsubscribe = auth().onAuthStateChanged(async (firebaseUser) => {
-      if (firebaseUser) {
-        const userDoc = await firestore()
-          .collection('users')
-          .doc(firebaseUser.uid)
-          .get();
-
-        if (userDoc.exists) {
-          const userData = userDoc.data();
-          setUser({
-            id: firebaseUser.uid,
-            email: firebaseUser.email || '',
-            fullName: userData?.fullName || '',
-          });
-        } else {
-          const userData = {
-            email: firebaseUser.email,
-            fullName: firebaseUser.displayName || '',
-            createdAt: firestore.FieldValue.serverTimestamp(),
-          };
-          await firestore()
-            .collection('users')
-            .doc(firebaseUser.uid)
-            .set(userData);
-
-          setUser({
-            id: firebaseUser.uid,
-            email: firebaseUser.email || '',
-            fullName: firebaseUser.displayName || '',
-          });
-        }
-      } else {
-        setUser(null);
-      }
-      setIsLoading(false);
-    });
-
-    return () => unsubscribe();
+    setIsLoading(false);
   }, []);
 
   return (
@@ -171,66 +124,82 @@ const App = () => {
       <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
       <ThemeProvider>
         <AuthProvider>
-          <CategoriesProvider>
-            <NotesProvider>
-              <TaskProvider>
-                <NavigationContainer>
-                  <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
-                    <Stack.Screen name="Welcome" component={WelcomeScreen} />
-                    <Stack.Screen name="Auth" component={AuthScreen} />
-                    <Stack.Screen name="MainApp" component={TabNavigator} />
-                    <Stack.Screen
-                      name="NoteDetail"
-                      component={NoteDetailScreen}
-                      options={{
-                        headerShown: true,
-                        presentation: 'modal',
-                        animation: 'slide_from_bottom',
-                        headerTitle: '',
-                        headerShadowVisible: false,
-                        headerStyle: {
-                          backgroundColor: COLORS.background.default,
-                        },
-                        headerTintColor: COLORS.primary.main,
-                      }}
-                    />
-                    <Stack.Screen
-                      name="Drawing"
-                      component={DrawingScreen}
-                      options={{ presentation: 'fullScreenModal', animation: 'fade_from_bottom' }}
-                    />
-                    <Stack.Screen
-                      name="TaskDetail"
-                      component={TaskDetailScreen}
-                      options={{
-                        headerShown: true,
-                        presentation: 'modal',
-                        animation: 'slide_from_bottom',
-                        headerTitle: '',
-                        headerShadowVisible: false,
-                        headerStyle: {
-                          backgroundColor: COLORS.background.default,
-                        },
-                        headerTintColor: COLORS.primary.main,
-                      }}
-                    />
-                    <Stack.Screen
-                      name="Calendar"
-                      component={CalendarScreen}
-                      options={{
-                        headerShown: true,
-                        headerTitle: 'Takvim',
-                        headerStyle: {
-                          backgroundColor: COLORS.background.default,
-                        },
-                        headerTintColor: COLORS.primary.main,
-                      }}
-                    />
-                  </Stack.Navigator>
-                </NavigationContainer>
-              </TaskProvider>
-            </NotesProvider>
-          </CategoriesProvider>
+          <NotificationProvider>
+            <CategoriesProvider>
+              <NoteProvider>
+                <TaskProvider>
+                  <NavigationContainer>
+                    <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+                      <Stack.Screen name="Auth" component={AuthScreen} />
+                      <Stack.Screen name="MainApp" component={TabNavigator} />
+                      <Stack.Screen
+                        name="NoteDetail"
+                        component={NoteDetailScreen}
+                        options={{
+                          headerShown: true,
+                          presentation: 'modal',
+                          animation: 'slide_from_bottom',
+                          headerTitle: '',
+                          headerShadowVisible: false,
+                          headerStyle: {
+                            backgroundColor: COLORS.background.default,
+                          },
+                          headerTintColor: COLORS.primary.main,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="DocumentUpload"
+                        component={DocumentUploadScreen}
+                        options={{
+                          headerShown: true,
+                          presentation: 'modal',
+                          animation: 'slide_from_bottom',
+                          headerTitle: 'Dosya Yükle',
+                          headerShadowVisible: false,
+                          headerStyle: {
+                            backgroundColor: COLORS.background.default,
+                          },
+                          headerTintColor: COLORS.primary.main,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="Drawing"
+                        component={DrawingScreen}
+                        options={{ presentation: 'fullScreenModal', animation: 'fade_from_bottom' }}
+                      />
+                      <Stack.Screen
+                        name="TaskDetail"
+                        component={TaskDetailScreen}
+                        options={{
+                          headerShown: true,
+                          presentation: 'modal',
+                          animation: 'slide_from_bottom',
+                          headerTitle: '',
+                          headerShadowVisible: false,
+                          headerStyle: {
+                            backgroundColor: COLORS.background.default,
+                          },
+                          headerTintColor: COLORS.primary.main,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="Calendar"
+                        component={CalendarScreen}
+                        options={{
+                          headerShown: true,
+                          headerTitle: 'Takvim',
+                          headerStyle: {
+                            backgroundColor: COLORS.background.default,
+                          },
+                          headerTintColor: COLORS.primary.main,
+                        }}
+                      />
+                    </Stack.Navigator>
+                  </NavigationContainer>
+                </TaskProvider>
+              </NoteProvider>
+            </CategoriesProvider>
+          </NotificationProvider>
         </AuthProvider>
       </ThemeProvider>
     </SafeAreaProvider>

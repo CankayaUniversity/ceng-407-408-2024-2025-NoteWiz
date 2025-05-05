@@ -1,208 +1,216 @@
 // src/contexts/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { authService } from '../services/api';
+import { User } from '../types/user';
 
-type User = {
- id: string;
- email: string;
- fullName: string;
-} | null;
+interface AuthContextProps {
+  user: User | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<boolean>;
+  signup: (email: string, password: string, fullName: string) => Promise<boolean>;
+  logout: () => Promise<void>;
+  getUserInfo: () => Promise<void>;
+}
 
-type AuthContextType = {
- user: User;
- isLoading: boolean;
- login: (email: string, password: string, rememberMe: boolean, showLoading?: boolean) => Promise<void>;
- signup: (email: string, password: string, fullName: string) => Promise<void>;
- logout: () => Promise<void>;
- resetPassword: (email: string) => Promise<void>;
+// Create context
+const AuthContext = createContext<AuthContextProps>({
+  user: null,
+  isLoading: false,
+  isAuthenticated: false,
+  login: async () => false,
+  signup: async () => false,
+  logout: async () => {},
+  getUserInfo: async () => {},
+});
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+
+  // Check auth status when app starts
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = async () => {
+    setIsLoading(true);
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      if (token) {
+        // Set token to axios headers before making API calls
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        
+        // Get user info if token exists
+        await getUserInfo();
+        setIsAuthenticated(true);
+      } else {
+        // No token found, set authenticated to false
+        setIsAuthenticated(false);
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Auth status check error:', error);
+      // Clean up on error
+      await AsyncStorage.removeItem('userToken');
+      axios.defaults.headers.common['Authorization'] = '';
+      setUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Get user information
+  const getUserInfo = async () => {
+    try {
+      // Get user data from auth service
+      const userData = await authService.getCurrentUser();
+      
+      if (userData) {
+        // Create user object from response
+        const user: User = {
+          id: userData.id,
+          username: userData.username,
+          email: userData.email,
+          fullName: userData.fullName,
+          isAdmin: userData.isAdmin,
+          createdAt: userData.createdAt
+        };
+        
+        setUser(user);
+        setIsAuthenticated(true);
+      } else {
+        throw new Error('Could not retrieve user information');
+      }
+    } catch (error) {
+      console.error('Error getting user info:', error);
+      // Clean up on error
+      await AsyncStorage.removeItem('userToken');
+      axios.defaults.headers.common['Authorization'] = '';
+      setUser(null);
+      setIsAuthenticated(false);
+    }
+  };
+
+  // Login process
+  const login = async (email: string, password: string, rememberMe: boolean = false): Promise<boolean> => {
+    setIsLoading(true);
+    try {
+      console.log("Login data:", { email, password });
+      // Use auth service to login
+      const response = await authService.login(email, password);
+      
+      if (response && response.token) {
+        // Set authorization header for all future requests
+        axios.defaults.headers.common['Authorization'] = `Bearer ${response.token}`;
+        
+        // Save token to AsyncStorage
+        await AsyncStorage.setItem('userToken', response.token);
+        
+        // Save email if rememberMe is true
+        if (rememberMe) {
+          await AsyncStorage.setItem('email', email);
+        } else {
+          await AsyncStorage.removeItem('email');
+        }
+
+        // Get user info
+        await getUserInfo();
+        setIsAuthenticated(true);
+        return true;
+      } else {
+        throw new Error('Login failed');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Register process
+  const signup = async (email: string, password: string, fullName: string): Promise<boolean> => {
+    setIsLoading(true);
+    try {
+      // Use auth service to register
+      const userData = {
+        email,
+        password,
+        fullName,
+        username: email.split('@')[0], // Simple username creation
+        color: "#FFFFFF" // Default color
+      };
+      
+      if (!/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(userData.color)) {
+        userData.color = "#FFFFFF";
+      }
+      
+      const response = await authService.register(userData);
+      
+      if (response) {
+        // Registration successful, now login
+        return await login(email, password);
+      } else {
+        throw new Error('Registration failed');
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Logout process
+  const logout = async (): Promise<void> => {
+    setIsLoading(true);
+    try {
+      // Use auth service to logout
+      await authService.logout();
+      
+      // Remove token from AsyncStorage
+      await AsyncStorage.removeItem('userToken');
+      
+      // Remove authorization header
+      axios.defaults.headers.common['Authorization'] = '';
+      
+      // Clear user data
+      setUser(null);
+      setIsAuthenticated(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Clean state even if there's an error
+      await AsyncStorage.removeItem('userToken');
+      axios.defaults.headers.common['Authorization'] = '';
+      setUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Provide context values
+  const contextValue = {
+    user,
+    isLoading,
+    isAuthenticated,
+    login,
+    signup,
+    logout,
+    getUserInfo
+  };
+
+  return (
+    <AuthContext.Provider value={contextValue}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const STORAGE_KEY = '@auth_credentials';
-
-export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
- const [user, setUser] = useState<User>(null);
- const [isLoading, setIsLoading] = useState(true);
-
- // Kayıtlı kimlik bilgilerini kontrol et
- useEffect(() => {
-   const loadStoredCredentials = async () => {
-     try {
-       const storedCredentials = await AsyncStorage.getItem(STORAGE_KEY);
-       if (storedCredentials) {
-         const { email, password } = JSON.parse(storedCredentials);
-         await login(email, password, true, false); // silent login
-       }
-     } catch (error) {
-       console.error('Error loading stored credentials:', error);
-     } finally {
-       setIsLoading(false);
-     }
-   };
-
-   loadStoredCredentials();
- }, []);
-
- // Firebase Auth durumunu dinle
- useEffect(() => {
-   const unsubscribe = auth().onAuthStateChanged(async (firebaseUser) => {
-     if (firebaseUser) {
-       try {
-         const userDoc = await firestore()
-           .collection('users')
-           .doc(firebaseUser.uid)
-           .get();
-
-         if (userDoc.exists) {
-           const userData = userDoc.data();
-           setUser({
-             id: firebaseUser.uid,
-             email: firebaseUser.email || '',
-             fullName: userData?.fullName || '',
-           });
-         } else {
-           const userData = {
-             email: firebaseUser.email,
-             fullName: firebaseUser.displayName || '',
-             createdAt: firestore.FieldValue.serverTimestamp(),
-           };
-           await firestore()
-             .collection('users')
-             .doc(firebaseUser.uid)
-             .set(userData);
-           
-           setUser({
-             id: firebaseUser.uid,
-             email: firebaseUser.email || '',
-             fullName: firebaseUser.displayName || '',
-           });
-         }
-       } catch (error) {
-         console.error('Error fetching user data:', error);
-         setUser(null);
-       }
-     } else {
-       setUser(null);
-     }
-     setIsLoading(false);
-   });
-
-   return () => unsubscribe();
- }, []);
-
- const login = async (
-   email: string, 
-   password: string, 
-   rememberMe: boolean,
-   showLoading: boolean = true
- ) => {
-   try {
-     if (showLoading) setIsLoading(true);
-
-     const userCredential = await auth().signInWithEmailAndPassword(email, password);
-     const userDoc = await firestore()
-       .collection('users')
-       .doc(userCredential.user.uid)
-       .get();
-
-     if (userDoc.exists) {
-       const userData = userDoc.data();
-       setUser({
-         id: userCredential.user.uid,
-         email: userCredential.user.email || '',
-         fullName: userData?.fullName || '',
-       });
-
-       // Eğer "Remember Me" seçiliyse kimlik bilgilerini kaydet
-       if (rememberMe) {
-         await AsyncStorage.setItem(
-           STORAGE_KEY,
-           JSON.stringify({ email, password })
-         );
-       }
-     }
-   } catch (error: any) {
-     console.error('Login error:', error);
-     throw error;
-   } finally {
-     if (showLoading) setIsLoading(false);
-   }
- };
-
- const signup = async (email: string, password: string, fullName: string) => {
-   try {
-     const userCredential = await auth().createUserWithEmailAndPassword(email, password);
-     
-     // Firebase Authentication'da displayName'i güncelle
-     await userCredential.user.updateProfile({
-       displayName: fullName,
-     });
-     
-     // Firestore'a kullanıcı bilgilerini kaydet
-     await firestore()
-       .collection('users')
-       .doc(userCredential.user.uid)
-       .set({
-         email,
-         fullName,
-         createdAt: firestore.FieldValue.serverTimestamp(),
-       });
-
-     setUser({
-       id: userCredential.user.uid,
-       email: userCredential.user.email || '',
-       fullName,
-     });
-   } catch (error: any) {
-     console.error('Signup error:', error);
-     throw error;
-   }
- };
-
- const logout = async () => {
-   try {
-     await auth().signOut();
-     setUser(null);
-     // Kayıtlı kimlik bilgilerini temizle
-     await AsyncStorage.removeItem(STORAGE_KEY);
-   } catch (error: any) {
-     console.error('Logout error:', error);
-     throw error;
-   }
- };
-
- const resetPassword = async (email: string) => {
-   try {
-     await auth().sendPasswordResetEmail(email);
-   } catch (error: any) {
-     console.error('Reset password error:', error);
-     throw error;
-   }
- };
-
- return (
-   <AuthContext.Provider 
-     value={{ 
-       user, 
-       isLoading,
-       login, 
-       signup, 
-       logout,
-       resetPassword,
-     }}
-   >
-     {children}
-   </AuthContext.Provider>
- );
-};
-
-export const useAuth = () => {
- const context = useContext(AuthContext);
- if (context === undefined) {
-   throw new Error('useAuth must be used within an AuthProvider');
- }
- return context;
-};
+// Kullanımı kolaylaştırmak için hook
+export const useAuth = () => useContext(AuthContext);

@@ -1,6 +1,5 @@
-// src/screens/NoteDetailScreen.tsx - Enhanced Version
+// src/screens/NoteDetailScreen.tsx - .NET API hatası düzeltildi
 import React, { useState, useEffect } from 'react';
-import auth from '@react-native-firebase/auth';
 import RNFS from 'react-native-fs';
 
 import {
@@ -22,14 +21,16 @@ import {
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
-import { useNotes } from '../contexts/NotesContext';
+import { useNotes } from '../contexts/NoteContext';
 import { useAuth } from '../contexts/AuthContext';
 import { StarIcon, PdfIcon, ImageIcon, CloseIcon } from '../components/icons';
 import Pdf from 'react-native-pdf';
 import DocumentPicker from 'react-native-document-picker';
-import storage from '@react-native-firebase/storage';
 import { COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '../constants/theme';
 import NoteCoverPicker from '../components/notes/NotesCoverPicker';
+import { notesService } from '../services/api';
+import { UpdateNoteDto } from '../types/note';
+
 const CATEGORIES = [
   'Work',
   'Personal',
@@ -41,10 +42,13 @@ const CATEGORIES = [
 
 // Predefined cover options
 const COVER_OPTIONS = [
-  { id: 'none', title: 'No Cover', image: null },
-  { id: 'ai_content', title: 'AI (Content)', image: require('../assets/images/ai-cover2.png') },
-  { id: 'blue_sky', title: 'Blue Sky', image: require('../assets/images/blue-sky.png') },
-  { id: 'gradient_blue', title: 'Blue Gradient', image: require('../assets/images/gradient-blue.png') },
+  { id: 'none', title: 'No Cover', image: null, color: '#F5F5F5' },
+  { id: 'gradient1', title: 'Gradient 1', image: null, color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
+  { id: 'gradient2', title: 'Gradient 2', image: null, color: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)' },
+  { id: 'gradient3', title: 'Gradient 3', image: null, color: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)' },
+  { id: 'solid1', title: 'Solid 1', image: null, color: '#E3F2FD' },
+  { id: 'solid2', title: 'Solid 2', image: null, color: '#F3E5F5' },
+  { id: 'solid3', title: 'Solid 3', image: null, color: '#E8F5E9' },
 ];
 
 type NoteDetailScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'NoteDetail'>;
@@ -53,27 +57,31 @@ type NoteDetailScreenRouteProp = RouteProp<RootStackParamList, 'NoteDetail'>;
 const NoteDetailScreen = () => {
   const navigation = useNavigation<NoteDetailScreenNavigationProp>();
   const route = useRoute<NoteDetailScreenRouteProp>();
-  const { addNote, updateNote, deleteNote } = useNotes();
+  const { createNote, updateNote, deleteNote } = useNotes();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
-  const noteId = route.params?.noteId;
-  const folderId = route.params?.folderId;
+  // Tip uyumsuzluğunu çözmek için noteId'yi string olarak alıp number'a çevirme
+  const noteIdParam = route.params?.noteId;
+  const noteId = noteIdParam ? (typeof noteIdParam === 'string' ? parseInt(noteIdParam) : noteIdParam) : undefined;
+  
+  // Aynı şekilde folderId için de tip dönüşümü
+  const folderIdParam = route.params?.folderId;
+  const folderId = folderIdParam ? (typeof folderIdParam === 'string' ? parseInt(folderIdParam) : folderIdParam) : undefined;
   
   // Note state
   const [title, setTitle] = useState(route.params?.title || '');
   const [content, setContent] = useState(route.params?.content || '');
   const [category, setCategory] = useState(route.params?.category || 'Other');
   const [isImportant, setIsImportant] = useState(route.params?.isImportant || false);
-  
   // Cover image
-  const [coverImage, setCoverImage] = useState(route.params?.coverImage);
+  const [coverImage, setCoverImage] = useState<string | null>(null);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
   
   // PDF related state
-  const [isPdf, setIsPdf] = useState(route.params?.isPdf || false);
-  const [pdfUrl, setPdfUrl] = useState(route.params?.pdfUrl || '');
-  const [pdfName, setPdfName] = useState(route.params?.pdfName || '');
+  const [isPdf, setIsPdf] = useState<boolean>(false);
+  const [pdfUrl, setPdfUrl] = useState<string>('');
+  const [pdfName, setPdfName] = useState<string>('');
 
   // UI states
   const [showMoreOptions, setShowMoreOptions] = useState(false);
@@ -147,148 +155,167 @@ const NoteDetailScreen = () => {
     }
     return uri;
   };
-  // PDF Upload
-
+  
+  // PDF Upload - Updated for .NET API
   const uploadPdf = async (pdfUri: string, pdfName: string): Promise<string> => {
-    const firebaseUser = auth().currentUser;
-    if (!firebaseUser?.uid) {
-      throw new Error('Firebase user not logged in');
+    try {
+      const filePath = await getPathFromURI(pdfUri);
+      
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('file', {
+        uri: filePath,
+        name: pdfName,
+        type: 'application/pdf',
+      } as any);
+      
+      // Send to .NET API endpoint for file upload
+      const response = await fetch('http://localhost:5263/api/files/upload', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          // Add authorization header if needed
+          // 'Authorization': `Bearer ${token}`
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload PDF');
+      }
+      
+      const data = await response.json();
+      return data.fileUrl; // Return the URL from the server
+    } catch (error) {
+      console.error('Error uploading PDF:', error);
+      throw error;
     }
-  
-    const fileName = `pdfs/${firebaseUser.uid}/${Date.now()}_${pdfName || 'document.pdf'}`;
-    const reference = storage().ref(fileName);
-  
-    const filePath = await getPathFromURI(pdfUri);
-    await reference.putFile(filePath);
-  
-    return await reference.getDownloadURL();
   };
-  
 
   // Handle Cover Image Selection
-  const handleCoverSelect = async (coverId: string) => {
+  const handleCoverSelect = async (coverId: string, coverColor?: string) => {
     setShowCoverPicker(false);
     
     if (coverId === 'none') {
-      // Remove cover
       setCoverImage(null);
       return;
     }
     
-    if (coverId === 'ai_title' || coverId === 'ai_content') {
-      // In a real app, this would call an AI service to generate a custom cover
-      // For now, we'll simulate by randomly selecting one of the predefined covers
-      const generateType = coverId === 'ai_title' ? 'title' : 'content';
-      Alert.alert(
-        'AI Cover Generator',
-        `Generating cover based on note ${generateType}...`,
-        [{ text: 'OK' }]
-      );
-      
-      // Simulate AI generation by selecting a random cover from predefined options
-      const availableCovers = COVER_OPTIONS.filter(c => 
-        c.id !== 'none' && 
-        c.id !== 'ai_title' && 
-        c.id !== 'ai_content'
-      );
-      const randomCover = availableCovers[Math.floor(Math.random() * availableCovers.length)];
-      setCoverImage(randomCover.image);
-      return;
-    }
-    
-    // Set one of the predefined covers
-    const selectedCover = COVER_OPTIONS.find(c => c.id === coverId);
-    if (selectedCover) {
-      setCoverImage(selectedCover.image);
-    }
+    // Seçilen kapağın rengini veya resmini ayarla
+    setCoverImage(coverColor || null);
   };
 
   // Set up header with additional options
-  useEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <View style={styles.headerButtons}>
-          {/* PDF button */}
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={selectPdf}
-          >
-            <Text style={styles.headerButtonText}>📄 PDF</Text>
-          </TouchableOpacity>
-          
-          {/* Draw button */}
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => navigation.navigate('Drawing', { noteId })}
-          >
-            <Text style={styles.headerButtonText}>✏️ Draw</Text>
-          </TouchableOpacity>
-          
-          {/* More options button */}
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => setShowMoreOptions(!showMoreOptions)}
-          >
-            <Text style={styles.headerButtonText}>•••</Text>
-          </TouchableOpacity>
-          
-          {/* Save button */}
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={handleSave}
-          >
-            <Text style={styles.headerButtonText}>Save</Text>
-          </TouchableOpacity>
-        </View>
-      ),
-    });
-  }, [navigation, noteId, title, content, category, isImportant, isPdf, pdfUrl, pdfName, coverImage, showMoreOptions]);
+ // NoteDetailScreen.tsx içindeki headerRight fonksiyonunda düzeltme
+// Sadece değiştirilmesi gereken kod parçası
 
-  const handleSave = async () => {
-    if (!isPdf && !title.trim()) {
-      Alert.alert('Warning', 'Please enter a title');
-      return;
+// Set up header with additional options
+useEffect(() => {
+  navigation.setOptions({
+    headerRight: () => (
+      <View style={styles.headerButtons}>
+        {/* PDF button */}
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={selectPdf}
+        >
+          <Text style={styles.headerButtonText}>📄 PDF</Text>
+        </TouchableOpacity>
+        
+        {/* Draw button */}
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={() => {
+            // Navigate to Drawing screen
+            navigation.navigate('Drawing');
+          }}
+        >
+          <Text style={styles.headerButtonText}>✏️ Draw</Text>
+        </TouchableOpacity>
+        
+        {/* More options button */}
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={() => setShowMoreOptions(!showMoreOptions)}
+        >
+          <Text style={styles.headerButtonText}>•••</Text>
+        </TouchableOpacity>
+        
+        {/* Save button */}
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={handleSave}
+        >
+          <Text style={styles.headerButtonText}>Save</Text>
+        </TouchableOpacity>
+      </View>
+    ),
+  });
+}, [navigation, noteId, title, content, category, isImportant, isPdf, pdfUrl, pdfName, coverImage, showMoreOptions]);
+// Modified handleSave function for NoteDetailScreen.tsx
+const handleSave = async () => {
+  if (!isPdf && !title.trim()) {
+    Alert.alert('Warning', 'Please enter a title');
+    return;
+  }
+  
+  setIsLoading(true);
+  try {
+    let finalPdfUrl = pdfUrl;
+    
+    // If a new PDF was selected and not yet uploaded
+    if (isPdf && pdfUrl && !pdfUrl.startsWith('https://')) {
+      // Upload PDF to API
+      finalPdfUrl = await uploadPdf(pdfUrl, pdfName);
     }
-  
-    setIsLoading(true);
-    try {
-      let finalPdfUrl = pdfUrl;
-  
-      // If a new PDF was selected and not yet uploaded
-      if (isPdf && pdfUrl && !pdfUrl.startsWith('https://')) {
-        // Upload PDF to Firebase Storage
-        finalPdfUrl = await uploadPdf(pdfUrl,pdfName);
-      }
-  
-      const noteData: any = {
-        title: title?.trim() || (isPdf ? pdfName : 'Note'),
-        content: isPdf ? '' : content?.trim() || '',
-        category: category || 'Other',
-        isImportant,
-        isPdf,
-        coverImage,
-        folderId,
-      };
-  
-      if (isPdf) {
-        noteData.pdfUrl = finalPdfUrl;
-        noteData.pdfName = pdfName;
-      }
-  
-      if (noteId) {
-        await updateNote(noteId, noteData);
-      } else {
-        await addNote(noteData);
-      }
-      navigation.goBack();
-    } catch (error) {
-      console.error('Error saving note:', error);
-      Alert.alert('Error', 'Failed to save note');
-    } finally {
-      setIsLoading(false);
+    
+    // Create a properly formatted hexadecimal color code based on category
+    // This maps category names to valid hex color codes
+    const categoryColorMap: { [key: string]: string } = {
+      'Work': '#4C6EF5',
+      'Personal': '#15AABF',
+      'Shopping': '#40C057',
+      'Ideas': '#FD7E14',
+      'To-Do': '#F06595',
+      'Other': '#7950F2'
+    };
+    
+    // Get color from map or use default
+    const colorCode = categoryColorMap[category] || '#CCCCCC';
+    
+    // For simplicity, we'll create a data object that matches our API's expected format
+    const noteData: any = {
+      title: title?.trim() || (isPdf ? pdfName : 'Note'),
+      // Ensure content field is never empty - use empty string if no content
+      content: isPdf ? 'PDF Document' : (content?.trim() || ''),
+      tags: [], // Replace with actual tags if you have them
+      color: colorCode, // Use proper hex color format
+      isPinned: isImportant,
+      folderId: folderId,
+    };
+    
+    if (isPdf) {
+      noteData.pdfUrl = finalPdfUrl;
+      noteData.pdfName = pdfName;
+      noteData.isPdf = true;
     }
-  };
-  
+    
+    console.log("Saving note data:", noteData);
+    
+    if (noteId) {
+      // Artık noteId number tipinde, doğrudan kullanabiliriz
+      await updateNote(noteId.toString(), noteData);
+    } else {
+      await createNote(noteData);
+    }
+    navigation.goBack();
+  } catch (error) {
+    console.error('Error saving note:', error);
+    Alert.alert('Error', 'Failed to save note');
+  } finally {
+    setIsLoading(false);
+  }
+};
   const handleDelete = () => {
     Alert.alert(
       'Delete Note',
@@ -308,8 +335,8 @@ const NoteDetailScreen = () => {
                 throw new Error('Note ID not found');
               }
               
-              // Delete the note (including any PDF or cover image)
-              await deleteNote(noteId);
+              // Doğrudan note servisi kullanarak notu sil
+              await deleteNote(noteId.toString());
               navigation.goBack();
             } catch (error) {
               Alert.alert('Error', 'Failed to delete note');
@@ -340,7 +367,7 @@ const NoteDetailScreen = () => {
         {coverImage && (
           <View style={styles.coverImageContainer}>
             <Image 
-              source={coverImage} 
+              source={{uri: coverImage}} 
               style={styles.coverImage}
               resizeMode="cover"
             />
@@ -493,7 +520,7 @@ const NoteDetailScreen = () => {
         visible={showCoverPicker}
         onClose={() => setShowCoverPicker(false)}
         onSelectCover={handleCoverSelect}
-        coverOptions={COVER_OPTIONS}
+        selectedCoverId={coverImage ? 'custom' : 'none'}
       />
     </KeyboardAvoidingView>
   );
@@ -592,7 +619,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   categoryTextActive: {
-    color: COLORS.text.inverted,
+    color: COLORS.text.primary,
   },
   contentInput: {
     flex: 1,
@@ -609,7 +636,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 8,
     borderWidth: 1,
-    borderColor: COLORS.neutral[300],
+    borderColor: COLORS.border.light,
     borderRadius: 8,
     overflow: 'hidden',
     minHeight: 500,
@@ -620,7 +647,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.text.secondary,
     borderBottomWidth: 1,
-    borderBottomColor:  COLORS.neutral[300],
+    borderBottomColor: COLORS.border.light,
   },
   pdf: {
     flex: 1,

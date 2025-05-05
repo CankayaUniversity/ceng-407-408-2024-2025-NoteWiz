@@ -1,4 +1,4 @@
-// src/screens/AuthScreen.tsx
+// src/screens/AuthScreen.tsx - .NET API Güncellemesi
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -30,8 +30,8 @@ import Animated, {
   withDelay,
 } from 'react-native-reanimated';
 import { AuthInput } from '../components/auth/AuthInput';
-import { SocialButton } from '../components/auth/SocialButton';
 import { AnimatedLogo } from '../components/auth/AnimatedLogo';
+import DocumentUploadScreen from '../screens/DocumentUploadScreen';
 
 const { width, height } = Dimensions.get('window');
 
@@ -76,48 +76,69 @@ const AuthScreen: React.FC = () => {
     setIsLoading(true);
     try {
       if (isLogin) {
-        await login(email, password, rememberMe);
-        navigation.navigate('MainApp');
+        const success = await login(email, password, rememberMe);
+        if (success) {
+          navigation.replace('MainApp');
+        }
       } else {
-        await signup(email, password, fullName);
-        Alert.alert(
-          'Success',
-          'Your account has been created successfully!',
-          [{ text: 'OK', onPress: () => navigation.navigate('MainApp') }]
-        );
+        const success = await signup(email, password, fullName);
+        if (success) {
+          Alert.alert(
+            'Başarılı',
+            'Hesabınız başarıyla oluşturuldu!',
+            [{ text: 'Tamam', onPress: () => navigation.replace('MainApp') }]
+          );
+        }
       }
     } catch (error: any) {
-      Alert.alert('Error', getErrorMessage(error));
+      let errorMessage = 'Bir hata oluştu. Lütfen tekrar deneyin.';
+      
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.response?.data) {
+        errorMessage = error.response.data;
+      }
+
+      Alert.alert(
+        'Hata',
+        errorMessage,
+        [{ text: 'Tamam', style: 'cancel' }]
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   const validateForm = () => {
-    if (!email.trim() || !password.trim()) {
-      Alert.alert('Error', 'Please fill in all fields');
+    // E-posta kontrolü
+    if (!email.trim()) {
+      Alert.alert('Hata', 'Lütfen e-posta adresinizi girin.');
       return false;
     }
-    if (!isLogin && !fullName.trim()) {
-      Alert.alert('Error', 'Please enter your full name');
-      return false;
-    }
-    return true;
-  };
 
-  const getErrorMessage = (error: any) => {
-    switch (error.code) {
-      case 'auth/email-already-in-use':
-        return 'This email is already registered';
-      case 'auth/invalid-email':
-        return 'Please enter a valid email address';
-      case 'auth/weak-password':
-        return 'Password should be at least 6 characters';
-      case 'auth/wrong-password':
-        return 'Invalid email or password';
-      default:
-        return 'An error occurred. Please try again';
+    if (!email.includes('@')) {
+      Alert.alert('Hata', 'Lütfen geçerli bir e-posta adresi girin.');
+      return false;
     }
+
+    // Şifre kontrolü
+    if (!password) {
+      Alert.alert('Hata', 'Lütfen şifrenizi girin.');
+      return false;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Hata', 'Şifre en az 6 karakter olmalıdır.');
+      return false;
+    }
+
+    // Kayıt için isim kontrolü
+    if (!isLogin && !fullName.trim()) {
+      Alert.alert('Hata', 'Lütfen adınızı ve soyadınızı girin.');
+      return false;
+    }
+
+    return true;
   };
 
   return (
@@ -209,7 +230,8 @@ const AuthScreen: React.FC = () => {
               )}
             </TouchableOpacity>
 
-            <View style={styles.dividerContainer}>
+            {/* NOT: Sosyal medya butonları Firebase'e özel olduğu için kaldırıldı ya da güncellenebilir */}
+            {/* <View style={styles.dividerContainer}>
               <View style={styles.divider} />
               <Text style={styles.dividerText}>or continue with</Text>
               <View style={styles.divider} />
@@ -218,7 +240,7 @@ const AuthScreen: React.FC = () => {
             <View style={styles.socialButtons}>
               <SocialButton type="google" onPress={() => {}} />
               <SocialButton type="apple" onPress={() => {}} />
-            </View>
+            </View> */}
 
             <TouchableOpacity
               style={styles.switchButton}
@@ -237,6 +259,7 @@ const AuthScreen: React.FC = () => {
   );
 };
 
+// NOT: Style değişiklikleri yok, mevcut stil kullanılabilir
 const styles = StyleSheet.create({
   container: {
     flex: 1,

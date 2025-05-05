@@ -13,28 +13,30 @@ import {
   Dimensions,
   TouchableOpacity,
   TextInput,
-  Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
-import { useNotes } from '../contexts/NotesContext';
+import { useNotes } from '../contexts/NoteContext';
 import { useAuth } from '../contexts/AuthContext';
 import { FloatingActionButton } from '../components/ui/FloatingActionButton';
 import { StatCard, ImportantNoteCard, RecentNoteCard } from '../components/home';
-import { StarIcon, TimeIcon, NotesIcon, CloudIcon, SearchIcon } from '../components/icons';
+import { StarIcon, TimeIcon, NotesIcon, CloudIcon, SearchIcon, DocumentIcon, TaskIcon, ShareIcon } from '../components/icons';
 import LinearGradient from 'react-native-linear-gradient';
-import { BlurView } from '@react-native-community/blur';
+import { COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '../constants/theme';
 
 const { width, height } = Dimensions.get('window');
 const HEADER_HEIGHT = Platform.OS === 'ios' ? 280 : 300;
 
+type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
+
 const HomeScreen = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { notes, isLoading } = useNotes();
+  const navigation = useNavigation<HomeScreenNavigationProp>();
+  const { notes } = useNotes();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const filteredNotes = notes.filter(note => {
     const lowerSearchQuery = searchQuery.toLowerCase();
@@ -151,7 +153,13 @@ const HomeScreen = () => {
               {importantNotes.map((note, index) => (
                 <ImportantNoteCard
                   key={note.id}
-                  note={note}
+                  note={{
+                    id: note.id.toString(),
+                    title: note.title,
+                    content: note.content,
+                    category: note.tags?.[0] || 'other',
+                    updatedAt: new Date(note.updatedAt)
+                  }}
                   index={index}
                   onPress={() => navigation.navigate('NoteDetail', { noteId: note.id })}
                 />
@@ -178,9 +186,53 @@ const HomeScreen = () => {
       </ScrollView>
 
       <FloatingActionButton
-        onPress={() => navigation.navigate('NoteDetail', {})}
+        onPress={() => navigation.navigate('NoteDetail', {
+          noteId: undefined,
+          title: '',
+          content: '',
+          isImportant: false
+        })}
         style={styles.fab}
       />
+
+      <View style={styles.grid}>
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => navigation.navigate('NoteDetail', {
+            noteId: undefined,
+            title: '',
+            content: '',
+            isImportant: false
+          })}
+        >
+          <NotesIcon size={32} color={COLORS.primary.main} />
+          <Text style={styles.cardText}>Yeni Not</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => navigation.navigate('DocumentUpload')}
+        >
+          <DocumentIcon size={32} color={COLORS.primary.main} />
+          <Text style={styles.cardText}>Doküman Yükle</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => navigation.navigate('TaskDetail', { taskId: undefined })}
+        >
+          <TaskIcon size={32} color={COLORS.primary.main} />
+          <Text style={styles.cardText}>Görev Ekle</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => navigation.navigate('SharedNotes')}
+        >
+          <ShareIcon size={32} color={COLORS.primary.main} />
+          <Text style={styles.cardText}>Paylaşılan Notlar</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
@@ -203,7 +255,7 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     flex: 1,
-    paddingTop: Platform.OS === 'ios' ? 20 : StatusBar.currentHeight! + 20,
+    paddingTop: Platform.OS === 'ios' ? 20 : StatusBar.currentHeight ? StatusBar.currentHeight + 20 : 40,
     paddingHorizontal: 20,
   },
   userSection: {
@@ -293,6 +345,36 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 24,
     right: 24,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    gap: SPACING.lg,
+  },
+  card: {
+    width: '48%',
+    aspectRatio: 1,
+    backgroundColor: COLORS.background.surface,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...SHADOWS.md,
+  },
+  cardText: {
+    marginTop: SPACING.sm,
+    fontSize: TYPOGRAPHY.sizes.lg,
+    fontWeight: '600',
+    color: COLORS.text.primary,
+  },
+  title: {
+    color: COLORS.text.primary,
+    marginTop: 8,
+    fontSize: TYPOGRAPHY.sizes.lg,
+    fontWeight: '600',
+    lineHeight: 24,
   },
 });
 

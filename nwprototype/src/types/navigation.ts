@@ -1,36 +1,63 @@
 // src/types/navigation.ts
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+
 export type RootStackParamList = {
   Welcome: undefined;
+  Home: undefined;
   Auth: undefined;
   MainApp: undefined;
-  Drawing: {
-    noteId?: string;
-  };
   NoteDetail: {
-    noteId?: string;
+    noteId?: string | number;
     title?: string;
     content?: string;
     category?: string;
     isImportant?: boolean;
-    isPdf?: boolean;
-    pdfUrl?: string;
-    pdfName?: string;
-    // Added new properties:
+    color?: string;
+    tags?: string[];
     folderId?: string | null;
-    coverImage?: any;
   };
+  Drawing: undefined;
   TaskDetail: {
     taskId?: string;
-    presetDueDate?: string; // Takvimden seçilen tarih için
   };
-  Calendar: undefined; // Yeni eklenen takvim ekranı
+  Calendar: undefined;
+  SharedNotes: undefined;
+  DocumentUpload: undefined;
+  DocumentView: {
+    documentId: number;
+    title: string;
+  };
+  ShareNote: {
+    noteId: number;
+  };
 };
+
+export type RootStackScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<
+  RootStackParamList,
+  T
+>;
+
+// NoteDetailScreen için özel tipler
+export type NoteDetailScreenNavigationProp = NativeStackScreenProps<RootStackParamList, 'NoteDetail'>['navigation'];
+export type NoteDetailScreenRouteProp = NativeStackScreenProps<RootStackParamList, 'NoteDetail'>['route'];
+
+// DocumentUploadScreen için özel tipler
+export type DocumentUploadScreenNavigationProp = NativeStackScreenProps<RootStackParamList, 'DocumentUpload'>['navigation'];
+export type DocumentUploadScreenRouteProp = NativeStackScreenProps<RootStackParamList, 'DocumentUpload'>['route'];
+
+// DocumentViewScreen için özel tipler
+export type DocumentViewScreenNavigationProp = NativeStackScreenProps<RootStackParamList, 'DocumentView'>['navigation'];
+export type DocumentViewScreenRouteProp = NativeStackScreenProps<RootStackParamList, 'DocumentView'>['route'];
+
+// ShareNoteScreen için özel tipler
+export type ShareNoteScreenNavigationProp = NativeStackScreenProps<RootStackParamList, 'ShareNote'>['navigation'];
+export type ShareNoteScreenRouteProp = NativeStackScreenProps<RootStackParamList, 'ShareNote'>['route'];
 
 export type MainTabParamList = {
   Home: undefined;
   Notes: undefined;
   Tasks: undefined;
-  Calendar: undefined; // Tab navigator'a Calendar ekledik
+  Calendar: undefined;
   Stats: undefined;
   Settings: undefined;
 };

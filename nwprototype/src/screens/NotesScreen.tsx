@@ -1,4 +1,3 @@
-// src/screens/NotesScreen.tsx - Enhanced Version
 import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
@@ -18,7 +17,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
-import { Note, useNotes } from '../contexts/NotesContext';
+import { Note, useNotes, FolderData } from '../contexts/NoteContext';
 import { useCategories } from '../contexts/CategoriesContext';
 import { CategoryFilter } from '../components/ui/CategoryFilter';
 import { SearchBar } from '../components/ui/SearchBar';
@@ -42,35 +41,45 @@ const HEADER_MAX_HEIGHT = Platform.OS === 'ios' ? 150 : 170;
 const HEADER_MIN_HEIGHT = Platform.OS === 'ios' ? 100 : 120;
 const HEADER_SCROLL_DISTANCE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT;
 
-// Renk fonksiyonu ekleyelim - kapak için renkler oluşturacak
+// Color function for covers
 const getColorFromId = (id: string): string => {
-  const colors = {
+  const colors: Record<string, string> = {
     'generated': '#4C6EF5',
     'blue_sky': '#228BE6',
     'gradient_blue': '#15AABF',
     'pink_pattern': '#F06595',
     'green_nature': '#40C057'
   };
-  return colors[id as keyof typeof colors] || '#ADB5BD';
+  return colors[id] || '#ADB5BD';
 };
 
-// Define a NoteOrFolder type to handle both notes and folders
-interface Folder {
-  id: string;
-  title: string;
-  isFolder: boolean;
-  parentFolderId: string | null;
-  updatedAt: Date;
-  // Optional fields to avoid type errors
-  content?: string;
-  category?: string;
-}
+// We don't need an ExtendedNote interface anymore since the complete Note type
+// is already defined in the NoteContext.tsx file
+// The Note type already has userId, folderId, and isFolder properties
 
-type NoteOrFolder = Note | Folder;
+// We can use the Note interface for folders as well since the Note type 
+// already includes isFolder and parentFolderId properties.
+// Just creating a type alias for clarity
+type Folder = Note;
+
+// UpdateCoverDTO should match the type definition from the noteService
+// imported through the NoteContext
+// This is already defined in the context and used in updateNoteCover function
+
+// Since both notes and folders are now represented by the Note type,
+// we can just use Note directly instead of a union type
+type NoteOrFolder = Note;
 
 const NotesScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { notes, isLoading, addFolder, moveNoteToFolder } = useNotes();
+  const { 
+    notes, 
+    loading: isLoading, 
+    addFolder, 
+    moveNoteToFolder,
+    updateNoteCover 
+  } = useNotes();
+  
   const { categories } = useCategories();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -81,24 +90,27 @@ const NotesScreen: React.FC = () => {
   const [currentFolder, setCurrentFolder] = useState<string | null>(null);
   const scrollY = useSharedValue(0);
 
-  // Predefined cover options - Resim require hatası için düzeltildi
+  // Predefined cover options
   const coverOptions = [
-    { id: 'none', title: 'No Cover', image: null },
-    { id: 'generated', title: 'AI Generated', image: null, color: getColorFromId('generated') },
-    { id: 'blue_sky', title: 'Blue Sky', image: null, color: getColorFromId('blue_sky') },
-    { id: 'gradient_blue', title: 'Blue Gradient', image: null, color: getColorFromId('gradient_blue') },
-    { id: 'pink_pattern', title: 'Pink Pattern', image: null, color: getColorFromId('pink_pattern') },
-    { id: 'green_nature', title: 'Nature', image: null, color: getColorFromId('green_nature') },
+    { id: 'none', title: 'No Cover', image: null as null },
+    { id: 'generated', title: 'AI Generated', image: null as null, color: getColorFromId('generated') },
+    { id: 'blue_sky', title: 'Blue Sky', image: null as null, color: getColorFromId('blue_sky') },
+    { id: 'gradient_blue', title: 'Blue Gradient', image: null as null, color: getColorFromId('gradient_blue') },
+    { id: 'pink_pattern', title: 'Pink Pattern', image: null as null, color: getColorFromId('pink_pattern') },
+    { id: 'green_nature', title: 'Nature', image: null as null, color: getColorFromId('green_nature') },
   ];
 
   // All notes and folders in the current directory
   const getCurrentItems = useCallback((): NoteOrFolder[] => {
     if (currentFolder === null) {
-      // We're in the root directory
-      return notes.filter(note => !note.folderId); // Get only root-level items
+      return notes.filter(note => !note.folderId);
     } else {
-      // We're in a subfolder
-      return notes.filter(note => note.folderId === currentFolder);
+      return notes.filter(note => {
+        const noteFolderId = typeof note.folderId === 'number' 
+          ? note.folderId.toString() 
+          : note.folderId;
+        return noteFolderId === currentFolder;
+      });
     }
   }, [notes, currentFolder]);
 
@@ -107,19 +119,17 @@ const NotesScreen: React.FC = () => {
     const currentItems = getCurrentItems();
     
     return currentItems.filter(item => {
-      // Skip filtering folders by category, only search in folder name
-      if (item.isFolder) {
+      const isFolder = 'isFolder' in item && item.isFolder;
+      
+      if (isFolder) {
         return item.title.toLowerCase().includes(searchQuery.toLowerCase());
       }
       
-      // For notes (non-folders), we can safely cast to Note type
-      const note = item as Note;
-      
       const matchesSearch = 
-        note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (note.content?.toLowerCase().includes(searchQuery.toLowerCase()) || false);
+        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (item.content?.toLowerCase().includes(searchQuery.toLowerCase()) || false);
       
-      const matchesCategory = selectedCategory === 'All' || note.category === selectedCategory;
+      const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
       
       return matchesSearch && matchesCategory;
     });
@@ -129,14 +139,19 @@ const NotesScreen: React.FC = () => {
   const sortedItems = useCallback((): NoteOrFolder[] => {
     const filtered = getFilteredItems();
     
-    // Sort by folders first, then by date
     return [...filtered].sort((a, b) => {
-      // Folders come first
-      if (a.isFolder && !b.isFolder) return -1;
-      if (!a.isFolder && b.isFolder) return 1;
+      if ('isFolder' in a && 'isFolder' in b) {
+        if (a.isFolder && !b.isFolder) return -1;
+        if (!a.isFolder && b.isFolder) return 1;
+      } else if ('isFolder' in a && a.isFolder) {
+        return -1;
+      } else if ('isFolder' in b && b.isFolder) {
+        return 1;
+      }
       
-      // Sort by date (most recent first)
-      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+      const aDate = new Date(a.updatedAt).getTime();
+      const bDate = new Date(b.updatedAt).getTime();
+      return bDate - aDate;
     });
   }, [getFilteredItems]);
 
@@ -177,20 +192,20 @@ const NotesScreen: React.FC = () => {
   }, []);
 
   // Handle navigating into a folder
-  const handleFolderPress = (folderId: string, folderTitle: string) => {
-    setCurrentFolder(folderId);
-    // Update navigation title or breadcrumb here if needed
+  const handleFolderPress = (folderId: string | number, folderTitle: string) => {
+    // folderId'yi string'e çevir
+    const folderIdString = folderId.toString();
+    setCurrentFolder(folderIdString);
   };
 
   // Handle navigation back to parent folder
   const handleNavigateBack = () => {
     if (currentFolder) {
-      // Find parent folder if any
-      const currentFolderObj = notes.find(n => n.id === currentFolder && n.isFolder) as Folder | undefined;
+      const currentFolderObj = notes.find(n => n.id.toString() === currentFolder && n.isFolder);
       if (currentFolderObj && currentFolderObj.parentFolderId) {
-        setCurrentFolder(currentFolderObj.parentFolderId);
+        // parentFolderId'yi string'e çevir
+        setCurrentFolder(currentFolderObj.parentFolderId.toString());
       } else {
-        // Go back to root
         setCurrentFolder(null);
       }
     }
@@ -226,11 +241,12 @@ const NotesScreen: React.FC = () => {
             // Simplified: normally you'd get user input here
             const folderName = "New Folder"; // Replace with actual user input
             if (folderName && folderName.trim()) {
-              addFolder({
+              const folderData: FolderData = {
                 title: folderName.trim(),
-                parentFolderId: currentFolder,
+                parentFolderId: currentFolder ? Number(currentFolder) : null,
                 isFolder: true,
-              });
+              };
+              addFolder(folderData);
             }
           },
         },
@@ -248,9 +264,15 @@ const NotesScreen: React.FC = () => {
   // Handle picking a PDF
   const handlePickPdf = () => {
     setShowFABMenu(false);
-    navigation.navigate('NoteDetail', { 
+    navigation.navigate('NoteDetail', {
       folderId: currentFolder,
-      isPdf: true,
+      noteId: undefined,
+      title: undefined,
+      content: undefined,
+      category: undefined,
+      isImportant: undefined,
+      color: undefined,
+      tags: undefined
     });
   };
 
@@ -260,19 +282,20 @@ const NotesScreen: React.FC = () => {
     
     if (!noteItem) return;
     
-    if (coverId === 'generated') {
-      // Generate AI cover based on note content or title
+    if (coverId === 'none') {
+      updateNoteCover(noteItem.id, { coverType: undefined, coverPosition: undefined, color: undefined });
+    } else if (coverId === 'generated') {
       Alert.alert(
         'AI Cover Generator',
         'Would you like to generate a cover based on note title or content?',
         [
           {
             text: 'Title',
-            onPress: () => generateAICover(noteItem.id, 'title'),
+            onPress: () => generateAICover(noteItem.id.toString(), 'title'),
           },
           {
             text: 'Content',
-            onPress: () => generateAICover(noteItem.id, 'content'),
+            onPress: () => generateAICover(noteItem.id.toString(), 'content'),
           },
           {
             text: 'Cancel',
@@ -280,22 +303,17 @@ const NotesScreen: React.FC = () => {
           },
         ]
       );
-    } else if (coverId === 'none') {
-      // Remove cover
-      updateNoteCover(noteItem.id, null);
     } else {
-      // Set predefined cover
       const selectedCover = coverOptions.find(c => c.id === coverId);
       if (selectedCover) {
-        // Sanal olarak resim yerine rengi kullanacağız
-        updateNoteCover(noteItem.id, selectedCover.color);
+        updateNoteCover(noteItem.id, { color: selectedCover.color });
       }
     }
   };
 
   // Generate AI cover based on note content or title
   const generateAICover = (noteId: string, sourceType: 'title' | 'content') => {
-    const note = notes.find(n => n.id === noteId);
+    const note = notes.find(n => n.id.toString() === noteId);
     if (!note) return;
     
     // This would connect to an AI service in a real implementation
@@ -310,23 +328,17 @@ const NotesScreen: React.FC = () => {
             // Randomly select one of the predefined covers as a placeholder
             const randomCover = coverOptions.filter(c => c.id !== 'none' && c.id !== 'generated');
             const selectedCover = randomCover[Math.floor(Math.random() * randomCover.length)];
-            updateNoteCover(noteId, selectedCover.color); // Resim yerine renk kullan
+            // Use the color for the UpdateCoverDTO
+            updateNoteCover(note.id, { color: selectedCover.color });
           },
         },
       ]
     );
   };
 
-  // Update note cover
-  const updateNoteCover = (noteId: string, coverImage: any) => {
-    // Implement cover update logic here
-    // This would update the note in your database with the new cover
-    console.log(`Updated note ${noteId} with cover:`, coverImage);
-  };
-
   // Handle note selection (for cover picking, etc.)
   const handleNoteOptions = (noteId: string) => {
-    const note = notes.find(n => n.id === noteId);
+    const note = notes.find(n => n.id.toString() === noteId);
     if (!note) return;
     
     // Show options menu
@@ -343,7 +355,7 @@ const NotesScreen: React.FC = () => {
         },
         {
           text: 'Move to Folder',
-          onPress: () => handleMoveToFolder(noteId),
+          onPress: () => handleMoveToFolder(note.id),
         },
         {
           text: 'Cancel',
@@ -354,7 +366,7 @@ const NotesScreen: React.FC = () => {
   };
 
   // Handle moving a note to a folder
-  const handleMoveToFolder = (noteId: string) => {
+  const handleMoveToFolder = (noteId: string | number) => {
     // Implement folder selection UI here
     // For now, we'll use a simple alert
     Alert.alert(
@@ -375,18 +387,18 @@ const NotesScreen: React.FC = () => {
     );
   };
 
-  // Render header with breadcrumb navigation
+        // Render header with breadcrumb navigation
   const renderHeader = () => {
     // Build breadcrumb trail
-    let breadcrumbs: Folder[] = [];
+    let breadcrumbs: Note[] = [];
     let currentId = currentFolder;
     
     if (currentId) {
       while (currentId) {
-        const folder = notes.find(n => n.id === currentId && n.isFolder) as Folder | undefined;
+        const folder = notes.find(n => n.id.toString() === currentId && n.isFolder) as Note | undefined;
         if (folder) {
           breadcrumbs.unshift(folder);
-          currentId = folder.parentFolderId;
+          currentId = folder.parentFolderId?.toString() || null;
         } else {
           break;
         }
@@ -412,7 +424,7 @@ const NotesScreen: React.FC = () => {
             <Text style={styles.breadcrumbSeparator}>/</Text>
             <TouchableOpacity 
               style={styles.breadcrumbItem}
-              onPress={() => setCurrentFolder(folder.id)}
+              onPress={() => setCurrentFolder(folder.id.toString())}
             >
               <Text style={[
                 styles.breadcrumbText,
@@ -428,9 +440,8 @@ const NotesScreen: React.FC = () => {
   };
 
   // Render note or folder item
-  const renderItem = ({ item, index }: { item: NoteOrFolder; index: number }) => {
+  const renderItem = ({ item, index }: { item: Note; index: number }) => {
     if (item.isFolder) {
-      // Render folder - typescript is aware this is a Folder type because of the isFolder check
       return (
         <Animated.View
           entering={FadeInDown.delay(index * 50).springify()}
@@ -443,38 +454,73 @@ const NotesScreen: React.FC = () => {
             <View style={styles.folderInfo}>
               <Text style={styles.folderTitle} numberOfLines={1}>{item.title}</Text>
               <Text style={styles.folderMeta}>
-                {notes.filter(n => n.folderId === item.id).length} items • {new Date(item.updatedAt).toLocaleDateString()}
+                {notes.filter(n => {
+                  if (typeof n.folderId === 'string' && typeof item.id === 'string') {
+                    return n.folderId === item.id;
+                  } else if (typeof n.folderId === 'number' && typeof item.id === 'number') {
+                    return n.folderId === item.id;
+                  } else if (typeof n.folderId === 'string' && typeof item.id === 'number') {
+                    return n.folderId === item.id.toString();
+                  } else if (typeof n.folderId === 'number' && typeof item.id === 'string') {
+                    return n.folderId.toString() === item.id;
+                  }
+                  return false;
+                }).length} items • {new Date(item.updatedAt).toLocaleDateString()}
               </Text>
             </View>
           </TouchableOpacity>
         </Animated.View>
       );
-    } else {
-      // Render note or PDF - typescript is aware this is a Note type because it's not a Folder
-      const noteItem = item as Note;
-      return (
-        <Animated.View
-          entering={FadeInDown.delay(index * 50).springify()}
-        >
-          <NoteCard
-            note={noteItem}
-            category={categories.find(cat => cat.id === noteItem.category)}
-            onPress={() => navigation.navigate('NoteDetail', {
-              noteId: noteItem.id,
-              title: noteItem.title,
-              content: noteItem.content,
-              category: noteItem.category,
-              isImportant: noteItem.isImportant,
-              isPdf: noteItem.isPdf,
-              pdfUrl: noteItem.pdfUrl,
-              pdfName: noteItem.pdfName,
-              folderId: noteItem.folderId
-            })}
-            onLongPress={() => handleNoteOptions(noteItem.id)}
-          />
-        </Animated.View>
-      );
     }
+
+    // It's a note
+    const categoryObj = categories.find(cat => {
+      if (typeof cat.id === 'number' && typeof item.category === 'string') {
+        return cat.id.toString() === item.category;
+      }
+      if (typeof cat.id === 'string' && typeof item.category === 'string') {
+        return cat.id === item.category;
+      }
+      if (typeof cat.id === 'number' && typeof item.category === 'number') {
+        return cat.id === item.category;
+      }
+      return false;
+    });
+    
+    return (
+      <Animated.View
+        entering={FadeInDown.delay(index * 50).springify()}
+      >
+        <NoteCard
+          note={{
+            id: item.id.toString(),
+            title: item.title,
+            content: item.content || '',
+            isImportant: item.isPinned || false,
+            updatedAt: new Date(item.updatedAt),
+            isPdf: item.isPdf,
+            pdfUrl: item.pdfUrl,
+            pdfName: item.pdfName,
+            coverImage: item.coverImage
+          }}
+          category={{
+            id: categoryObj?.id?.toString() || '',
+            name: categoryObj?.name || '',
+            color: categoryObj?.color
+          }}
+          onPress={() => navigation.navigate('NoteDetail', {
+            noteId: item.id.toString(),
+            title: item.title,
+            content: item.content,
+            category: item.category,
+            isImportant: item.isPinned || false,
+            color: categoryObj?.color,
+            folderId: item.folderId ? item.folderId.toString() : null
+          })}
+          onLongPress={() => handleNoteOptions(item.id.toString())}
+        />
+      </Animated.View>
+    );
   };
 
   return (
@@ -512,7 +558,7 @@ const NotesScreen: React.FC = () => {
       {/* Notes and Folders List */}
       <FlatList
         data={sortedItems()}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item: Note) => item.id.toString()}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
@@ -610,12 +656,14 @@ const NotesScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
             
-            <FlatList
+                          <FlatList
               data={coverOptions}
               keyExtractor={(item) => item.id}
               numColumns={2}
               renderItem={({ item }) => {
-                const note = notes.find(n => n.id === selectedNoteId) || null;
+                const note = selectedNoteId ? 
+                  (notes.find(n => n.id.toString() === selectedNoteId) || null) : 
+                  null;
                 return (
                   <TouchableOpacity
                     style={styles.coverOption}

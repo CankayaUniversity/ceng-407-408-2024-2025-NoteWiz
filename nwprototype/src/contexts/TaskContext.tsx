@@ -1,194 +1,309 @@
 // src/contexts/TaskContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import firestore from '@react-native-firebase/firestore';
+import { tasksService } from '../services/api';
 import { useAuth } from './AuthContext';
-import auth from '@react-native-firebase/auth';
 
+// Task type definition
 export interface Task {
-  id: string;
+  id: string; // Will be converted from number to string
   title: string;
   description?: string;
   dueDate?: Date;
-  completed: boolean;
   priority: 'low' | 'medium' | 'high';
-  categoryId?: string;
+  reminder?: Date;
+  // API may use completed or isCompleted
+  completed: boolean; 
+  isCompleted?: boolean;
   userId: string;
+  categoryId?: string;
   createdAt: Date;
-  updatedAt: Date;
-  reminder?: Date; // Hatırlatıcı için
-  relatedNoteId?: string; // Bir nota bağlıysa
+  updatedAt?: Date;
+  completedAt?: Date;
 }
 
-interface TaskContextType {
+// For creating new tasks
+export interface TaskData {
+  title: string;
+  description?: string;
+  dueDate?: Date;
+  priority?: 'low' | 'medium' | 'high';
+  reminder?: Date;
+  completed?: boolean;
+  categoryId?: string;
+}
+
+interface TasksContextType {
   tasks: Task[];
-  addTask: (task: Omit<Task, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => Promise<string>;
-  updateTask: (id: string, task: Partial<Task>) => Promise<void>;
-  deleteTask: (id: string) => Promise<void>;
-  toggleCompleted: (id: string) => Promise<void>;
   isLoading: boolean;
+  addTask: (taskData: TaskData) => Promise<string>;
+  updateTask: (id: string, taskData: Partial<Task>) => Promise<boolean>;
+  deleteTask: (id: string) => Promise<boolean>;
+  toggleCompleted: (id: string) => Promise<boolean>;
 }
 
-const TaskContext = createContext<TaskContextType | undefined>(undefined);
+// Create context
+const TaskContext = createContext<TasksContextType>({
+  tasks: [],
+  isLoading: false,
+  addTask: async () => "",
+  updateTask: async () => false,
+  deleteTask: async () => false,
+  toggleCompleted: async () => false,
+});
 
-export const TaskProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
+export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuth();
-
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  
+  // Only fetch tasks when authenticated
   useEffect(() => {
-    if (!user) {
+    if (isAuthenticated && !authLoading) {
+      fetchTasks();
+    } else if (!isAuthenticated && !authLoading) {
+      // Clear tasks when not authenticated
       setTasks([]);
-      setIsLoading(false);
-      return () => {};
     }
-    
-    console.log('Setting up Firestore listener for tasks with user ID:', user.id);
+  }, [isAuthenticated, authLoading]);
+
+  // Get tasks from API
+  const fetchTasks = async () => {
     setIsLoading(true);
-  
-    const unsubscribe = firestore()
-      .collection('tasks')
-      .where('userId', '==', user.id)
-      .orderBy('createdAt', 'desc') // Changed to createdAt to avoid potential issues with null dueDate
-      .onSnapshot(
-        (snapshot) => {
-          try {
-            console.log('Snapshot received, docs count:', snapshot.docs.length);
-            const newTasks = snapshot.docs.map(doc => {
-              const data = doc.data();
-              return {
-                id: doc.id,
-                ...data,
-                createdAt: data.createdAt?.toDate() || new Date(),
-                updatedAt: data.updatedAt?.toDate() || new Date(),
-                dueDate: data.dueDate?.toDate(),
-                reminder: data.reminder?.toDate(),
-              };
-            }) as Task[];
-            
-            setTasks(newTasks);
-          } catch (error) {
-            console.error('Error processing tasks:', error);
-            setTasks([]);
-          } finally {
-            setIsLoading(false);
-          }
-        },
-        (error) => {
-          console.error('Tasks listening error:', error);
-          setTasks([]);
-          setIsLoading(false);
-        }
-      );
-  
-    return () => {
-      console.log('Cleaning up Firestore listener');
-      unsubscribe();
-    };
-  }, [user]);
-  
-  const addTask = async (task: Omit<Task, 'id' | 'userId' | 'createdAt' | 'updatedAt'>): Promise<string> => {
-    if (!user) {
-      throw new Error('Kullanıcı doğrulanmadı');
-    }
-  
-    console.log('Adding task:', task.title);
     try {
-      const docRef = await firestore().collection('tasks').add({
-        ...task,
-        userId: user.id,
-        completed: task.completed ?? false,
-        priority: task.priority || 'medium',
-        createdAt: firestore.FieldValue.serverTimestamp(),
-        updatedAt: firestore.FieldValue.serverTimestamp(),
-      });
+      const data = await tasksService.getTasks();
       
-      console.log('Task added successfully with ID:', docRef.id);
-      return docRef.id;
+      // Process API data
+      const formattedTasks = data.map((task: any) => ({
+        ...task,
+        id: task.id.toString(), // Convert Int to string
+        userId: task.userId.toString(),
+        categoryId: task.categoryId ? task.categoryId.toString() : undefined,
+        // Support both isCompleted and completed
+        completed: task.isCompleted !== undefined ? task.isCompleted : task.completed,
+        // Convert date strings to Date objects
+        dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+        reminder: task.reminder ? new Date(task.reminder) : undefined,
+        createdAt: new Date(task.createdAt),
+        updatedAt: task.updatedAt ? new Date(task.updatedAt) : undefined,
+        completedAt: task.completedAt ? new Date(task.completedAt) : undefined
+      }));
+      
+      setTasks(formattedTasks);
     } catch (error) {
-      console.error('Error adding task:', error);
-      throw new Error('Görev eklenirken bir hata oluştu.');
+      console.error('Error fetching tasks:', error);
+      // Use empty array on error
+      setTasks([]);
+    } finally {
+      setIsLoading(false);
     }
   };
-  
-  const updateTask = async (id: string, taskUpdate: Partial<Task>) => {
-    if (!user) {
-      throw new Error('Kullanıcı doğrulanmadı');
-    }
+
+  // Add new task
+  const addTask = async (taskData: TaskData): Promise<string> => {
+    if (!isAuthenticated) return "";
     
     try {
-      const updateData: any = {
-        ...taskUpdate,
-        updatedAt: firestore.FieldValue.serverTimestamp(),
+      // Prepare data for API
+      const apiTaskData = {
+        description: taskData.title, // API may use description instead of title
+        dueDate: taskData.dueDate,
+        priority: taskData.priority || "medium",
+        reminder: taskData.reminder,
+        isCompleted: taskData.completed || false
       };
       
-      // Make sure we don't try to update id or userId
-      delete updateData.id;
-      delete updateData.userId;
+      // Add task to API
+      const createdTask = await tasksService.createTask(apiTaskData);
       
-      await firestore()
-        .collection('tasks')
-        .doc(id)
-        .update(updateData);
-        
-      console.log('Task updated successfully:', id);
+      // Process and add created task to state
+      const newTask: Task = {
+        ...createdTask,
+        id: createdTask.id.toString(),
+        userId: createdTask.userId.toString(),
+        categoryId: createdTask.categoryId ? createdTask.categoryId.toString() : undefined,
+        title: taskData.title, // If API returns description, map back to title
+        completed: createdTask.isCompleted !== undefined ? createdTask.isCompleted : createdTask.completed,
+        isCompleted: createdTask.isCompleted !== undefined ? createdTask.isCompleted : createdTask.completed,
+        dueDate: createdTask.dueDate ? new Date(createdTask.dueDate) : undefined,
+        reminder: createdTask.reminder ? new Date(createdTask.reminder) : undefined,
+        createdAt: new Date(createdTask.createdAt),
+        updatedAt: createdTask.updatedAt ? new Date(createdTask.updatedAt) : undefined,
+        completedAt: createdTask.completedAt ? new Date(createdTask.completedAt) : undefined
+      };
+      
+      setTasks(prevTasks => [...prevTasks, newTask]);
+      return newTask.id;
     } catch (error) {
-      console.error('Error updating task:', error);
-      throw new Error('Görev güncellenirken bir hata oluştu.');
+      console.error('Error adding task:', error);
+      return "";
     }
   };
 
-  const deleteTask = async (id: string) => {
-    if (!user) {
-      throw new Error('Kullanıcı doğrulanmadı');
-    }
+  // Update task
+  const updateTask = async (id: string, taskData: Partial<Task>): Promise<boolean> => {
+    if (!isAuthenticated) return false;
     
     try {
-      await firestore()
-        .collection('tasks')
-        .doc(id)
-        .delete();
-        
-      console.log('Task deleted successfully:', id);
+      // Prepare data for API
+      const apiTaskData = {
+        description: taskData.title || taskData.description,
+        dueDate: taskData.dueDate,
+        priority: taskData.priority,
+        reminder: taskData.reminder,
+        isCompleted: taskData.completed
+      };
+      
+      // Update task in API
+      const updatedTask = await tasksService.updateTask(parseInt(id), apiTaskData);
+      
+      // Update task in state
+      setTasks(prevTasks => 
+        prevTasks.map(task => {
+          if (task.id === id) {
+            return {
+              ...task,
+              ...taskData,
+              // Add API response values
+              title: taskData.title || task.title,
+              description: updatedTask.description || task.description,
+              dueDate: taskData.dueDate || task.dueDate,
+              priority: taskData.priority || task.priority,
+              reminder: taskData.reminder || task.reminder,
+              completed: taskData.completed !== undefined ? taskData.completed : task.completed,
+              isCompleted: taskData.completed !== undefined ? taskData.completed : task.isCompleted,
+              updatedAt: new Date()
+            };
+          }
+          return task;
+        })
+      );
+      
+      return true;
     } catch (error) {
-      console.error('Error deleting task:', error);
-      throw new Error('Görev silinirken bir hata oluştu.');
+      console.error('Error updating task:', error);
+      
+      // Try UI update anyway
+      setTasks(prevTasks => 
+        prevTasks.map(task => {
+          if (task.id === id) {
+            return {
+              ...task,
+              ...taskData,
+              title: taskData.title || task.title,
+              updatedAt: new Date()
+            };
+          }
+          return task;
+        })
+      );
+      
+      return false;
     }
   };
 
-  const toggleCompleted = async (id: string) => {
+  // Delete task
+  const deleteTask = async (id: string): Promise<boolean> => {
+    if (!isAuthenticated) return false;
+    
     try {
+      // Delete task from API
+      await tasksService.deleteTask(parseInt(id));
+      
+      // Remove task from state
+      setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
+      return true;
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      
+      // Try to remove from UI
+      setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
+      return false;
+    }
+  };
+
+  // Toggle task completed/uncompleted status
+  const toggleCompleted = async (id: string): Promise<boolean> => {
+    if (!isAuthenticated) return false;
+    
+    try {
+      // Find current task
       const task = tasks.find(t => t.id === id);
-      if (!task) {
-        throw new Error('Görev bulunamadı');
+      if (!task) return false;
+      
+      const newCompletedStatus = !task.completed;
+      
+      // Make API request
+      if (newCompletedStatus) {
+        // Mark as completed
+        await tasksService.completeTask(parseInt(id));
+      } else {
+        // Revert with normal update
+        await tasksService.updateTask(parseInt(id), { 
+          isCompleted: false
+        });
       }
       
-      await updateTask(id, { completed: !task.completed });
+      // Update task in state
+      setTasks(prevTasks => 
+        prevTasks.map(task => {
+          if (task.id === id) {
+            return {
+              ...task,
+              completed: newCompletedStatus,
+              isCompleted: newCompletedStatus,
+              completedAt: newCompletedStatus ? new Date() : undefined,
+              updatedAt: new Date()
+            };
+          }
+          return task;
+        })
+      );
+      
+      return true;
     } catch (error) {
-      console.error('Error toggling task completion:', error);
-      throw error;
+      console.error('Error toggling task status:', error);
+      
+      // Try UI update anyway
+      const task = tasks.find(t => t.id === id);
+      if (!task) return false;
+      
+      const newCompletedStatus = !task.completed;
+      
+      setTasks(prevTasks => 
+        prevTasks.map(task => {
+          if (task.id === id) {
+            return {
+              ...task,
+              completed: newCompletedStatus,
+              isCompleted: newCompletedStatus,
+              completedAt: newCompletedStatus ? new Date() : undefined,
+              updatedAt: new Date()
+            };
+          }
+          return task;
+        })
+      );
+      
+      return false;
     }
+  };
+
+  // Provide context values
+  const contextValue = {
+    tasks,
+    isLoading,
+    addTask,
+    updateTask,
+    deleteTask,
+    toggleCompleted
   };
 
   return (
-    <TaskContext.Provider 
-      value={{ 
-        tasks, 
-        addTask, 
-        updateTask, 
-        deleteTask,
-        toggleCompleted,
-        isLoading
-      }}
-    >
+    <TaskContext.Provider value={contextValue}>
       {children}
     </TaskContext.Provider>
   );
 };
 
-export const useTasks = () => {
-  const context = useContext(TaskContext);
-  if (context === undefined) {
-    throw new Error('useTasks must be used within a TaskProvider');
-  }
-  return context;
-};
+// Hook for easy usage
+export const useTasks = () => useContext(TaskContext);

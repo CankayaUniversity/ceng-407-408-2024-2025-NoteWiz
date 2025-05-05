@@ -416,3 +416,29 @@ export const CheckIcon: React.FC<IconProps> = ({ size = 24, color = '#000', styl
     />
   </Svg>
 );
+
+export const ShareIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+    <Path
+      d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Polyline
+      points="16 6 12 2 8 6"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M12 2v13"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);

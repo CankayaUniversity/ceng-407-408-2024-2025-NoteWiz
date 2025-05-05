@@ -20,6 +20,14 @@ import { useCategories } from '../contexts/CategoriesContext';
 import { SearchBar } from '../components/ui/SearchBar';
 import { COLORS, SHADOWS } from '../constants/theme';
 
+interface Note {
+  // ... mevcut alanlar ...
+  coverType: 'none' | 'preset' | 'generated';
+  coverId?: string;      // Hazır şablonlar için
+  coverImage?: string;   // Generated veya yüklenmiş kapak için URL
+  coverColor?: string;   // Arka plan rengi için
+}
+
 // Tarih formatı oluşturucu
 const formatDate = (date: Date | undefined) => {
   if (!date) return '';
@@ -173,7 +181,7 @@ const TasksScreen = () => {
   // Görev kartı bileşeni
   const TaskCard = ({ task }: { task: Task }) => {
     // İlgili kategoriyi bul
-    const category = categories.find(cat => cat.id === task.categoryId);
+    const category = categories.find(cat => String(cat.id) === task.categoryId);
     
     return (
       <TouchableOpacity
@@ -293,6 +301,7 @@ const TasksScreen = () => {
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder="Görevlerde ara..."
+            style={styles.searchBar}
           />
         </View>
 
@@ -442,6 +451,9 @@ const styles = StyleSheet.create({
   },
   searchBarContainer: {
     marginBottom: 16,
+  },
+  searchBar: {
+    paddingHorizontal: 20,
   },
   filterContainer: {
     flexDirection: 'row',

@@ -3,7 +3,9 @@
 
 
   "compilerOptions": {
-    // ...
+    "types": [
+      "@microsoft/signalr"
+    ]
   },
   "include": [
     "src",

@@ -1,6 +1,6 @@
 // src/components/notes/NoteCard.tsx
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, Image, ImageStyle, StyleProp, ViewStyle, TextStyle } from 'react-native';
 import Animated, {
   FadeIn,
   useAnimatedStyle,
@@ -156,27 +156,27 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
     overflow: 'hidden',
     ...SHADOWS.md
-  },
+  } as ViewStyle,
   importantContainer: {
     borderWidth: 1,
     borderColor: COLORS.warning.light + '30',
-  },
+  } as ViewStyle,
   coverImageContainer: {
     width: '100%',
     height: 120,
-  },
+  } as ViewStyle,
   coverImage: {
     width: '100%',
     height: '100%',
-  },
+  } as ImageStyle,
   content: {
     flexDirection: 'row',
     padding: SPACING.md,
-  },
+  } as ViewStyle,
   contentWithCover: {
     borderTopWidth: 1,
     borderTopColor: COLORS.border.light,
-  },
+  } as ViewStyle,
   iconContainer: {
     width: 48,
     height: 48,
@@ -184,47 +184,46 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: SPACING.md,
-  },
+  } as ViewStyle,
   textContainer: {
     flex: 1,
     marginRight: SPACING.md,
-  },
+  } as ViewStyle,
   title: {
     fontSize: TYPOGRAPHY.sizes.md,
-    fontWeight: TYPOGRAPHY.weights.semibold,
+    fontWeight: TYPOGRAPHY.weights.semibold as "600",
     color: COLORS.text.primary,
     marginBottom: SPACING.xs,
     lineHeight: 22,
-  },
+  } as TextStyle,
   preview: {
     fontSize: TYPOGRAPHY.sizes.sm,
     color: COLORS.text.secondary,
     marginBottom: SPACING.sm,
-  },
+  } as TextStyle,
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
+  } as ViewStyle,
   date: {
     fontSize: TYPOGRAPHY.sizes.xs,
     color: COLORS.text.secondary,
-  },
+  } as TextStyle,
   category: {
     fontSize: TYPOGRAPHY.sizes.xs,
-    fontWeight: TYPOGRAPHY.weights.medium,
-  },
+    fontWeight: TYPOGRAPHY.weights.medium as "500",
+  } as TextStyle,
   star: {
     position: 'absolute',
     top: SPACING.md,
     right: SPACING.md,
-  },
-  // PDF Styles
+  } as ViewStyle,
   pdfPreview: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: SPACING.sm,
-  }
+  } as ViewStyle
 });
 
 export default NoteCard;

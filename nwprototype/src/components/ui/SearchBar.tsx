@@ -7,15 +7,17 @@ interface SearchBarProps {
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
+  style?: any;
 }
 
 export const SearchBar: React.FC<SearchBarProps> = ({
   value,
   onChangeText,
   placeholder = 'Search...',
+  style,
 }) => {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       <View style={styles.searchContainer}>
         <SearchIcon size={20} color={COLORS.text.secondary} style={styles.icon} />
         <TextInput
@@ -23,7 +25,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor={COLORS.text.tertiary}
+          placeholderTextColor={COLORS.text.secondary}
         />
       </View>
     </View>
@@ -32,7 +34,6 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: SPACING.md,
     marginBottom: SPACING.md,
   },
   searchContainer: {
@@ -41,14 +42,14 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background.surface,
     borderRadius: 12,
     paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.md,
+    paddingVertical: SPACING.sm,
   },
   icon: {
-    marginRight: SPACING.md,
+    marginRight: SPACING.sm,
   },
   input: {
     flex: 1,
-    fontSize: TYPOGRAPHY.sizes.md,
+    fontSize: TYPOGRAPHY.body1.fontSize,
     color: COLORS.text.primary,
     padding: 0,
   },
