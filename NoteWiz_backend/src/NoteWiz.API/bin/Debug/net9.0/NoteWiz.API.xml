@@ -1,0 +1,384 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>NoteWiz.API</name>
+    </assembly>
+    <members>
+        <member name="M:NoteWiz.API.Controllers.DocumentsController.UploadDocument(Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            Upload a document
+            </summary>
+            <param name="file">The document file to upload</param>
+            <returns>Uploaded document details</returns>
+            <response code="200">Returns the uploaded document details</response>
+        </member>
+        <member name="M:NoteWiz.API.Controllers.DocumentsController.GetDocuments">
+            <summary>
+            Get all documents for the current user
+            </summary>
+            <returns>List of documents</returns>
+            <response code="200">Returns the list of documents</response>
+        </member>
+        <member name="M:NoteWiz.API.Controllers.DocumentsController.GetDocument(System.Int32)">
+            <summary>
+            Get a specific document
+            </summary>
+            <param name="id">Document ID</param>
+            <returns>Document details</returns>
+            <response code="200">Returns the document details</response>
+            <response code="404">If the document is not found</response>
+        </member>
+        <member name="M:NoteWiz.API.Controllers.DocumentsController.DeleteDocument(System.Int32)">
+            <summary>
+            Delete a document
+            </summary>
+            <param name="id">Document ID</param>
+            <returns>No content</returns>
+            <response code="204">If the document was successfully deleted</response>
+            <response code="404">If the document is not found</response>
+        </member>
+        <member name="M:NoteWiz.API.Controllers.FriendshipsController.SendFriendRequest(NoteWiz.API.DTOs.CreateFriendshipDTO)">
+            <summary>
+            Send a friend request
+            </summary>
+            <param name="dto">Friend request data</param>
+            <returns>Created friendship details</returns>
+            <response code="200">Returns the created friendship details</response>
+            <response code="400">If the request is invalid</response>
+        </member>
+        <member name="M:NoteWiz.API.Controllers.FriendshipsController.AcceptFriendRequest(System.Int32)">
+            <summary>
+            Accept a friend request
+            </summary>
+            <param name="requestId">Friend request ID</param>
+            <returns>Updated friendship details</returns>
+            <response code="200">Returns the updated friendship details</response>
+            <response code="404">If the request is not found</response>
+        </member>
+        <member name="M:NoteWiz.API.Controllers.FriendshipsController.RejectFriendRequest(System.Int32)">
+            <summary>
+            Reject a friend request
+            </summary>
+            <param name="requestId">Friend request ID</param>
+            <returns>No content</returns>
+            <response code="204">If the request was successfully rejected</response>
+            <response code="404">If the request is not found</response>
+        </member>
+        <member name="M:NoteWiz.API.Controllers.FriendshipsController.GetFriendRequests">
+            <summary>
+            Get all friend requests for the current user
+            </summary>
+            <returns>List of friend requests</returns>
+            <response code="200">Returns the list of friend requests</response>
+        </member>
+        <member name="M:NoteWiz.API.Controllers.FriendshipsController.GetFriends">
+            <summary>
+            Get all friends of the current user
+            </summary>
+            <returns>List of friends</returns>
+            <response code="200">Returns the list of friends</response>
+        </member>
+        <member name="M:NoteWiz.API.Controllers.FriendshipsController.RemoveFriend(System.Int32)">
+            <summary>
+            Remove a friend
+            </summary>
+            <param name="friendId">Friend ID</param>
+            <returns>No content</returns>
+            <response code="204">If the friend was successfully removed</response>
+            <response code="404">If the friendship is not found</response>
+        </member>
+        <member name="M:NoteWiz.API.Controllers.NotesController.AddNoteImage(System.Int32,NoteWiz.API.DTOs.CreateNoteImageDTO)">
+            <summary>
+            Upload an image to a note
+            </summary>
+            <param name="id">Note ID</param>
+            <param name="dto">Image upload data</param>
+            <returns>Uploaded image details</returns>
+            <response code="200">Returns the uploaded image details</response>
+            <response code="404">If the note is not found</response>
+        </member>
+        <member name="M:NoteWiz.API.Controllers.NotesController.GetNoteImages(System.Int32)">
+            <summary>
+            Get all images of a note
+            </summary>
+            <param name="id">Note ID</param>
+            <returns>List of note images</returns>
+            <response code="200">Returns the list of images</response>
+            <response code="404">If the note is not found</response>
+        </member>
+        <member name="M:NoteWiz.API.Controllers.NotesController.DeleteNoteImage(System.Int32,System.Int32)">
+            <summary>
+            Delete an image from a note
+            </summary>
+            <param name="id">Note ID</param>
+            <param name="imageId">Image ID</param>
+            <returns>No content</returns>
+            <response code="204">If the image was successfully deleted</response>
+            <response code="404">If the note or image is not found</response>
+        </member>
+        <member name="M:NoteWiz.API.Controllers.NotesController.AddNoteDrawing(System.Int32,NoteWiz.API.DTOs.CreateNoteDrawingDTO)">
+            <summary>
+            Add a drawing to a note
+            </summary>
+            <param name="id">Note ID</param>
+            <param name="dto">Drawing data</param>
+            <returns>Created drawing details</returns>
+            <response code="200">Returns the created drawing details</response>
+            <response code="404">If the note is not found</response>
+        </member>
+        <member name="M:NoteWiz.API.Controllers.NotesController.GetNoteDrawings(System.Int32)">
+            <summary>
+            Get all drawings of a note
+            </summary>
+            <param name="id">Note ID</param>
+            <returns>List of drawings</returns>
+            <response code="200">Returns the list of drawings</response>
+            <response code="404">If the note is not found</response>
+        </member>
+        <member name="M:NoteWiz.API.Controllers.NotesController.DeleteNoteDrawing(System.Int32,System.Int32)">
+            <summary>
+            Delete a drawing from a note
+            </summary>
+            <param name="id">Note ID</param>
+            <param name="drawingId">Drawing ID</param>
+            <returns>No content</returns>
+            <response code="204">If the drawing was successfully deleted</response>
+            <response code="404">If the note or drawing is not found</response>
+        </member>
+        <member name="T:NoteWiz.API.DTOs.CreateNoteDTO">
+            <summary>
+            Data Transfer Object for creating a note
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.CreateNoteDTO.Title">
+            <summary>
+            Note title
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.CreateNoteDTO.Content">
+            <summary>
+            Note content
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.CreateNoteDTO.CoverId">
+            <summary>
+            Cover ID for the note
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.CreateNoteDTO.CoverColor">
+            <summary>
+            Cover color for the note
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.CreateNoteDTO.IsArchived">
+            <summary>
+            Whether the note is archived
+            </summary>
+        </member>
+        <member name="T:NoteWiz.API.DTOs.UpdateNoteDTO">
+            <summary>
+            Data Transfer Object for updating a note
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.UpdateNoteDTO.Title">
+            <summary>
+            Note title
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.UpdateNoteDTO.Content">
+            <summary>
+            Note content
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.UpdateNoteDTO.CoverId">
+            <summary>
+            Cover ID for the note
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.UpdateNoteDTO.CoverColor">
+            <summary>
+            Cover color for the note
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.UpdateNoteDTO.IsArchived">
+            <summary>
+            Whether the note is archived
+            </summary>
+        </member>
+        <member name="T:NoteWiz.API.DTOs.NoteResponseDTO">
+            <summary>
+            Data Transfer Object for note response data
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.NoteResponseDTO.Id">
+            <summary>
+            Note ID
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.NoteResponseDTO.Title">
+            <summary>
+            Note title
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.NoteResponseDTO.Content">
+            <summary>
+            Note content
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.NoteResponseDTO.Tags">
+            <summary>
+            Tags associated with the note
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.NoteResponseDTO.Color">
+            <summary>
+            Color of the note
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.NoteResponseDTO.IsPinned">
+            <summary>
+            Whether the note is pinned
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.NoteResponseDTO.CoverId">
+            <summary>
+            Cover ID for the note
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.NoteResponseDTO.CoverColor">
+            <summary>
+            Cover color for the note
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.NoteResponseDTO.IsArchived">
+            <summary>
+            Whether the note is archived
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.NoteResponseDTO.UserId">
+            <summary>
+            ID of the user who created the note
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.NoteResponseDTO.CreatedAt">
+            <summary>
+            Creation date
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.NoteResponseDTO.UpdatedAt">
+            <summary>
+            Last update date
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.NoteResponseDTO.SharedWith">
+            <summary>
+            List of users who have shared the note
+            </summary>
+        </member>
+        <member name="T:NoteWiz.API.DTOs.NoteShareDTO">
+            <summary>
+            Data Transfer Object for sharing a note
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.NoteShareDTO.SharedWithUserId">
+            <summary>
+            ID of the user to share the note with
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.NoteShareDTO.CanEdit">
+            <summary>
+            Whether the shared user can edit the note
+            </summary>
+        </member>
+        <member name="T:NoteWiz.API.DTOs.CreateNoteShareDTO">
+            <summary>
+            Data Transfer Object for creating a note share
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.CreateNoteShareDTO.NoteId">
+            <summary>
+            ID of the note to share
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.CreateNoteShareDTO.SharedWithUserId">
+            <summary>
+            ID of the user to share the note with
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.CreateNoteShareDTO.CanEdit">
+            <summary>
+            Whether the user can edit the note
+            </summary>
+        </member>
+        <member name="T:NoteWiz.API.DTOs.UpdateNoteShareDTO">
+            <summary>
+            Data Transfer Object for updating a note share
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.UpdateNoteShareDTO.CanEdit">
+            <summary>
+            Whether the user can edit the note
+            </summary>
+        </member>
+        <member name="T:NoteWiz.API.DTOs.NoteShareResponseDTO">
+            <summary>
+            Data Transfer Object for note share response data
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.NoteShareResponseDTO.Id">
+            <summary>
+            Share ID
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.NoteShareResponseDTO.NoteId">
+            <summary>
+            Note ID
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.NoteShareResponseDTO.SharedWithUserId">
+            <summary>
+            ID of the user the note is shared with
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.NoteShareResponseDTO.SharedWithUserEmail">
+            <summary>
+            Email of the user the note is shared with
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.NoteShareResponseDTO.CanEdit">
+            <summary>
+            Whether the user can edit the note
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.NoteShareResponseDTO.SharedAt">
+            <summary>
+            Date and time the note was shared
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.NoteShareResponseDTO.SharedWithUser">
+            <summary>
+            User response data for the shared user
+            </summary>
+        </member>
+        <member name="T:NoteWiz.API.DTOs.UserBriefDTO">
+            <summary>
+            Data Transfer Object for user brief information
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.UserBriefDTO.Id">
+            <summary>
+            User ID
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.UserBriefDTO.Email">
+            <summary>
+            User email
+            </summary>
+        </member>
+        <member name="P:NoteWiz.API.DTOs.UserBriefDTO.Username">
+            <summary>
+            Username
+            </summary>
+        </member>
+    </members>
+</doc>
