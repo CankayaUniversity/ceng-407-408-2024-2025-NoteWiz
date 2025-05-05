@@ -15,7 +15,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
-import { useTasks, Task } from '../contexts/TaskContext';
+import { useTask, Task } from '../contexts/TaskContext';
 import { useCategories } from '../contexts/CategoriesContext';
 import { SearchBar } from '../components/ui/SearchBar';
 import { COLORS, SHADOWS } from '../constants/theme';
@@ -72,66 +72,64 @@ const TasksScreen = () => {
   console.log('TasksScreen rendered'); // Debug için
   
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { tasks, isLoading, toggleCompleted, deleteTask } = useTasks();
+  const { tasks, loading, toggleCompleted, deleteTask, fetchTasks } = useTask();
   const { categories } = useCategories();
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  useEffect(() => {
     console.log('TasksScreen useEffect - tasks:', tasks.length);
   }, [tasks]);
 
   // Görevleri filtrele
-  const filteredTasks = tasks.filter(task => {
+  const filteredTasks = tasks.filter((task: Task) => {
     // Başlık ve açıklamada arama
     const matchesSearch = 
       task.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
       (task.description?.toLowerCase().includes(searchQuery.toLowerCase()) || false);
-    
     // Aktif/tamamlanmış filtreleme
     if (filter === 'active') {
       return matchesSearch && !task.completed;
     } else if (filter === 'completed') {
       return matchesSearch && task.completed;
     }
-    
     return matchesSearch;
   });
 
   // Bugün yapılacak görevler
-  const todayTasks = filteredTasks.filter(task => {
+  const todayTasks = filteredTasks.filter((task: Task) => {
     if (!task.dueDate) return false;
-    
     const today = new Date();
+    const dueDate = new Date(task.dueDate);
     return (
-      task.dueDate.getDate() === today.getDate() &&
-      task.dueDate.getMonth() === today.getMonth() &&
-      task.dueDate.getFullYear() === today.getFullYear()
+      dueDate.getDate() === today.getDate() &&
+      dueDate.getMonth() === today.getMonth() &&
+      dueDate.getFullYear() === today.getFullYear()
     );
   });
 
   // Gecikmiş görevler
-  const overdueTasks = filteredTasks.filter(task => {
+  const overdueTasks = filteredTasks.filter((task: Task) => {
     if (!task.dueDate || task.completed) return false;
-    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const dueDate = new Date(task.dueDate);
     dueDate.setHours(0, 0, 0, 0);
-    
     return dueDate < today;
   });
 
   // Diğer tüm görevler
-  const otherTasks = filteredTasks.filter(task => {
+  const otherTasks = filteredTasks.filter((task: Task) => {
     if (!task.dueDate) return true; // Tarihi olmayan görevler de burada
-    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const taskDate = new Date(task.dueDate);
     taskDate.setHours(0, 0, 0, 0);
-    
     // Bugün değilse ve gecikmiş değilse
     return !(
       (taskDate.getDate() === today.getDate() &&
@@ -228,7 +226,7 @@ const TasksScreen = () => {
           <View style={styles.taskMeta}>
             {task.dueDate && (
               <Text style={styles.taskDate}>
-                {formatDate(task.dueDate)}
+                {formatDate(new Date(task.dueDate))}
               </Text>
             )}
             
@@ -281,7 +279,7 @@ const TasksScreen = () => {
     </View>
   );
 
-  if (isLoading) {
+  if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.primary.main} />
@@ -397,7 +395,7 @@ const TasksScreen = () => {
                   }
                   count={item.data.length}
                 />
-                {item.data.map(task => (
+                {item.data.map((task: Task) => (
                   <TaskCard key={task.id} task={task} />
                 ))}
               </View>
@@ -414,7 +412,7 @@ const TasksScreen = () => {
         />
       )}
 
-      {/* FloatingActionButton yerine doğrudan TouchableOpacity kullanılıyor */}
+      {/* FAB (her zaman görünür) */}
       <TouchableOpacity
         style={styles.fab}
         onPress={handleCreateTask}

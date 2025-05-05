@@ -28,7 +28,7 @@ import Pdf from 'react-native-pdf';
 import DocumentPicker from 'react-native-document-picker';
 import { COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '../constants/theme';
 import NoteCoverPicker from '../components/notes/NotesCoverPicker';
-import { notesService } from '../services/api';
+import { apiClient } from '../services/newApi';
 import { UpdateNoteDto } from '../types/note';
 import { askAI, getSummary, rewriteText } from '../services/openai';
 
@@ -233,8 +233,11 @@ useEffect(() => {
         <TouchableOpacity
           style={styles.headerButton}
           onPress={() => {
-            // Navigate to Drawing screen
-            navigation.navigate('Drawing');
+            if (noteId) {
+              navigation.navigate('Drawing', { noteId: noteId.toString() });
+            } else {
+              Alert.alert('Error', 'Note ID is required');
+            }
           }}
         >
           <Text style={styles.headerButtonText}>✏️ Draw</Text>

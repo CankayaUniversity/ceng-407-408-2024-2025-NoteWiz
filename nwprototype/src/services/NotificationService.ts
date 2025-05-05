@@ -5,30 +5,48 @@ import notifee, {
     AndroidImportance,
     RepeatFrequency
   } from '@notifee/react-native';
-  import { Task } from '../contexts/TaskContext';
+  import { Task, CreateTaskDto } from './taskService';
   
   class NotificationService {
+    private static CHANNEL_ID = 'task-reminders';
+    private static CHANNEL_NAME = 'Task Reminders';
+    private static CHANNEL_DESCRIPTION = 'Notifications for task reminders';
+  
     // Bildirim kanalı oluştur (Android için gerekli)
-    async createChannel() {
-      return await notifee.createChannel({
-        id: 'task-reminders',
-        name: 'Görev Hatırlatıcıları',
-        lights: true,
-        vibration: true,
-        importance: AndroidImportance.HIGH,
-      });
+    static async createChannel() {
+      try {
+        await notifee.createChannel({
+          id: NotificationService.CHANNEL_ID,
+          name: NotificationService.CHANNEL_NAME,
+          description: NotificationService.CHANNEL_DESCRIPTION,
+          importance: AndroidImportance.HIGH,
+        });
+        return NotificationService.CHANNEL_ID;
+      } catch (error) {
+        console.error('Kanal oluşturma hatası:', error);
+        return NotificationService.CHANNEL_ID; // Hata durumunda varsayılan kanal ID'sini döndür
+      }
     }
   
     // Görev için hatırlatıcı oluştur
-    async scheduleTaskReminder(task: Task) {
-      // Eğer bitiş tarihi yoksa bildirimi oluşturamayız
-      if (!task.dueDate || !task.reminder) {
-        console.log('Bu görev için hatırlatıcı veya bitiş tarihi mevcut değil:', task.title);
-        return null;
+    static async scheduleTaskReminder(task: Task | (CreateTaskDto & { id: string })) {
+      if (!task.reminder) return;
+
+      const reminderDate = typeof task.reminder === 'string' ? new Date(task.reminder) : task.reminder;
+      const now = new Date();
+
+      if (reminderDate <= now) {
+        console.log('Reminder date is in the past, skipping notification');
+        return;
       }
-  
+
+      // Bildirim ayarları
+      const notificationId = `task-${task.id}`;
+      const notificationTitle = task.title;
+      const notificationBody = task.description || 'Hatırlatıcı zamanı geldi!';
+
       // Hatırlatma tarihini milisaniye cinsinden hesapla
-      const reminderTime = task.reminder.getTime();
+      const reminderTime = reminderDate.getTime();
       
       // Tetikleyici oluştur - belirtilen zamanda tetiklenir
       const trigger: TimestampTrigger = {
@@ -36,22 +54,19 @@ import notifee, {
         timestamp: reminderTime,
       };
   
-      // Bildirimin eşsiz ID'si
-      const notificationId = `task-reminder-${task.id}`;
-  
       try {
         // Eğer bu ID'ye sahip bir bildirim varsa önce iptal et
-        await this.cancelNotification(notificationId);
+        await NotificationService.cancelNotification(notificationId);
   
         // Kanal oluştur/al
-        const channelId = await this.createChannel();
+        const channelId = await NotificationService.createChannel();
   
         // Bildirimi oluştur ve zamanla
         await notifee.createTriggerNotification(
           {
             id: notificationId,
-            title: `Görev Hatırlatıcı: ${task.title}`,
-            body: task.description || 'Bitirme zamanı yaklaşıyor',
+            title: notificationTitle,
+            body: notificationBody,
             android: {
               channelId,
               importance: AndroidImportance.HIGH,
@@ -104,10 +119,10 @@ import notifee, {
   
       try {
         // Eğer bu ID'ye sahip bir bildirim varsa önce iptal et
-        await this.cancelNotification(notificationId);
+        await NotificationService.cancelNotification(notificationId);
   
         // Kanal oluştur/al
-        const channelId = await this.createChannel();
+        const channelId = await NotificationService.createChannel();
   
         // Bildirimi oluştur ve zamanla
         await notifee.createTriggerNotification(
@@ -142,14 +157,11 @@ import notifee, {
     }
   
     // Belirli bir bildirimi iptal et
-    async cancelNotification(notificationId: string) {
+    static async cancelNotification(notificationId: string) {
       try {
         await notifee.cancelNotification(notificationId);
-        console.log(`Bildirim iptal edildi: ${notificationId}`);
-        return true;
       } catch (error) {
         console.error('Bildirim iptal hatası:', error);
-        return false;
       }
     }
   
@@ -167,21 +179,18 @@ import notifee, {
     }
   
     // Tüm bildirimleri iptal et
-    async cancelAllNotifications() {
+    static async cancelAllNotifications() {
       try {
         await notifee.cancelAllNotifications();
-        console.log('Tüm bildirimler iptal edildi');
-        return true;
       } catch (error) {
-        console.error('Tüm bildirimleri iptal ederken hata:', error);
-        return false;
+        console.error('Tüm bildirimleri iptal etme hatası:', error);
       }
     }
   
     // Anlık bildirim gönder
     async displayNotification(title: string, body: string, data: any = {}) {
       try {
-        const channelId = await this.createChannel();
+        const channelId = await NotificationService.createChannel();
         
         await notifee.displayNotification({
           title,
@@ -202,6 +211,15 @@ import notifee, {
         return false;
       }
     }
+  
+    static async getScheduledNotifications() {
+      try {
+        return await notifee.getTriggerNotifications();
+      } catch (error) {
+        console.error('Planlanmış bildirimleri alma hatası:', error);
+        return [];
+      }
+    }
   }
   
-  export default new NotificationService();
+  export default NotificationService;

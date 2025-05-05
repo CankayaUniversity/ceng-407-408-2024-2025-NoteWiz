@@ -16,7 +16,9 @@ export type RootStackParamList = {
     tags?: string[];
     folderId?: string | null;
   };
-  Drawing: undefined;
+  Drawing: {
+    noteId: string;
+  };
   TaskDetail: {
     taskId?: string;
   };

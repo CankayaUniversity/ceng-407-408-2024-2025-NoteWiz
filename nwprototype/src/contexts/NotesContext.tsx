@@ -1,12 +1,11 @@
 // src/contexts/NotesContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { notesService } from '../services/api';
+import { notesService } from '../services/newApi';
 import { useAuth } from './AuthContext';
-import axios from 'axios';
 
 // Note type definition
 export interface Note {
-  id: string; // Will be converted from number to string
+  id: number;
   title: string;
   content: string;
   tags: string[];
@@ -15,14 +14,14 @@ export interface Note {
   isPdf?: boolean;
   pdfUrl?: string;
   pdfName?: string;
-  coverImage?: any;
-  isPinned: boolean; // API might be using this instead of isImportant
-  userId: string;
-  folderId: string | null;
+  coverImage?: string;
+  isPinned: boolean;
+  userId: number;
+  folderId: number | null;
   isFolder?: boolean;
-  parentFolderId?: string | null;
-  createdAt: Date;
-  updatedAt: Date;
+  parentFolderId?: number | null;
+  createdAt: string;
+  updatedAt: string;
   sharedWith?: any[];
   category?: string;
   drawings?: any[];
@@ -31,25 +30,25 @@ export interface Note {
 // For folder operations
 export interface FolderData {
   title: string;
-  parentFolderId: string | null;
+  parentFolderId: number | null;
   isFolder: boolean;
 }
 
 interface NotesContextType {
   notes: Note[];
   isLoading: boolean;
-  addNote: (noteData: Partial<Note>) => Promise<string>;
-  updateNote: (id: string, noteData: Partial<Note>) => Promise<boolean>;
-  deleteNote: (id: string) => Promise<boolean>;
-  addFolder: (folder: { title: string; parentFolderId: string | null; isFolder: boolean }) => Promise<void>;
-  moveNoteToFolder: (noteId: string, folderId: string | null) => Promise<void>;
+  addNote: (noteData: Partial<Note>) => Promise<number>;
+  updateNote: (id: number, noteData: Partial<Note>) => Promise<boolean>;
+  deleteNote: (id: number) => Promise<boolean>;
+  addFolder: (folder: FolderData) => Promise<void>;
+  moveNoteToFolder: (noteId: number, folderId: number | null) => Promise<void>;
 }
 
 // Create context
 const NotesContext = createContext<NotesContextType>({
   notes: [],
   isLoading: false,
-  addNote: async () => "",
+  addNote: async () => 0,
   updateNote: async () => false,
   deleteNote: async () => false,
   addFolder: async () => {},
@@ -61,126 +60,68 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   
-  // Only fetch notes when authenticated
   useEffect(() => {
     if (isAuthenticated && !authLoading) {
       fetchNotes();
     } else if (!isAuthenticated && !authLoading) {
-      // Clear notes when not authenticated
       setNotes([]);
     }
   }, [isAuthenticated, authLoading]);
 
-  // Get notes from API
   const fetchNotes = async () => {
     setIsLoading(true);
     try {
       const data = await notesService.getNotes();
-      
-      // Process API data
-      const formattedNotes = data.map((note: any) => ({
-        ...note,
-        id: note.id.toString(), // Convert Int to string
-        userId: note.userId.toString(),
-        folderId: note.folderId ? note.folderId.toString() : null,
-        // Map between isImportant and isPinned
-        isImportant: note.isPinned !== undefined ? note.isPinned : note.isImportant,
-        // Convert date strings to Date objects
-        createdAt: new Date(note.createdAt),
-        updatedAt: note.updatedAt ? new Date(note.updatedAt) : undefined
-      }));
-      
-      setNotes(formattedNotes);
+      setNotes(data);
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error('API Error:', error.response?.data);
-        // Kullanıcıya hata mesajı göster
-      }
+      console.error('Error fetching notes:', error);
       setNotes([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Add new note
-  const addNote = async (noteData: Partial<Note>): Promise<string> => {
-    if (!isAuthenticated) return "";
+  const addNote = async (noteData: Partial<Note>): Promise<number> => {
+    if (!isAuthenticated) return 0;
     
     try {
-      // Prepare data for API
       const apiNoteData = {
         title: noteData.title || "New Note",
         content: noteData.content || "",
         tags: noteData.tags || [],
         color: noteData.color || "#FFFFFF",
-        // isImportant -> isPinned conversion
-        isPinned: noteData.isImportant !== undefined ? noteData.isImportant : false,
-        // Extra fields for PDF
+        isPinned: noteData.isImportant || false,
         isPdf: noteData.isPdf || false,
         pdfUrl: noteData.pdfUrl || null,
         pdfName: noteData.pdfName || null,
-        // Add folder ID if exists
         folderId: noteData.folderId || null
       };
       
-      // Add note to API
       const createdNote = await notesService.createNote(apiNoteData);
-      
-      // Add new note to state
-      const newNote: Note = {
-        ...createdNote,
-        id: createdNote.id.toString(),
-        userId: createdNote.userId.toString(),
-        folderId: createdNote.folderId ? createdNote.folderId.toString() : null,
-        isImportant: createdNote.isPinned, // isPinned -> isImportant
-        createdAt: new Date(createdNote.createdAt),
-        updatedAt: new Date(createdNote.updatedAt),
-        tags: createdNote.tags || []
-      };
-      
-      setNotes(prevNotes => [...prevNotes, newNote]);
-      return newNote.id;
+      setNotes(prevNotes => [...prevNotes, createdNote]);
+      return createdNote.id;
     } catch (error) {
       console.error('Error adding note:', error);
-      return "";
+      return 0;
     }
   };
 
-  // Update note
-  const updateNote = async (id: string, noteData: Partial<Note>): Promise<boolean> => {
+  const updateNote = async (id: number, noteData: Partial<Note>): Promise<boolean> => {
     if (!isAuthenticated) return false;
     
     try {
-      // Prepare data for API
       const apiNoteData = {
-        title: noteData.title,
-        content: noteData.content,
-        tags: noteData.tags,
-        color: noteData.color,
-        // isImportant -> isPinned conversion
-        isPinned: noteData.isImportant
+        title: noteData.title || '',
+        content: noteData.content || '',
+        tags: noteData.tags || [],
+        color: noteData.color || '#FFFFFF',
+        isPinned: noteData.isImportant || false
       };
       
-      // Update note in API
-      const updatedNote = await notesService.updateNote(parseInt(id), apiNoteData);
+      const updatedNote = await notesService.updateNote(id, apiNoteData);
       
-      // Update note in state
       setNotes(prevNotes => 
-        prevNotes.map(note => {
-          if (note.id === id) {
-            return {
-              ...note,
-              ...noteData,
-              title: updatedNote.title || note.title,
-              content: updatedNote.content || note.content,
-              tags: updatedNote.tags || note.tags,
-              color: updatedNote.color || note.color,
-              isImportant: updatedNote.isPinned !== undefined ? updatedNote.isPinned : note.isImportant,
-              updatedAt: new Date(updatedNote.updatedAt)
-            };
-          }
-          return note;
-        })
+        prevNotes.map(note => note.id === id ? updatedNote : note)
       );
       
       return true;
@@ -190,15 +131,11 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  // Delete note
-  const deleteNote = async (id: string): Promise<boolean> => {
+  const deleteNote = async (id: number): Promise<boolean> => {
     if (!isAuthenticated) return false;
     
     try {
-      // Delete note from API
-      await notesService.deleteNote(parseInt(id));
-      
-      // Remove note from state
+      await notesService.deleteNote(id);
       setNotes(prevNotes => prevNotes.filter(note => note.id !== id));
       return true;
     } catch (error) {
@@ -207,108 +144,57 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  // Add folder (note: this endpoint might not exist in your API, createNote can be used alternatively)
-  const addFolder = async (folder: { title: string; parentFolderId: string | null; isFolder: boolean }) => {
+  const addFolder = async (folder: FolderData) => {
     if (!isAuthenticated) return;
     
     try {
-      // Create note for folder
       const apiNoteData = {
         title: folder.title,
         content: "",
         tags: [],
         color: "#EFEFEF",
         isPinned: false,
-        // Folder properties
         isFolder: true,
-        folderId: folder.parentFolderId ? parseInt(folder.parentFolderId) : null
+        folderId: folder.parentFolderId
       };
       
-      // Add to API as folder
       const createdFolder = await notesService.createNote(apiNoteData);
-      
-      // Add new folder to state
-      const newFolder: Note = {
-        ...createdFolder,
-        id: createdFolder.id.toString(),
-        userId: createdFolder.userId.toString(),
-        folderId: createdFolder.folderId ? createdFolder.folderId.toString() : null,
-        isImportant: false,
-        isPinned: false,
-        isFolder: true,
-        parentFolderId: folder.parentFolderId,
-        createdAt: new Date(createdFolder.createdAt),
-        updatedAt: new Date(createdFolder.updatedAt),
-        tags: []
-      };
-      
-      setNotes(prevNotes => [...prevNotes, newFolder]);
+      setNotes(prevNotes => [...prevNotes, createdFolder]);
     } catch (error) {
       console.error('Error adding folder:', error);
-      
-      // Fallback - if folder creation is not supported in API
-      const tempFolder: Note = {
-        id: `temp-folder-${Date.now()}`,
-        title: folder.title,
-        content: "",
-        tags: [],
-        color: "#EFEFEF",
-        isImportant: false,
-        isPinned: false,
-        userId: "current-user",
-        folderId: null,
-        isFolder: true,
-        parentFolderId: folder.parentFolderId,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-      
-      setNotes(prevNotes => [...prevNotes, tempFolder]);
     }
   };
 
-  // Move note to folder (note: this endpoint might not exist in your API, updateNote can be used alternatively)
-  const moveNoteToFolder = async (noteId: string, folderId: string | null) => {
+  const moveNoteToFolder = async (noteId: number, folderId: number | null) => {
     if (!isAuthenticated) return;
     
+    let originalFolderId: number | null = null;
+    
     try {
-      // Prepare data for API
       const note = notes.find(n => n.id === noteId);
-      if (!note) {
-        throw new Error('Note not found');
-      }
-      
-      // Handle folderId correctly
-      const apiNoteData = {
-        folderId: folderId ? parseInt(folderId) : null
-      };
-      
-      // Update note in API
-      await notesService.updateNote(parseInt(noteId), apiNoteData);
-      
-      // Update note in state
-      setNotes(prevNotes => 
-        prevNotes.map(n => 
-          n.id === noteId 
-            ? { ...n, folderId: folderId }
-            : n
-        )
+      if (!note) return;
+
+      originalFolderId = note.folderId;
+
+      // Update the note's folderId in the local state
+      setNotes(prevNotes =>
+        prevNotes.map(n => n.id === noteId ? { ...n, folderId } : n)
       );
+
+      // Update the note's content in the API
+      await notesService.updateNote(noteId, {
+        title: note.title,
+        content: note.content
+      });
     } catch (error) {
-      console.error('Error moving note:', error);
-      
-      // Try to update UI (even if API fails)
-      setNotes(prevNotes => 
-        prevNotes.map(n => 
-          n.id === noteId 
-            ? { ...n, folderId: folderId }
-            : n
-        )
+      console.error('Error moving note to folder:', error);
+      // Revert the local state if the API call fails
+      setNotes(prevNotes =>
+        prevNotes.map(n => n.id === noteId ? { ...n, folderId: originalFolderId } : n)
       );
     }
   };
-  
-  // Provide context values
+
   const contextValue = {
     notes,
     isLoading,
@@ -326,5 +212,4 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
 };
 
-// Hook for easy usage
 export const useNotes = () => useContext(NotesContext);

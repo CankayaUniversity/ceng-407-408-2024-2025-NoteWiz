@@ -1,6 +1,5 @@
 // src/services/openai.ts
-import axios from 'axios';
-import { noteService } from '../services/noteService'; // veya api
+import { apiClient } from './newApi';
 import { Alert } from 'react-native';
 
 const API_BASE_URL = 'http://localhost:5263/api/ai'; // Adjust if needed
@@ -10,7 +9,7 @@ const API_BASE_URL = 'http://localhost:5263/api/ai'; // Adjust if needed
  */
 export const askAI = async (prompt: string) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/ask`, { prompt });
+    const response = await apiClient.post(`${API_BASE_URL}/ask`, { prompt });
     return response.data.response;
   } catch (error) {
     console.error('askAI error:', error);

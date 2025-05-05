@@ -1,6 +1,6 @@
 // src/screens/DrawingScreen.tsx
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -23,6 +23,8 @@ import Svg, { Path } from 'react-native-svg';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../types/navigation';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { drawingService } from '../services/drawingService';
+import signalRService from '../services/signalR';
 
 // Bizim bileşenler
 import { DrawingHeader } from '../components/drawing/DrawingHeader';
@@ -141,10 +143,68 @@ const DrawingScreen: React.FC = () => {
     setStrokes([]);
     setCurrentPath('');
   };
-  const handleSave = () => {
-    // strokes + textNotes DB'ye kaydedebilirsiniz
-    navigation.goBack();
+
+  // Log noteId for debugging
+  useEffect(() => {
+    console.log('DrawingScreen noteId:', route.params?.noteId);
+    if (!route.params?.noteId) {
+      Alert.alert('Error', 'Note ID is missing. Please open a saved note to draw.');
+      navigation.goBack();
+    }
+  }, []);
+
+  // Çizim verilerini kaydet
+  const saveDrawingData = async () => {
+    try {
+      if (!route.params?.noteId) {
+        throw new Error('Note ID is required');
+      }
+
+      // Çizim verilerini JSON formatına dönüştür
+      const drawingData = JSON.stringify({
+        strokes,
+        canvasWidth: width,
+        canvasHeight: height
+      });
+
+      // Backend'e kaydet
+      await drawingService.saveDrawing(route.params.noteId, drawingData);
+
+      // SignalR üzerinden diğer kullanıcılara gönder
+      const connection = signalRService.getNoteConnection();
+      if (connection) {
+        await connection.invoke('AddDrawing', route.params.noteId, drawingData);
+      }
+
+      Alert.alert('Success', 'Drawing saved successfully');
+    } catch (error) {
+      console.error('Error saving drawing:', error);
+      Alert.alert('Error', 'Failed to save drawing');
+    }
   };
+
+  // Çizim verilerini yükle
+  const loadDrawingData = async () => {
+    try {
+      if (!route.params?.noteId) {
+        throw new Error('Note ID is required');
+      }
+
+      const drawings = await drawingService.getDrawings(route.params.noteId);
+      if (drawings.length > 0) {
+        const lastDrawing = drawings[drawings.length - 1];
+        const drawingData = JSON.parse(lastDrawing.drawingData);
+        setStrokes(drawingData.strokes);
+      }
+    } catch (error) {
+      console.error('Error loading drawing:', error);
+    }
+  };
+
+  // Component mount olduğunda çizim verilerini yükle
+  useEffect(() => {
+    loadDrawingData();
+  }, []);
 
   // YENİ NOT EKLE
   const handleAddTextNote = () => {
@@ -184,7 +244,7 @@ const DrawingScreen: React.FC = () => {
         onBack={() => navigation.goBack()}
         onUndo={handleUndo}
         onClear={handleClear}
-        onSave={handleSave}
+        onSave={saveDrawingData}
         canUndo={canUndo}
       />
 
@@ -346,7 +406,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E5E5',
     borderRadius: 8,
-    ...SHADOWS.xs,
+    ...SHADOWS.sm,
   },
   noteText: {
     fontSize: 14,

@@ -16,10 +16,11 @@ import {
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
-import { useTasks } from '../contexts/TaskContext';
+import { useTask, Task } from '../contexts/TaskContext';
 import { useCategories } from '../contexts/CategoriesContext';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import NotificationService from '../services/NotificationService';
+import { CreateTaskDto } from '../services/taskService';
 import { COLORS } from '../constants/theme';
 
 type TaskDetailScreenRouteProps = RouteProp<RootStackParamList, 'TaskDetail'>;
@@ -30,27 +31,29 @@ const TaskDetailScreen = () => {
   
   const navigation = useNavigation<TaskDetailScreenNavigationProp>();
   const route = useRoute<TaskDetailScreenRouteProps>();
-  const { tasks, addTask, updateTask } = useTasks();
+  const { tasks, addTask, updateTask } = useTask();
   const { categories } = useCategories();
   const [isLoading, setIsLoading] = useState(false);
 
   // Görev ID'si
   const taskId = route.params?.taskId;
   // Takvimden önceden seçilen tarih
-  const presetDueDate = route.params?.presetDueDate 
-    ? new Date(route.params.presetDueDate) 
-    : undefined;
+  // const presetDueDate = route.params?.presetDueDate 
+  //   ? new Date(route.params.presetDueDate) 
+  //   : undefined;
   
-  const editingTask = taskId ? tasks.find(t => t.id === taskId) : undefined;
+  const editingTask = taskId ? tasks.find((t: Task) => t.id === taskId) : undefined;
   
   console.log('TaskDetail - taskId:', taskId);
-  console.log('TaskDetail - presetDueDate:', presetDueDate);
+  // console.log('TaskDetail - presetDueDate:', presetDueDate);
   console.log('TaskDetail - editingTask:', editingTask ? editingTask.title : 'Creating new task');
 
-  // Form durumu
+  // State initialization with date conversion
   const [title, setTitle] = useState(editingTask?.title || '');
   const [description, setDescription] = useState(editingTask?.description || '');
-  const [dueDate, setDueDate] = useState<Date | undefined>(editingTask?.dueDate || presetDueDate);
+  const [dueDate, setDueDate] = useState<Date | undefined>(
+    editingTask?.dueDate ? new Date(editingTask.dueDate) : undefined
+  );
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>(editingTask?.priority || 'medium');
@@ -60,10 +63,12 @@ const TaskDetailScreen = () => {
   // Hatırlatıcı seçenekleri
   const [hasReminder, setHasReminder] = useState(editingTask?.reminder !== undefined);
   const [reminderDate, setReminderDate] = useState<Date | undefined>(
-    editingTask?.reminder || (dueDate ? new Date(dueDate.getTime() - 30 * 60000) : undefined) // 30 dakika önce
+    editingTask?.reminder ? new Date(editingTask.reminder) : (dueDate ? new Date(dueDate.getTime() - 30 * 60000) : undefined)
   );
   const [showReminderDatePicker, setShowReminderDatePicker] = useState(false);
   const [showReminderTimePicker, setShowReminderTimePicker] = useState(false);
+
+  const priorityMap = { low: 3, medium: 2, high: 1 };
 
   useEffect(() => {
     // Başlık ekran başlığını ayarla
@@ -186,65 +191,49 @@ const TaskDetailScreen = () => {
 
   // Kaydetme işlemi
   const handleSave = async () => {
-    if (!title.trim()) {
-      Alert.alert('Uyarı', 'Lütfen bir görev başlığı girin');
-      return;
-    }
-
-    // Hatırlatıcı kontrolü
-    if (!validateReminder()) {
-      return;
-    }
-
-    setIsLoading(true);
-    console.log('Saving task:', title);
-    
     try {
-      const taskData = {
-        title: title.trim(),
-        description: description.trim(),
-        dueDate,
-        priority,
+      if (!title.trim()) {
+        Alert.alert('Hata', 'Başlık alanı boş bırakılamaz');
+        return;
+      }
+
+      // Hatırlatıcı kontrolü
+      if (!validateReminder()) {
+        return;
+      }
+
+      setIsLoading(true);
+      console.log('Saving task:', title);
+      
+      const taskData: any = {
+        title,
+        description,
+        dueDate: dueDate?.toISOString(),
+        priority: priorityMap[priority], // int olarak gönder
         categoryId,
         completed,
-        reminder: hasReminder ? reminderDate : undefined,
+        reminder: reminderDate?.toISOString(),
       };
 
       if (taskId) {
-        await updateTask(taskId, taskData);
+        const updatedTask = await updateTask(taskId, taskData);
         console.log('Task updated successfully');
         
         // Eğer hatırlatıcı varsa ve görev güncellendiyse
         if (hasReminder && reminderDate) {
-          const updatedTask = {
-            id: taskId,
-            ...taskData,
-            userId: '', // NotificationService içinde bu alan kullanılıyor olabilir
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
-          
           // Bildirimi güncelle
           await NotificationService.scheduleTaskReminder(updatedTask);
         } else {
           // Eğer hatırlatıcı kaldırıldıysa bildirimleri iptal et
-          await NotificationService.cancelTaskNotifications(taskId);
+          await NotificationService.cancelNotification(`task-${updatedTask.id}`);
         }
       } else {
         // Yeni görev ekle
-        const newTaskId = await addTask(taskData);
-        console.log('Task added successfully with ID:', newTaskId);
+        const newTask = await addTask(taskData);
+        console.log('Task added successfully with ID:', newTask.id);
         
         // Eğer hatırlatıcı varsa ve görev eklendiyse
-        if (newTaskId && hasReminder && reminderDate) {
-          const newTask = {
-            id: newTaskId,
-            ...taskData,
-            userId: '', // NotificationService içinde bu alan kullanılıyor olabilir
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
-          
+        if (hasReminder && reminderDate) {
           // Bildirimi programla
           await NotificationService.scheduleTaskReminder(newTask);
         }
@@ -252,7 +241,7 @@ const TaskDetailScreen = () => {
       
       navigation.goBack();
     } catch (error) {
-      console.error('Error saving task:', error);
+      console.error('Görev kaydetme hatası:', error);
       Alert.alert('Hata', 'Görev kaydedilirken bir hata oluştu');
     } finally {
       setIsLoading(false);

@@ -1,13 +1,13 @@
-import { apiClient } from './api';
+import { apiClient } from './newApi';
 
 export interface NoteShare {
-  id: number;
-  noteId: number;
-  sharedWithUserId: number;
+  id: string;
+  noteId: string;
+  sharedWithUserId: string;
   canEdit: boolean;
   sharedAt: string;
   sharedWithUser: {
-    id: number;
+    id: string;
     username: string;
     email: string;
     fullName: string;
@@ -15,33 +15,46 @@ export interface NoteShare {
 }
 
 export interface ShareNoteDTO {
-  sharedWithUserId: number;
+  sharedWithUserId: string;
   canEdit: boolean;
 }
 
 class ShareService {
-  async shareNote(noteId: number, data: ShareNoteDTO): Promise<NoteShare> {
-    const response = await apiClient.post(`/notes/${noteId}/share`, data);
-    return response.data;
+  async shareNote(noteId: string, data: ShareNoteDTO): Promise<NoteShare> {
+    const response = await apiClient.post(`/Notes/${noteId}/share`, data);
+    return this.transformApiShare(response.data);
   }
 
   async getSharedNotes(): Promise<NoteShare[]> {
-    const response = await apiClient.get('/notes/shared');
-    return response.data;
+    const response = await apiClient.get('/Notes/shared');
+    return response.data.map(this.transformApiShare);
   }
 
-  async getNoteShares(noteId: number): Promise<NoteShare[]> {
-    const response = await apiClient.get(`/notes/${noteId}/shares`);
-    return response.data;
+  async getNoteShares(noteId: string): Promise<NoteShare[]> {
+    const response = await apiClient.get(`/Notes/${noteId}/shares`);
+    return response.data.map(this.transformApiShare);
   }
 
-  async updateSharePermission(shareId: number, canEdit: boolean): Promise<NoteShare> {
-    const response = await apiClient.put(`/notes/shares/${shareId}`, { canEdit });
-    return response.data;
+  async updateSharePermission(shareId: string, canEdit: boolean): Promise<NoteShare> {
+    const response = await apiClient.put(`/Notes/shares/${shareId}`, { canEdit });
+    return this.transformApiShare(response.data);
   }
 
-  async removeShare(shareId: number): Promise<void> {
-    await apiClient.delete(`/notes/shares/${shareId}`);
+  async removeShare(shareId: string): Promise<void> {
+    await apiClient.delete(`/Notes/shares/${shareId}`);
+  }
+
+  private transformApiShare(apiShare: any): NoteShare {
+    return {
+      ...apiShare,
+      id: apiShare.id.toString(),
+      noteId: apiShare.noteId.toString(),
+      sharedWithUserId: apiShare.sharedWithUserId.toString(),
+      sharedWithUser: {
+        ...apiShare.sharedWithUser,
+        id: apiShare.sharedWithUser.id.toString()
+      }
+    };
   }
 }
 

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import * as api from '../services/api';
+import { apiClient } from '../services/newApi';
 import signalRService from '../services/signalR';
 import EventEmitter from '../utils/EventEmitter';
 import notifee from '@notifee/react-native';
@@ -49,12 +49,13 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         return;
       }
 
-      const [notificationsData, count] = await Promise.all([
-        api.getNotifications(true),
-        api.getUnreadNotificationCount()
+      const [notificationsResponse, countResponse] = await Promise.all([
+        apiClient.get('/Notifications'),
+        apiClient.get('/Notifications/unread-count')
       ]);
-      setNotifications(notificationsData);
-      setUnreadCount(count);
+      
+      setNotifications(notificationsResponse.data);
+      setUnreadCount(countResponse.data);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 401) {
         // Token geçersiz veya süresi dolmuş
@@ -143,7 +144,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const markAsRead = async (notificationId: number) => {
     try {
-      await api.markNotificationAsRead(notificationId);
+      await apiClient.put(`/Notifications/${notificationId}/read`);
       await signalRService.markNotificationAsRead(notificationId);
       await loadNotifications();
     } catch (error) {
@@ -153,7 +154,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const markAllAsRead = async () => {
     try {
-      await api.markAllNotificationsAsRead();
+      await apiClient.put('/Notifications/read-all');
       await loadNotifications();
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
@@ -162,7 +163,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const deleteNotification = async (notificationId: number) => {
     try {
-      await api.deleteNotification(notificationId);
+      await apiClient.delete(`/Notifications/${notificationId}`);
       await loadNotifications();
     } catch (error) {
       console.error('Error deleting notification:', error);
@@ -171,7 +172,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const deleteAllNotifications = async () => {
     try {
-      await api.deleteAllNotifications();
+      await apiClient.delete('/Notifications');
       await loadNotifications();
     } catch (error) {
       console.error('Error deleting all notifications:', error);

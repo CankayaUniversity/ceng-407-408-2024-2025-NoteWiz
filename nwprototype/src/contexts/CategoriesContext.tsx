@@ -1,13 +1,13 @@
 // src/contexts/CategoriesContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { categoriesService } from '../services/api';
+import { apiClient } from '../services/newApi';
 import { useAuth } from './AuthContext';
 
 export interface Category {
-  id: number;
+  id: string;
   name: string;
   color?: string;
-  userId: number;
+  userId: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -15,8 +15,8 @@ export interface Category {
 interface CategoriesContextType {
   categories: Category[];
   addCategory: (name: string, color?: string) => Promise<void>;
-  updateCategory: (id: number, data: Partial<Category>) => Promise<void>;
-  deleteCategory: (id: number) => Promise<void>;
+  updateCategory: (id: string, data: Partial<Category>) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
   isLoading: boolean;
 }
 
@@ -44,9 +44,19 @@ export const CategoriesProvider: React.FC<{children: React.ReactNode}> = ({ chil
     
     setIsLoading(true);
     try {
-      const userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
-      const data = await categoriesService.getCategories(userId);
-      setCategories(data);
+      const response = await apiClient.get('/Categories');
+      // Check if response.data exists and is an array
+      if (response.data && Array.isArray(response.data)) {
+        const formattedCategories = response.data.map((category: any) => ({
+          ...category,
+          id: category.id.toString(),
+          userId: category.userId.toString()
+        }));
+        setCategories(formattedCategories);
+      } else {
+        // If endpoint is not available, set empty array
+        setCategories([]);
+      }
     } catch (error) {
       console.error('Error fetching categories:', error);
       setCategories([]);
@@ -60,9 +70,15 @@ export const CategoriesProvider: React.FC<{children: React.ReactNode}> = ({ chil
     
     setIsLoading(true);
     try {
-      const userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
-      await categoriesService.addCategory({ name, color, userId });
-      await fetchCategories();
+      const response = await apiClient.post('/Categories', { name, color });
+      const newCategory: Category = {
+        ...response.data,
+        id: response.data.id.toString(),
+        userId: response.data.userId.toString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      setCategories(prevCategories => [...prevCategories, newCategory]);
     } catch (error) {
       console.error('Error adding category:', error);
       throw error;
@@ -71,13 +87,20 @@ export const CategoriesProvider: React.FC<{children: React.ReactNode}> = ({ chil
     }
   };
 
-  const updateCategory = async (id: number, data: Partial<Category>) => {
+  const updateCategory = async (id: string, data: Partial<Category>) => {
     if (!isAuthenticated) return;
     
     setIsLoading(true);
     try {
-      await categoriesService.updateCategory(id, data);
-      await fetchCategories();
+      const response = await apiClient.put(`/Categories/${id}`, data);
+      const updatedCategory: Category = {
+        ...response.data,
+        id: response.data.id.toString(),
+        userId: response.data.userId.toString()
+      };
+      setCategories(prevCategories => 
+        prevCategories.map(category => category.id === id ? updatedCategory : category)
+      );
     } catch (error) {
       console.error('Error updating category:', error);
       throw error;
@@ -86,13 +109,13 @@ export const CategoriesProvider: React.FC<{children: React.ReactNode}> = ({ chil
     }
   };
 
-  const deleteCategory = async (id: number) => {
+  const deleteCategory = async (id: string) => {
     if (!isAuthenticated) return;
     
     setIsLoading(true);
     try {
-      await categoriesService.deleteCategory(id);
-      await fetchCategories();
+      await apiClient.delete(`/Categories/${id}`);
+      setCategories(prevCategories => prevCategories.filter(category => category.id !== id));
     } catch (error) {
       console.error('Error deleting category:', error);
       throw error;

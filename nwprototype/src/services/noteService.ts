@@ -1,7 +1,7 @@
-import { apiClient as api } from './api';
+import { apiClient } from './newApi';
 
 export interface Note {
-  id: number | string;
+  id: string;
   title: string;
   content: string;
   tags: string[];
@@ -12,10 +12,10 @@ export interface Note {
   coverPosition?: string;
   createdAt: string;
   updatedAt: string;
-  userId: number | string;
-  folderId: number | string | null;
+  userId: string;
+  folderId: string | null;
   isFolder?: boolean;
-  parentFolderId?: number | string | null;
+  parentFolderId?: string | null;
   category?: string;
   sharedWith?: any[];
   drawings?: any[];
@@ -38,7 +38,7 @@ export interface CreateNoteDTO {
   pdfUrl?: string;
   pdfName?: string;
   isFolder?: boolean;
-  folderId?: number | string | null;
+  folderId?: string | null;
   category?: string;
 }
 
@@ -52,12 +52,12 @@ export interface UpdateCoverDTO {
 
 class NoteService {
   async getNotes(): Promise<Note[]> {
-    const response = await api.get('/notes');
+    const response = await apiClient.get('/Notes');
     return response.data.map(this.transformApiNote);
   }
 
-  async getNote(id: number | string): Promise<Note> {
-    const response = await api.get(`/notes/${id}`);
+  async getNote(id: string): Promise<Note> {
+    const response = await apiClient.get(`/Notes/${id}`);
     return this.transformApiNote(response.data);
   }
 
@@ -66,36 +66,40 @@ class NoteService {
       ...note,
       folderId: note.folderId || null
     };
-    const response = await api.post('/notes', noteData);
+    const response = await apiClient.post('/Notes', noteData);
     return this.transformApiNote(response.data);
   }
 
-  async updateNote(id: number | string, note: UpdateNoteDTO): Promise<Note> {
-    const response = await api.put(`/notes/${id}`, note);
+  async updateNote(id: string, note: UpdateNoteDTO): Promise<Note> {
+    const response = await apiClient.put(`/Notes/${id}`, note);
     return this.transformApiNote(response.data);
   }
 
-  async deleteNote(id: number | string): Promise<void> {
-    await api.delete(`/notes/${id}`);
+  async deleteNote(id: string): Promise<void> {
+    await apiClient.delete(`/Notes/${id}`);
   }
 
-  async updateCover(id: number | string, coverData: UpdateCoverDTO): Promise<Note> {
-    const response = await api.put(`/notes/${id}/cover`, coverData);
+  async updateCover(id: string, coverData: UpdateCoverDTO): Promise<Note> {
+    const response = await apiClient.put(`/Notes/${id}/cover`, coverData);
     return this.transformApiNote(response.data);
   }
 
   async getSharedNotes(): Promise<Note[]> {
-    const response = await api.get('/notes/shared');
+    const response = await apiClient.get('/Notes/shared');
     return response.data.map(this.transformApiNote);
   }
 
-  async shareNote(id: number | string, userId: number | string, canEdit: boolean): Promise<void> {
-    await api.post(`/notes/${id}/share`, { sharedWithUserId: userId, canEdit });
+  async shareNote(id: string, userId: string, canEdit: boolean): Promise<void> {
+    await apiClient.post(`/Notes/${id}/share`, { sharedWithUserId: userId, canEdit });
   }
 
   private transformApiNote(apiNote: any): Note {
     return {
       ...apiNote,
+      id: apiNote.id.toString(),
+      userId: apiNote.userId.toString(),
+      folderId: apiNote.folderId?.toString() || null,
+      parentFolderId: apiNote.parentFolderId?.toString() || null,
       isImportant: apiNote.isPinned,
       isPinned: apiNote.isPinned,
     };

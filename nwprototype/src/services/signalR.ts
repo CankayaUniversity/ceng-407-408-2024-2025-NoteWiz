@@ -7,6 +7,11 @@ class SignalRService {
   private notificationConnection: HubConnection | null = null;
   private noteConnection: HubConnection | null = null;
 
+  // Getter for noteConnection
+  public getNoteConnection(): HubConnection | null {
+    return this.noteConnection;
+  }
+
   private getBaseUrl() {
     return Platform.OS === 'android' 
       ? 'http://10.0.2.2:5263' // Android Emulator için localhost
@@ -21,8 +26,16 @@ class SignalRService {
         return;
       }
 
+      const url = `${this.getBaseUrl()}/hubs/notification`;
+      const options = {
+        accessTokenFactory: () => token,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      };
+
       this.notificationConnection = new HubConnectionBuilder()
-        .withUrl(`${this.getBaseUrl()}/hubs/notification?access_token=${token}`)
+        .withUrl(url, options)
         .configureLogging(LogLevel.Information)
         .withAutomaticReconnect()
         .build();
@@ -57,8 +70,16 @@ class SignalRService {
         return;
       }
 
+      const url = `${this.getBaseUrl()}/hubs/notes`;
+      const options = {
+        accessTokenFactory: () => token,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      };
+
       this.noteConnection = new HubConnectionBuilder()
-        .withUrl(`${this.getBaseUrl()}/hubs/notes?access_token=${token}`)
+        .withUrl(url, options)
         .configureLogging(LogLevel.Information)
         .withAutomaticReconnect()
         .build();
@@ -110,7 +131,7 @@ class SignalRService {
     }
   }
 
-  async updateNote(noteId: number, content: string) {
+  async updateNote(noteId: string, content: string) {
     try {
       if (this.noteConnection?.state === 'Connected') {
         await this.noteConnection.invoke('UpdateNote', noteId, content);
@@ -120,7 +141,7 @@ class SignalRService {
     }
   }
 
-  async userIsTyping(noteId: number) {
+  async userIsTyping(noteId: string) {
     try {
       if (this.noteConnection?.state === 'Connected') {
         await this.noteConnection.invoke('UserIsTyping', noteId);
@@ -130,7 +151,7 @@ class SignalRService {
     }
   }
 
-  async markNotificationAsRead(notificationId: number) {
+  async markNotificationAsRead(notificationId: string) {
     try {
       if (this.notificationConnection?.state === 'Connected') {
         await this.notificationConnection.invoke('MarkNotificationAsRead', notificationId);

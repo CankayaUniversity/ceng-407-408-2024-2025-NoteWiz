@@ -1,11 +1,11 @@
-import { apiClient } from './api';
+import { apiClient } from './newApi';
 
 export interface Document {
-  id: number;
+  id: string;
   filePath: string;
   extractedText: string;
   uploadedAt: string;
-  userId: number;
+  userId: string;
 }
 
 export interface UploadDocumentDTO {
@@ -25,31 +25,39 @@ class DocumentService {
       name: data.file.name,
     } as any);
 
-    const response = await apiClient.post('/documents/upload', formData, {
+    const response = await apiClient.post('/Documents/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
-    return response.data;
+    return this.transformApiDocument(response.data);
   }
 
   async getDocuments(): Promise<Document[]> {
-    const response = await apiClient.get('/documents');
-    return response.data;
+    const response = await apiClient.get('/Documents');
+    return response.data.map(this.transformApiDocument);
   }
 
-  async getDocument(id: number): Promise<Document> {
-    const response = await apiClient.get(`/documents/${id}`);
-    return response.data;
+  async getDocument(id: string): Promise<Document> {
+    const response = await apiClient.get(`/Documents/${id}`);
+    return this.transformApiDocument(response.data);
   }
 
-  async deleteDocument(id: number): Promise<void> {
-    await apiClient.delete(`/documents/${id}`);
+  async deleteDocument(id: string): Promise<void> {
+    await apiClient.delete(`/Documents/${id}`);
   }
 
-  async extractText(id: number): Promise<string> {
-    const response = await apiClient.post(`/documents/${id}/extract-text`);
+  async extractText(id: string): Promise<string> {
+    const response = await apiClient.post(`/Documents/${id}/extract-text`);
     return response.data.text;
+  }
+
+  private transformApiDocument(apiDocument: any): Document {
+    return {
+      ...apiDocument,
+      id: apiDocument.id.toString(),
+      userId: apiDocument.userId.toString()
+    };
   }
 }
 
