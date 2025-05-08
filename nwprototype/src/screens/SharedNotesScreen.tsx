@@ -103,7 +103,7 @@ const SharedNotesScreen = () => {
       <TouchableOpacity
         style={styles.cardContent}
         onPress={() => navigation.navigate('NoteDetail', {
-          noteId: item.id.toString(),
+          noteId: parseInt(item.id.toString()),
           title: item.title,
           content: item.content,
           category: item.category,

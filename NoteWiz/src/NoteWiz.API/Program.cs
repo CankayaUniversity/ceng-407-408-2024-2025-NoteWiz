@@ -16,6 +16,12 @@ using NoteWiz.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Kestrel sunucusunu yapılandır
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(5263);
+});
+
 // Loglama servislerini ekle
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
@@ -110,7 +116,6 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<INoteRepository, NoteRepository>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
-builder.Services.AddScoped<IDocumentUploadRepository, DocumentUploadRepository>();
 builder.Services.AddScoped<IAuthTokenRepository, AuthTokenRepository>();
 builder.Services.AddScoped<IUserDeviceRepository, UserDeviceRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
@@ -118,6 +123,7 @@ builder.Services.AddScoped<IFriendshipRepository, FriendshipRepository>();
 builder.Services.AddScoped<IFriendshipRequestRepository, FriendshipRequestRepository>();
 builder.Services.AddScoped<INoteShareRepository, NoteShareRepository>();
 builder.Services.AddScoped<IRepository<AIInteractionLog>, AIInteractionLogRepository>();
+builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 
 // Register UnitOfWork
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -128,7 +134,7 @@ builder.Services.AddScoped<INoteService, NoteService>();
 builder.Services.AddScoped<IFriendshipService, FriendshipService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
-builder.Services.AddScoped<IDocumentUploadService, DocumentUploadService>();
+builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IAIService, DeepSeekAIService>();
 builder.Services.AddScoped<IDrawingService, DrawingService>();
@@ -247,43 +253,22 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     });
 
 // Add SignalR
 builder.Services.AddSignalR();
 
-// Configure CORS policy
+// Add CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
     {
         builder
-            .WithOrigins(
-                "http://localhost:5263", 
-                "http://localhost:7226",
-                "http://10.0.2.2:7226",
-                "http://10.0.2.2:5263"
-            )
+            .AllowAnyOrigin()
             .AllowAnyMethod()
             .AllowAnyHeader()
-            .WithExposedHeaders("Authorization")
-            .AllowCredentials();
-    });
-
-    options.AddPolicy("SignalRPolicy", builder =>
-    {
-        builder
-            .WithOrigins(
-                "http://localhost:5263", 
-                "http://localhost:7226",
-                "http://10.0.2.2:7226",
-                "http://10.0.2.2:5263"
-            )
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .WithExposedHeaders("Authorization")
-            .AllowCredentials()
-            .SetIsOriginAllowed(hostName => true);
+            .SetIsOriginAllowed(origin => true);
     });
 });
 
@@ -335,6 +320,8 @@ builder.Services.AddSwaggerGen(c =>
     c.SchemaFilter<SwaggerSchemaFilter>();
 });
 
+builder.Services.AddHttpContextAccessor();
+
 var app = builder.Build();
 
 // Veritabanını başlat
@@ -362,7 +349,6 @@ if (app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-// Use CORS before authentication
 app.UseCors("AllowAll");
 
 // Use authentication and authorization

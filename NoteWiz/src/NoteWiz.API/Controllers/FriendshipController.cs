@@ -26,7 +26,12 @@ namespace NoteWiz.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<FriendshipResponseDTO>>> GetFriends()
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim?.Value == null)
+            {
+                throw new UnauthorizedAccessException("User ID not found in claims");
+            }
+            var userId = int.Parse(userIdClaim.Value);
             var friendships = await _friendshipService.GetUserFriendshipsAsync(userId);
             return Ok(friendships.Select(f => MapToFriendshipResponseDTO(f)));
         }
@@ -34,7 +39,12 @@ namespace NoteWiz.API.Controllers
         [HttpGet("requests")]
         public async Task<ActionResult<IEnumerable<FriendshipRequestResponseDTO>>> GetFriendRequests()
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim?.Value == null)
+            {
+                throw new UnauthorizedAccessException("User ID not found in claims");
+            }
+            var userId = int.Parse(userIdClaim.Value);
             var requests = await _friendshipService.GetFriendRequestsAsync(userId);
             return Ok(requests.Select(r => MapToFriendshipRequestResponseDTO(r)));
         }
@@ -42,7 +52,12 @@ namespace NoteWiz.API.Controllers
         [HttpPost("requests")]
         public async Task<ActionResult<FriendshipRequestResponseDTO>> SendFriendRequest([FromBody] FriendshipRequestDTO dto)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim?.Value == null)
+            {
+                throw new UnauthorizedAccessException("User ID not found in claims");
+            }
+            var userId = int.Parse(userIdClaim.Value);
             var request = await _friendshipService.SendFriendRequestAsync(userId, dto.ReceiverId);
             return CreatedAtAction(nameof(GetFriendRequests), new { id = request.Id }, MapToFriendshipRequestResponseDTO(request));
         }
@@ -50,7 +65,12 @@ namespace NoteWiz.API.Controllers
         [HttpPut("requests/{id}")]
         public async Task<IActionResult> RespondToFriendRequest(int id, [FromBody] UpdateFriendshipRequestDTO dto)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim?.Value == null)
+            {
+                throw new UnauthorizedAccessException("User ID not found in claims");
+            }
+            var userId = int.Parse(userIdClaim.Value);
             var request = await _friendshipService.GetFriendRequestByIdAsync(id);
 
             if (request == null)
@@ -66,7 +86,12 @@ namespace NoteWiz.API.Controllers
         [HttpDelete("{friendId}")]
         public async Task<IActionResult> RemoveFriend(int friendId)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim?.Value == null)
+            {
+                throw new UnauthorizedAccessException("User ID not found in claims");
+            }
+            var userId = int.Parse(userIdClaim.Value);
             var friendship = await _friendshipService.GetFriendshipAsync(userId, friendId);
 
             if (friendship == null)

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System;
 
 namespace NoteWiz.API.DTOs
 {
@@ -40,6 +41,6 @@ namespace NoteWiz.API.DTOs
         /// <summary>
         /// User response data for the shared user
         /// </summary>
-        public required UserResponseDTO SharedWithUser { get; set; }
+        public UserResponseDTO? SharedWithUser { get; set; }
     }
 } 

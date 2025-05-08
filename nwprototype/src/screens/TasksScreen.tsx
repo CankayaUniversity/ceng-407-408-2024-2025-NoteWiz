@@ -152,7 +152,7 @@ const TasksScreen = () => {
 
   const handleEditTask = (taskId: string) => {
     console.log('Edit task button pressed:', taskId);
-    navigation.navigate('TaskDetail', { taskId });
+    navigation.navigate('TaskDetail', { taskId: typeof taskId === 'string' ? parseInt(taskId) : taskId });
   };
 
   const handleDeleteTask = (taskId: string) => {
@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: 700,
     color: '#1A1A1A',
     marginBottom: 16,
   },
@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
   },
   filterText: {
     color: '#666666',
-    fontWeight: '500',
+    fontWeight: 500,
   },
   activeFilterText: {
     color: '#FFFFFF',
@@ -487,7 +487,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: 600,
     color: '#1A1A1A',
   },
   countBadge: {
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
   countText: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: 600,
   },
   taskCard: {
     flexDirection: 'row',
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
   },
   taskTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 600,
     color: '#1A1A1A',
     marginBottom: 4,
   },
@@ -597,7 +597,7 @@ const styles = StyleSheet.create({
   deleteButtonText: {
     fontSize: 20,
     color: '#868E96',
-    fontWeight: 'bold',
+    fontWeight: 700,
   },
   emptyState: {
     flex: 1,
@@ -607,7 +607,7 @@ const styles = StyleSheet.create({
   },
   emptyStateTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: 600,
     color: '#1A1A1A',
     marginBottom: 8,
   },
@@ -627,7 +627,7 @@ const styles = StyleSheet.create({
   createTaskButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 600,
   },
   // Düzgün yapılandırılmış + butonu
   fab: {
@@ -649,7 +649,7 @@ const styles = StyleSheet.create({
   },
   fabText: {
     fontSize: 30,
-    fontWeight: 'bold',
+    fontWeight: 700,
     color: '#FFFFFF',
   },
 });

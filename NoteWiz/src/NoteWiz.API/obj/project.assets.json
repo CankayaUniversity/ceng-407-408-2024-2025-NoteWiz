@@ -2284,6 +2284,7 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v9.0",
         "dependencies": {
+          "Microsoft.AspNetCore.Http.Abstractions": "2.3.0",
           "NoteWiz.Core": "1.0.0",
           "NoteWiz.Infrastructure": "1.0.0"
         },

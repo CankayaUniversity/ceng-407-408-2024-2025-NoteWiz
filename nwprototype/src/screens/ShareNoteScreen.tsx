@@ -12,14 +12,12 @@ import {
   Switch,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { ShareNoteScreenRouteProp, ShareNoteScreenNavigationProp } from '../types/navigation';
+import { ShareNoteScreenProps } from '../types/navigation';
 import { useShares } from '../contexts/ShareContext';
 import { COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '../constants/theme';
-import { SearchIcon, ShareIcon, UserIcon } from '../components/icons';
+import { SearchIcon, ShareIcon } from '../components/icons';
 
-const ShareNoteScreen = () => {
-  const route = useRoute<ShareNoteScreenRouteProp>();
-  const navigation = useNavigation<ShareNoteScreenNavigationProp>();
+const ShareNoteScreen = ({ navigation, route }: ShareNoteScreenProps) => {
   const { noteId } = route.params;
   const { shareNote, getNoteShares, loading, error } = useShares();
 
@@ -65,11 +63,6 @@ const ShareNoteScreen = () => {
   };
 
   const handleShare = async () => {
-    if (selectedUsers.length === 0) {
-      Alert.alert('Uyarı', 'Lütfen en az bir kullanıcı seçin');
-      return;
-    }
-
     try {
       for (const user of selectedUsers) {
         await shareNote(noteId, {
@@ -77,12 +70,10 @@ const ShareNoteScreen = () => {
           canEdit,
         });
       }
-
-      Alert.alert('Başarılı', 'Not başarıyla paylaşıldı');
+      Alert.alert('Success', 'Note shared successfully');
       navigation.goBack();
-    } catch (err) {
-      console.error('Error sharing note:', err);
-      Alert.alert('Hata', 'Not paylaşılırken bir hata oluştu');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to share note');
     }
   };
 
@@ -95,7 +86,7 @@ const ShareNoteScreen = () => {
         onPress={() => handleUserSelect(item)}
       >
         <View style={styles.userIcon}>
-          <UserIcon size={24} color={COLORS.primary.main} />
+          <Text style={{ fontSize: 20, color: COLORS.primary.main, fontWeight: '700' }}>👤</Text>
         </View>
         <View style={styles.userInfo}>
           <Text style={styles.userName}>{item.fullName}</Text>
@@ -151,8 +142,8 @@ const ShareNoteScreen = () => {
           <Switch
             value={canEdit}
             onValueChange={setCanEdit}
-            trackColor={{ false: COLORS.neutral[300], true: COLORS.primary.light }}
-            thumbColor={canEdit ? COLORS.primary.main : COLORS.neutral[100]}
+            trackColor={{ false: COLORS.primary.light, true: COLORS.primary.light }}
+            thumbColor={canEdit ? COLORS.primary.main : COLORS.primary.light}
           />
         </View>
 
@@ -195,7 +186,9 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     marginLeft: SPACING.sm,
-    ...TYPOGRAPHY.body1,
+    fontSize: 16,
+    fontWeight: 400,
+    lineHeight: 24,
     color: COLORS.text.primary,
   },
   errorContainer: {
@@ -205,8 +198,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   errorText: {
-    ...TYPOGRAPHY.body2,
+    fontSize: 14,
+    fontWeight: 400,
+    lineHeight: 20,
     color: COLORS.error.main,
+    marginTop: 4,
   },
   listContent: {
     padding: SPACING.md,
@@ -236,11 +232,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   userName: {
-    ...TYPOGRAPHY.subtitle1,
+    fontSize: 16,
+    fontWeight: 500,
+    lineHeight: 24,
     color: COLORS.text.primary,
   },
   userEmail: {
-    ...TYPOGRAPHY.body2,
+    fontSize: 14,
+    fontWeight: 400,
+    lineHeight: 20,
     color: COLORS.text.secondary,
   },
   emptyContainer: {
@@ -248,7 +248,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    ...TYPOGRAPHY.body1,
+    fontSize: 16,
+    fontWeight: 400,
+    lineHeight: 24,
     color: COLORS.text.secondary,
     textAlign: 'center',
   },
@@ -264,7 +266,9 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   permissionText: {
-    ...TYPOGRAPHY.body1,
+    fontSize: 16,
+    fontWeight: '400',
+    lineHeight: 24,
     color: COLORS.text.primary,
   },
   shareButton: {
@@ -276,11 +280,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   shareButtonDisabled: {
-    backgroundColor: COLORS.neutral[300],
+    backgroundColor: COLORS.primary.light,
   },
   shareButtonText: {
-    ...TYPOGRAPHY.button,
-    color: COLORS.text.inverted,
+    fontSize: 16,
+    fontWeight: 600,
+    lineHeight: 24,
+    color: '#FFF',
     marginLeft: SPACING.sm,
   },
 });

@@ -11,7 +11,6 @@ namespace NoteWiz.Infrastructure.Data
         private IUserRepository _users;
         private INoteRepository _notes;
         private ITaskRepository _tasks;
-        private IDocumentUploadRepository _documentUploads;
         private IAuthTokenRepository _authTokens;
         private IUserDeviceRepository _userDevices;
         private INotificationRepository _notifications;
@@ -19,6 +18,7 @@ namespace NoteWiz.Infrastructure.Data
         private IFriendshipRequestRepository _friendshipRequests;
         private INoteShareRepository _noteShares;
         private IRepository<AIInteractionLog> _aiInteractionLogs;
+        private IDocumentRepository _documents;
 
         public UnitOfWork(NoteWizDbContext context)
         {
@@ -28,7 +28,6 @@ namespace NoteWiz.Infrastructure.Data
         public IUserRepository Users => _users ??= new UserRepository(_context);
         public INoteRepository Notes => _notes ??= new NoteRepository(_context);
         public ITaskRepository Tasks => _tasks ??= new TaskRepository(_context);
-        public IDocumentUploadRepository DocumentUploads => _documentUploads ??= new DocumentUploadRepository(_context);
         public IAuthTokenRepository AuthTokens => _authTokens ??= new AuthTokenRepository(_context);
         public IUserDeviceRepository UserDevices => _userDevices ??= new UserDeviceRepository(_context);
         public INotificationRepository Notifications => _notifications ??= new NotificationRepository(_context);
@@ -36,6 +35,7 @@ namespace NoteWiz.Infrastructure.Data
         public IFriendshipRequestRepository FriendshipRequests => _friendshipRequests ??= new FriendshipRequestRepository(_context);
         public INoteShareRepository NoteShares => _noteShares ??= new NoteShareRepository(_context);
         public IRepository<AIInteractionLog> AIInteractionLogs => _aiInteractionLogs ??= new AIInteractionLogRepository(_context);
+        public IDocumentRepository Documents => _documents ??= new DocumentRepository(_context);
 
         public async Task<int> SaveChangesAsync()
         {

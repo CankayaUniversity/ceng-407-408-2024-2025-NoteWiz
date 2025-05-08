@@ -8,13 +8,19 @@ let API_BASE_URL = 'http://localhost:5263/api';
 
 if (Platform.OS === 'android') {
   if (__DEV__) {
-    API_BASE_URL = 'http://10.0.2.2:5263/api';
+    // Emülatör için
+    if (Platform.constants.Fingerprint === 'generic') {
+      API_BASE_URL = 'http://10.0.2.2:5263/api';
+    } else {
+      // Fiziksel cihaz için bilgisayarın IP adresini kullan
+      API_BASE_URL = 'http://192.168.1.24:5263/api';
+    }
   } else {
     API_BASE_URL = 'https://api.notewiz.com/api';
   }
 } else if (Platform.OS === 'ios') {
   if (__DEV__) {
-    API_BASE_URL = 'http://localhost:5263/api';
+    API_BASE_URL = 'http://192.168.1.24:5263/api';
   } else {
     API_BASE_URL = 'https://api.notewiz.com/api';
   }

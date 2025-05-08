@@ -42,7 +42,15 @@ const TaskDetailScreen = () => {
   //   ? new Date(route.params.presetDueDate) 
   //   : undefined;
   
-  const editingTask = taskId ? tasks.find((t: Task) => t.id === taskId) : undefined;
+  const editingTask = taskId
+  ? tasks.find((t: Task) => {
+      if (typeof t.id === 'number' && typeof taskId === 'number') return t.id === taskId;
+      if (typeof t.id === 'string' && typeof taskId === 'string') return t.id === taskId;
+      if (typeof t.id === 'number' && typeof taskId === 'string') return t.id === parseInt(taskId);
+      if (typeof t.id === 'string' && typeof taskId === 'number') return parseInt(t.id) === taskId;
+      return false;
+    })
+  : undefined;
   
   console.log('TaskDetail - taskId:', taskId);
   // console.log('TaskDetail - presetDueDate:', presetDueDate);
@@ -216,7 +224,7 @@ const TaskDetailScreen = () => {
       };
 
       if (taskId) {
-        const updatedTask = await updateTask(taskId, taskData);
+        const updatedTask = await updateTask(String(taskId), taskData);
         console.log('Task updated successfully');
         
         // Eğer hatırlatıcı varsa ve görev güncellendiyse

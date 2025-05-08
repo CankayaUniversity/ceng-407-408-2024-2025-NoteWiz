@@ -56,19 +56,17 @@ type NoteDetailScreenNavigationProp = NativeStackNavigationProp<RootStackParamLi
 type NoteDetailScreenRouteProp = RouteProp<RootStackParamList, 'NoteDetail'>;
 
 const NoteDetailScreen = () => {
-  const navigation = useNavigation<NoteDetailScreenNavigationProp>();
-  const route = useRoute<NoteDetailScreenRouteProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'NoteDetail'>>();
   const { createNote, updateNote, deleteNote } = useNotes();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Tip uyumsuzluğunu çözmek için noteId'yi string olarak alıp number'a çevirme
-  const noteIdParam = route.params?.noteId;
-  const noteId = noteIdParam ? (typeof noteIdParam === 'string' ? parseInt(noteIdParam) : noteIdParam) : undefined;
+  // Note ID için tip dönüşümü
+  const noteId: number | undefined = typeof route.params?.noteId === 'number' ? route.params?.noteId : undefined;
   
   // Aynı şekilde folderId için de tip dönüşümü
-  const folderIdParam = route.params?.folderId;
-  const folderId = folderIdParam ? (typeof folderIdParam === 'string' ? parseInt(folderIdParam) : folderIdParam) : undefined;
+  const folderId: string | null = route.params?.folderId ?? null;
   
   // Note state
   const [title, setTitle] = useState(route.params?.title || '');
@@ -234,7 +232,7 @@ useEffect(() => {
           style={styles.headerButton}
           onPress={() => {
             if (noteId) {
-              navigation.navigate('Drawing', { noteId: noteId.toString() });
+              navigation.navigate('Drawing', { noteId });
             } else {
               Alert.alert('Error', 'Note ID is required');
             }
@@ -310,15 +308,19 @@ const handleSave = async () => {
       noteData.isPdf = true;
     }
     
-    console.log("Saving note data:", noteData);
-    
+    let savedNoteId = noteId;
     if (noteId) {
-      // Artık noteId number tipinde, doğrudan kullanabiliriz
       await updateNote(noteId.toString(), noteData);
     } else {
-      await createNote(noteData);
+      const created = await createNote(noteData);
+      savedNoteId = typeof created?.id === 'string' ? parseInt(created.id) : created?.id;
     }
-    navigation.goBack();
+    // After saving, navigate to DrawingScreen with noteId
+    if (typeof savedNoteId === 'number') {
+      navigation.navigate('Drawing', { noteId: savedNoteId });
+    } else {
+      navigation.goBack();
+    }
   } catch (error) {
     console.error('Error saving note:', error);
     Alert.alert('Error', 'Failed to save note');
@@ -600,6 +602,17 @@ const handleSave = async () => {
           </View>
         </View>
       </Modal>
+
+      {/* Alt sabit buton */}
+      <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: 16, backgroundColor: 'rgba(255,255,255,0.95)', borderTopWidth: 1, borderTopColor: COLORS.border.light }}>
+        <TouchableOpacity
+          style={{ backgroundColor: COLORS.primary.main, padding: 16, borderRadius: 12, alignItems: 'center' }}
+          onPress={handleSave}
+          activeOpacity={0.8}
+        >
+          <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 18 }}>Kaydet ve Çizime Geç</Text>
+        </TouchableOpacity>
+      </View>
     </KeyboardAvoidingView>
   );
 };

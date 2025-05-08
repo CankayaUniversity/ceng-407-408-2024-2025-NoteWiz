@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using NoteWiz.Core.Interfaces;
 using NoteWiz.Infrastructure.Data;
+using NoteWiz.Core.Entities;
 
 namespace NoteWiz.Infrastructure.Repositories
 {
@@ -15,17 +16,17 @@ namespace NoteWiz.Infrastructure.Repositories
     /// <typeparam name="T">Entity type</typeparam>
     public class Repository<T> : IRepository<T> where T : class, IEntity
     {
-        protected readonly ApplicationDbContext _context;
+        protected readonly NoteWizDbContext _context;
         protected readonly DbSet<T> _dbSet;
 
-        public Repository(ApplicationDbContext context)
+        public Repository(NoteWizDbContext context)
         {
             _context = context;
             _dbSet = context.Set<T>();
         }
 
         // Create
-        public async Task<T> AddAsync(T entity)
+        public virtual async Task<T> AddAsync(T entity)
         {
             await _dbSet.AddAsync(entity);
             await _context.SaveChangesAsync();
@@ -33,12 +34,12 @@ namespace NoteWiz.Infrastructure.Repositories
         }
 
         // Read
-        public async Task<T> GetByIdAsync(int id)
+        public virtual async Task<T> GetByIdAsync(int id)
         {
             return await _dbSet.FindAsync(id);
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync()
+        public virtual async Task<IEnumerable<T>> GetAllAsync()
         {
             return await _dbSet.ToListAsync();
         }
@@ -49,27 +50,26 @@ namespace NoteWiz.Infrastructure.Repositories
         }
 
         // Update
-        public async Task<T> UpdateAsync(T entity)
+        public virtual async Task UpdateAsync(T entity)
         {
-            _context.Entry(entity).State = EntityState.Modified;
+            _dbSet.Update(entity);
             await _context.SaveChangesAsync();
-            return entity;
         }
 
         // Delete
-        public async Task DeleteAsync(int id)
+        public virtual async Task DeleteAsync(T entity)
+        {
+            _dbSet.Remove(entity);
+            await _context.SaveChangesAsync();
+        }
+
+        public virtual async Task DeleteAsync(int id)
         {
             var entity = await GetByIdAsync(id);
             if (entity != null)
             {
                 await DeleteAsync(entity);
             }
-        }
-
-        public async Task DeleteAsync(T entity)
-        {
-            _dbSet.Remove(entity);
-            await _context.SaveChangesAsync();
         }
 
         // Additional helpers

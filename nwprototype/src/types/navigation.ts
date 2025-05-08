@@ -1,60 +1,55 @@
 // src/types/navigation.ts
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RouteProp } from '@react-navigation/native';
 
 export type RootStackParamList = {
-  Welcome: undefined;
-  Home: undefined;
-  Auth: undefined;
-  MainApp: undefined;
+  TabNavigator: undefined;
   NoteDetail: {
-    noteId?: string | number;
+    noteId?: number;
     title?: string;
     content?: string;
     category?: string;
     isImportant?: boolean;
     color?: string;
-    tags?: string[];
     folderId?: string | null;
   };
-  Drawing: {
-    noteId: string;
-  };
-  TaskDetail: {
-    taskId?: string;
-  };
-  Calendar: undefined;
-  SharedNotes: undefined;
   DocumentUpload: undefined;
   DocumentView: {
-    documentId: number;
+    documentId: string;
     title: string;
   };
+  TaskDetail: {
+    taskId?: number;
+    presetDueDate?: string;
+  };
+  Drawing: {
+    noteId: number;
+  };
+  SharedNotes: undefined;
   ShareNote: {
     noteId: number;
   };
+  Settings: undefined;
   Diagnostic: undefined;
+  Auth: undefined;
 };
 
-export type RootStackScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<
-  RootStackParamList,
-  T
->;
+export type RootStackScreenProps<T extends keyof RootStackParamList> = {
+  navigation: NativeStackNavigationProp<RootStackParamList, T>;
+  route: RouteProp<RootStackParamList, T>;
+};
 
 // NoteDetailScreen için özel tipler
-export type NoteDetailScreenNavigationProp = NativeStackScreenProps<RootStackParamList, 'NoteDetail'>['navigation'];
-export type NoteDetailScreenRouteProp = NativeStackScreenProps<RootStackParamList, 'NoteDetail'>['route'];
+export type NoteDetailScreenProps = RootStackScreenProps<'NoteDetail'>;
 
 // DocumentUploadScreen için özel tipler
-export type DocumentUploadScreenNavigationProp = NativeStackScreenProps<RootStackParamList, 'DocumentUpload'>['navigation'];
-export type DocumentUploadScreenRouteProp = NativeStackScreenProps<RootStackParamList, 'DocumentUpload'>['route'];
+export type DocumentUploadScreenProps = RootStackScreenProps<'DocumentUpload'>;
 
 // DocumentViewScreen için özel tipler
-export type DocumentViewScreenNavigationProp = NativeStackScreenProps<RootStackParamList, 'DocumentView'>['navigation'];
-export type DocumentViewScreenRouteProp = NativeStackScreenProps<RootStackParamList, 'DocumentView'>['route'];
+export type DocumentViewScreenProps = RootStackScreenProps<'DocumentView'>;
 
 // ShareNoteScreen için özel tipler
-export type ShareNoteScreenNavigationProp = NativeStackScreenProps<RootStackParamList, 'ShareNote'>['navigation'];
-export type ShareNoteScreenRouteProp = NativeStackScreenProps<RootStackParamList, 'ShareNote'>['route'];
+export type ShareNoteScreenProps = RootStackScreenProps<'ShareNote'>;
 
 export type MainTabParamList = {
   Home: undefined;

@@ -106,9 +106,10 @@ const NotesScreen: React.FC = () => {
       return notes.filter(note => !note.folderId);
     } else {
       return notes.filter(note => {
-        const noteFolderId = typeof note.folderId === 'number' 
-          ? note.folderId.toString() 
-          : note.folderId;
+        let noteFolderId: string | null = null;
+        if (typeof note.folderId === 'number') noteFolderId = String(note.folderId);
+        else if (typeof note.folderId === 'string') noteFolderId = note.folderId;
+        else noteFolderId = null;
         return noteFolderId === currentFolder;
       });
     }
@@ -201,7 +202,7 @@ const NotesScreen: React.FC = () => {
   // Handle navigation back to parent folder
   const handleNavigateBack = () => {
     if (currentFolder) {
-      const currentFolderObj = notes.find(n => n.id.toString() === currentFolder && n.isFolder);
+      const currentFolderObj = notes.find(n => n.id.toString() === currentFolder && n.isFolder) as Note | undefined;
       if (currentFolderObj && currentFolderObj.parentFolderId) {
         // parentFolderId'yi string'e çevir
         setCurrentFolder(currentFolderObj.parentFolderId.toString());
@@ -218,8 +219,14 @@ const NotesScreen: React.FC = () => {
 
   // Handle creating a new note
   const handleCreateNote = () => {
-    setShowFABMenu(false);
-    navigation.navigate('NoteDetail', { folderId: currentFolder });
+    navigation.navigate('NoteDetail', {
+      title: '',
+      content: '',
+      category: '',
+      isImportant: false,
+      color: '',
+      folderId: null
+    });
   };
 
   // Handle creating a new folder
@@ -265,14 +272,13 @@ const NotesScreen: React.FC = () => {
   const handlePickPdf = () => {
     setShowFABMenu(false);
     navigation.navigate('NoteDetail', {
-      folderId: currentFolder,
+      folderId: currentFolder ?? undefined,
       noteId: undefined,
       title: undefined,
       content: undefined,
       category: undefined,
       isImportant: undefined,
-      color: undefined,
-      tags: undefined
+      color: undefined
     });
   };
 
@@ -387,7 +393,25 @@ const NotesScreen: React.FC = () => {
     );
   };
 
-        // Render header with breadcrumb navigation
+  const handleEditNote = (note: Note) => {
+    navigation.navigate('NoteDetail', {
+      noteId: typeof note.id === 'string' ? parseInt(note.id) : note.id,
+      title: note.title,
+      content: note.content,
+      category: note.category,
+      isImportant: note.isPinned || false,
+      color: note.category,
+      folderId: (typeof note.folderId === 'number') ? String(note.folderId) : (typeof note.folderId === 'string' ? note.folderId : null)
+    });
+  };
+
+  const handleShareNote = (note: Note) => {
+    navigation.navigate('ShareNote', {
+      noteId: typeof note.id === 'string' ? parseInt(note.id) : note.id
+    });
+  };
+
+  // Render header with breadcrumb navigation
   const renderHeader = () => {
     // Build breadcrumb trail
     let breadcrumbs: Note[] = [];
@@ -455,16 +479,15 @@ const NotesScreen: React.FC = () => {
               <Text style={styles.folderTitle} numberOfLines={1}>{item.title}</Text>
               <Text style={styles.folderMeta}>
                 {notes.filter(n => {
-                  if (typeof n.folderId === 'string' && typeof item.id === 'string') {
-                    return n.folderId === item.id;
-                  } else if (typeof n.folderId === 'number' && typeof item.id === 'number') {
-                    return n.folderId === item.id;
-                  } else if (typeof n.folderId === 'string' && typeof item.id === 'number') {
-                    return n.folderId === item.id.toString();
-                  } else if (typeof n.folderId === 'number' && typeof item.id === 'string') {
-                    return n.folderId.toString() === item.id;
-                  }
-                  return false;
+                  let noteFolderId: string | null = null;
+                  if (typeof n.folderId === 'number') noteFolderId = String(n.folderId);
+                  else if (typeof n.folderId === 'string') noteFolderId = n.folderId;
+                  else noteFolderId = null;
+                  let itemIdStr = '';
+                  if (typeof item.id === 'number') itemIdStr = String(item.id);
+                  else if (typeof item.id === 'string') itemIdStr = item.id;
+                  else itemIdStr = '';
+                  return noteFolderId === itemIdStr;
                 }).length} items • {new Date(item.updatedAt).toLocaleDateString()}
               </Text>
             </View>
@@ -476,7 +499,7 @@ const NotesScreen: React.FC = () => {
     // It's a note
     const categoryObj = categories.find(cat => {
       if (typeof cat.id === 'number' && typeof item.category === 'string') {
-        return cat.id.toString() === item.category;
+        return String(cat.id) === item.category;
       }
       if (typeof cat.id === 'string' && typeof item.category === 'string') {
         return cat.id === item.category;
@@ -508,15 +531,7 @@ const NotesScreen: React.FC = () => {
             name: categoryObj?.name || '',
             color: categoryObj?.color
           }}
-          onPress={() => navigation.navigate('NoteDetail', {
-            noteId: item.id.toString(),
-            title: item.title,
-            content: item.content,
-            category: item.category,
-            isImportant: item.isPinned || false,
-            color: categoryObj?.color,
-            folderId: item.folderId ? item.folderId.toString() : null
-          })}
+          onPress={() => handleEditNote(item)}
           onLongPress={() => handleNoteOptions(item.id.toString())}
         />
       </Animated.View>

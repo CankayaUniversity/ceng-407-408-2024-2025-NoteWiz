@@ -60,8 +60,8 @@ type DrawingScreenRouteProp = RouteProp<RootStackParamList, 'Drawing'>;
 type DrawingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Drawing'>;
 
 const DrawingScreen: React.FC = () => {
-  const route = useRoute<DrawingScreenRouteProp>();
-  const navigation = useNavigation<DrawingScreenNavigationProp>();
+  const route = useRoute<RouteProp<RootStackParamList, 'Drawing'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   // Çizim ile ilgili state
   const [strokes, setStrokes] = useState<Stroke[]>([]);
@@ -151,7 +151,7 @@ const DrawingScreen: React.FC = () => {
       Alert.alert('Error', 'Note ID is missing. Please open a saved note to draw.');
       navigation.goBack();
     }
-  }, []);
+  }, [route.params?.noteId]);
 
   // Çizim verilerini kaydet
   const saveDrawingData = async () => {
@@ -168,7 +168,7 @@ const DrawingScreen: React.FC = () => {
       });
 
       // Backend'e kaydet
-      await drawingService.saveDrawing(route.params.noteId, drawingData);
+      await drawingService.saveDrawing(String(route.params.noteId), drawingData);
 
       // SignalR üzerinden diğer kullanıcılara gönder
       const connection = signalRService.getNoteConnection();
@@ -190,7 +190,7 @@ const DrawingScreen: React.FC = () => {
         throw new Error('Note ID is required');
       }
 
-      const drawings = await drawingService.getDrawings(route.params.noteId);
+      const drawings = await drawingService.getDrawings(String(route.params.noteId));
       if (drawings.length > 0) {
         const lastDrawing = drawings[drawings.length - 1];
         const drawingData = JSON.parse(lastDrawing.drawingData);
@@ -236,6 +236,35 @@ const DrawingScreen: React.FC = () => {
     setTempContent('');
   };
 
+  const handleSave = async () => {
+    try {
+      if (!route.params?.noteId) {
+        throw new Error('Note ID is required');
+      }
+      await saveDrawingData();
+      navigation.goBack();
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save drawing');
+    }
+  };
+
+  // Add settings/edit button to header
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          style={{ marginRight: 16 }}
+          onPress={() => {
+            // Geri dönüp not detay ekranına git
+            navigation.navigate('NoteDetail', { noteId: route.params?.noteId });
+          }}
+        >
+          <Text style={{ fontSize: 18, color: COLORS.primary.main }}>Ayarlar</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, route.params?.noteId]);
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
@@ -244,7 +273,7 @@ const DrawingScreen: React.FC = () => {
         onBack={() => navigation.goBack()}
         onUndo={handleUndo}
         onClear={handleClear}
-        onSave={saveDrawingData}
+        onSave={handleSave}
         canUndo={canUndo}
       />
 

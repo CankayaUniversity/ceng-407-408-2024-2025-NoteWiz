@@ -20,7 +20,6 @@ namespace NoteWiz.Infrastructure.Data
         public DbSet<NoteText> NoteTexts { get; set; }
         public DbSet<NotePdfPage> NotePdfPages { get; set; }
         public DbSet<NoteTemplate> NoteTemplates { get; set; }
-        public DbSet<DocumentUpload> DocumentUploads { get; set; }
         public DbSet<AuthToken> AuthTokens { get; set; }
         public DbSet<UserDevice> UserDevices { get; set; }
         public DbSet<Notification> Notifications { get; set; }
@@ -29,6 +28,7 @@ namespace NoteWiz.Infrastructure.Data
         public DbSet<AIInteractionLog> AIInteractionLogs { get; set; }
         public DbSet<Friendship> Friendships { get; set; }
         public DbSet<FriendshipRequest> FriendshipRequests { get; set; }
+        public DbSet<Document> Documents { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -101,6 +101,19 @@ namespace NoteWiz.Infrastructure.Data
                 .HasOne(f => f.Receiver)
                 .WithMany()
                 .HasForeignKey(f => f.ReceiverId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure Document relationships
+            modelBuilder.Entity<Document>()
+                .HasOne(d => d.User)
+                .WithMany(u => u.Documents)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Note>()
+                .HasOne(n => n.Document)
+                .WithMany(d => d.Notes)
+                .HasForeignKey(n => n.DocumentId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

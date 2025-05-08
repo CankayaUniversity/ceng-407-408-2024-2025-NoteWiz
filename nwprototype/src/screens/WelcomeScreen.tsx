@@ -22,15 +22,17 @@ import Animated, {
   FadeInUp,
 } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
-import { NotesIcon } from '../components/icons';
+import { NotesIcon } from '../components/icons/index.tsx';
 import { BlurView } from '@react-native-community/blur';
 
 const { width, height } = Dimensions.get('window');
 
-type WelcomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Welcome'>;
-
 const WelcomeScreen = () => {
-  const navigation = useNavigation<WelcomeScreenNavigationProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  const handleGetStarted = () => {
+    navigation.navigate('Auth');
+  };
 
   return (
     <View style={styles.container}>
@@ -70,7 +72,7 @@ const WelcomeScreen = () => {
         {/* Başlama butonu */}
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate('Auth')}
+          onPress={handleGetStarted}
           activeOpacity={0.8}
         >
           <BlurView
@@ -84,7 +86,7 @@ const WelcomeScreen = () => {
         {/* Alternatif giriş butonu */}
         <TouchableOpacity
           style={styles.secondaryButton}
-          onPress={() => navigation.navigate('Auth')}
+          onPress={() => navigation.navigate('TabNavigator')}
         >
           <Text style={styles.secondaryButtonText}>
             Already have an account? Sign in
@@ -135,7 +137,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 48,
-    fontWeight: 'bold',
+    fontWeight: 700,
     color: '#FFFFFF',
     marginBottom: 16,
     textAlign: 'center',
@@ -161,7 +163,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: 600,
     color: '#FFFFFF',
   },
   secondaryButton: {

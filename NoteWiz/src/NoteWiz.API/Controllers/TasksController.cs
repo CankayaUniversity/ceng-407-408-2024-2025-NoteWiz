@@ -170,20 +170,20 @@ namespace NoteWiz.API.Controllers
                 existingTask.CompletedAt = null;
             }
             
-            var updatedTask = await _taskRepository.UpdateAsync(existingTask);
+            await _taskRepository.UpdateAsync(existingTask);
             
             var responseDto = new TaskResponseDTO
             {
-                Id = updatedTask.Id,
-                Title = updatedTask.Title,
-                Description = updatedTask.Description,
-                DueDate = updatedTask.DueDate,
-                Priority = updatedTask.Priority,
-                Reminder = updatedTask.Reminder,
-                IsCompleted = updatedTask.IsCompleted,
-                UserId = updatedTask.UserId,
-                CreatedAt = updatedTask.CreatedAt,
-                CompletedAt = updatedTask.CompletedAt
+                Id = existingTask.Id,
+                Title = existingTask.Title,
+                Description = existingTask.Description,
+                DueDate = existingTask.DueDate,
+                Priority = existingTask.Priority,
+                Reminder = existingTask.Reminder,
+                IsCompleted = existingTask.IsCompleted,
+                UserId = existingTask.UserId,
+                CreatedAt = existingTask.CreatedAt,
+                CompletedAt = existingTask.CompletedAt
             };
             
             return Ok(responseDto);
@@ -214,7 +214,7 @@ namespace NoteWiz.API.Controllers
             task.IsCompleted = true;
             task.CompletedAt = DateTime.UtcNow;
             
-            var updatedTask = await _taskRepository.UpdateAsync(task);
+            await _taskRepository.UpdateAsync(task);
 
             // Send a notification about the completed task
             var notification = new Notification
@@ -234,16 +234,16 @@ namespace NoteWiz.API.Controllers
             
             var responseDto = new TaskResponseDTO
             {
-                Id = updatedTask.Id,
-                Title = updatedTask.Title,
-                Description = updatedTask.Description,
-                DueDate = updatedTask.DueDate,
-                Priority = updatedTask.Priority,
-                Reminder = updatedTask.Reminder,
-                IsCompleted = updatedTask.IsCompleted,
-                UserId = updatedTask.UserId,
-                CreatedAt = updatedTask.CreatedAt,
-                CompletedAt = updatedTask.CompletedAt
+                Id = task.Id,
+                Title = task.Title,
+                Description = task.Description,
+                DueDate = task.DueDate,
+                Priority = task.Priority,
+                Reminder = task.Reminder,
+                IsCompleted = task.IsCompleted,
+                UserId = task.UserId,
+                CreatedAt = task.CreatedAt,
+                CompletedAt = task.CompletedAt
             };
             
             return Ok(responseDto);

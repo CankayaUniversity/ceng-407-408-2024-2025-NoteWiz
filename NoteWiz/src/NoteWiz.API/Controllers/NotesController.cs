@@ -27,6 +27,16 @@ namespace NoteWiz.API.Controllers
             _userService = userService;
         }
 
+        private int GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim?.Value == null)
+            {
+                throw new UnauthorizedAccessException("User ID not found in claims");
+            }
+            return int.Parse(userIdClaim.Value);
+        }
+
         [AllowAnonymous]
         [HttpGet("test")]
         public IActionResult Test()
@@ -37,7 +47,7 @@ namespace NoteWiz.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<NoteResponseDTO>>> GetUserNotes()
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var userId = GetCurrentUserId();
             var notes = await _noteService.GetUserNotesAsync(userId);
             var noteDTOs = notes.Select(n => new NoteResponseDTO
             {
@@ -63,14 +73,7 @@ namespace NoteWiz.API.Controllers
                         Email = sw.SharedWithUser.Email,
                         FullName = sw.SharedWithUser.FullName,
                         CreatedAt = sw.SharedWithUser.CreatedAt
-                    } : new UserResponseDTO
-                    {
-                        Id = 0,
-                        Username = string.Empty,
-                        Email = string.Empty,
-                        FullName = string.Empty,
-                        CreatedAt = DateTime.MinValue
-                    }
+                    } : null
                 }).ToList() ?? new List<NoteShareResponseDTO>()
             });
             return Ok(noteDTOs);
@@ -79,7 +82,7 @@ namespace NoteWiz.API.Controllers
         [HttpGet("friends")]
         public async Task<ActionResult<IEnumerable<NoteResponseDTO>>> GetFriendsNotes()
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var userId = GetCurrentUserId();
             var notes = await _noteService.GetFriendsNotesAsync(userId);
             var noteDTOs = notes.Select(n => new NoteResponseDTO
             {
@@ -105,14 +108,7 @@ namespace NoteWiz.API.Controllers
                         Email = sw.SharedWithUser.Email,
                         FullName = sw.SharedWithUser.FullName,
                         CreatedAt = sw.SharedWithUser.CreatedAt
-                    } : new UserResponseDTO
-                    {
-                        Id = 0,
-                        Username = string.Empty,
-                        Email = string.Empty,
-                        FullName = string.Empty,
-                        CreatedAt = DateTime.MinValue
-                    }
+                    } : null
                 }).ToList() ?? new List<NoteShareResponseDTO>()
             });
             return Ok(noteDTOs);
@@ -121,7 +117,7 @@ namespace NoteWiz.API.Controllers
         [HttpGet("shared")]
         public async Task<ActionResult<IEnumerable<NoteResponseDTO>>> GetSharedNotes()
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var userId = GetCurrentUserId();
             var notes = await _noteService.GetSharedNotesAsync(userId);
             var noteDTOs = notes.Select(n => new NoteResponseDTO
             {
@@ -147,14 +143,7 @@ namespace NoteWiz.API.Controllers
                         Email = sw.SharedWithUser.Email,
                         FullName = sw.SharedWithUser.FullName,
                         CreatedAt = sw.SharedWithUser.CreatedAt
-                    } : new UserResponseDTO
-                    {
-                        Id = 0,
-                        Username = string.Empty,
-                        Email = string.Empty,
-                        FullName = string.Empty,
-                        CreatedAt = DateTime.MinValue
-                    }
+                    } : null
                 }).ToList() ?? new List<NoteShareResponseDTO>()
             });
             return Ok(noteDTOs);
@@ -163,7 +152,7 @@ namespace NoteWiz.API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<NoteResponseDTO>> GetNote(int id)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var userId = GetCurrentUserId();
             var note = await _noteService.GetNoteByIdAsync(id);
 
             if (note == null)
@@ -200,14 +189,7 @@ namespace NoteWiz.API.Controllers
                         Email = sw.SharedWithUser.Email,
                         FullName = sw.SharedWithUser.FullName,
                         CreatedAt = sw.SharedWithUser.CreatedAt
-                    } : new UserResponseDTO
-                    {
-                        Id = 0,
-                        Username = string.Empty,
-                        Email = string.Empty,
-                        FullName = string.Empty,
-                        CreatedAt = DateTime.MinValue
-                    }
+                    } : null
                 }).ToList() ?? new List<NoteShareResponseDTO>()
             });
         }
@@ -215,7 +197,7 @@ namespace NoteWiz.API.Controllers
         [HttpPost]
         public async Task<ActionResult<NoteResponseDTO>> CreateNote(NoteCreateDTO noteDTO)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var userId = GetCurrentUserId();
             var note = new Note
             {
                 Title = noteDTO.Title,
@@ -251,14 +233,7 @@ namespace NoteWiz.API.Controllers
                         Email = sw.SharedWithUser.Email,
                         FullName = sw.SharedWithUser.FullName,
                         CreatedAt = sw.SharedWithUser.CreatedAt
-                    } : new UserResponseDTO
-                    {
-                        Id = 0,
-                        Username = string.Empty,
-                        Email = string.Empty,
-                        FullName = string.Empty,
-                        CreatedAt = DateTime.MinValue
-                    }
+                    } : null
                 }).ToList() ?? new List<NoteShareResponseDTO>()
             });
         }
@@ -266,7 +241,7 @@ namespace NoteWiz.API.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<NoteResponseDTO>> UpdateNote(int id, NoteUpdateDTO noteDTO)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var userId = GetCurrentUserId();
             var note = await _noteService.GetNoteByIdAsync(id);
 
             if (note == null)
@@ -310,14 +285,7 @@ namespace NoteWiz.API.Controllers
                         Email = sw.SharedWithUser.Email,
                         FullName = sw.SharedWithUser.FullName,
                         CreatedAt = sw.SharedWithUser.CreatedAt
-                    } : new UserResponseDTO
-                    {
-                        Id = 0,
-                        Username = string.Empty,
-                        Email = string.Empty,
-                        FullName = string.Empty,
-                        CreatedAt = DateTime.MinValue
-                    }
+                    } : null
                 }).ToList() ?? new List<NoteShareResponseDTO>()
             });
         }
@@ -325,7 +293,7 @@ namespace NoteWiz.API.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteNote(int id)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var userId = GetCurrentUserId();
             var note = await _noteService.GetNoteByIdAsync(id);
 
             if (note == null)
@@ -342,7 +310,7 @@ namespace NoteWiz.API.Controllers
         [HttpPost("{id}/share")]
         public async Task<ActionResult<NoteShareResponseDTO>> ShareNote(int id, NoteShareCreateDTO shareDTO)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var userId = GetCurrentUserId();
             var note = await _noteService.GetNoteByIdAsync(id);
 
             if (note == null)

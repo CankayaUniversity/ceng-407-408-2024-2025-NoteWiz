@@ -1,18 +1,25 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
-import { Document, documentService, UploadDocumentDTO } from '../services/documentService';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { apiClient as newApi } from '../services/newApi';
 
-interface DocumentContextData {
+interface Document {
+  id: string;
+  title: string;
+  filePath: string;
+  createdAt: string;
+  extractedText?: string;
+}
+
+interface DocumentContextType {
   documents: Document[];
   loading: boolean;
   error: string | null;
-  loadDocuments: () => Promise<void>;
-  uploadDocument: (data: UploadDocumentDTO) => Promise<Document>;
-  deleteDocument: (id: number) => Promise<void>;
-  extractText: (id: number) => Promise<string>;
-  clearError: () => void;
+  uploadDocument: (file: any) => Promise<void>;
+  getDocument: (id: string) => Promise<Document>;
+  deleteDocument: (id: string) => Promise<void>;
+  extractText: (id: string) => Promise<string>;
 }
 
-const DocumentContext = createContext<DocumentContextData>({} as DocumentContextData);
+const DocumentContext = createContext<DocumentContextType | undefined>(undefined);
 
 export const useDocuments = () => {
   const context = useContext(DocumentContext);
@@ -22,70 +29,84 @@ export const useDocuments = () => {
   return context;
 };
 
-export const DocumentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const DocumentProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [documents, setDocuments] = useState<Document[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadDocuments = useCallback(async () => {
+  useEffect(() => {
+    fetchDocuments();
+  }, []);
+
+  const fetchDocuments = async () => {
     try {
       setLoading(true);
-      const response = await documentService.getDocuments();
-      setDocuments(response);
+      const response = await newApi.get('/api/documents');
+      setDocuments(response.data);
+      setError(null);
     } catch (err) {
-      setError('Failed to load documents');
-      console.error(err);
+      console.error('Error fetching documents:', err);
+      setError('Dokümanlar yüklenirken bir hata oluştu');
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
-  const uploadDocument = useCallback(async (data: UploadDocumentDTO) => {
+  const uploadDocument = async (file: any) => {
     try {
       setLoading(true);
-      const newDocument = await documentService.uploadDocument(data);
-      setDocuments(prev => [...prev, newDocument]);
-      return newDocument;
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await newApi.post('/api/documents', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      setDocuments((prev) => [...prev, response.data]);
+      setError(null);
+      return response.data;
     } catch (err) {
-      setError('Failed to upload document');
-      console.error(err);
-      throw err;
+      console.error('Error uploading document:', err);
+      throw new Error('Doküman yüklenirken bir hata oluştu');
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
-  const deleteDocument = useCallback(async (id: number) => {
+  const getDocument = async (id: string) => {
     try {
-      setLoading(true);
-      await documentService.deleteDocument(id);
-      setDocuments(prev => prev.filter(doc => doc.id !== id));
+      const response = await newApi.get(`/api/documents/${id}`);
+      return response.data;
     } catch (err) {
-      setError('Failed to delete document');
-      console.error(err);
-      throw err;
-    } finally {
-      setLoading(false);
+      console.error('Error getting document:', err);
+      throw new Error('Doküman alınırken bir hata oluştu');
     }
-  }, []);
+  };
 
-  const extractText = useCallback(async (id: number) => {
+  const deleteDocument = async (id: string) => {
     try {
-      setLoading(true);
-      const text = await documentService.extractText(id);
-      return text;
+      await newApi.delete(`/api/documents/${id}`);
+      setDocuments((prev) => prev.filter((doc) => doc.id !== id));
+      setError(null);
     } catch (err) {
-      setError('Failed to extract text');
-      console.error(err);
-      throw err;
-    } finally {
-      setLoading(false);
+      console.error('Error deleting document:', err);
+      throw new Error('Doküman silinirken bir hata oluştu');
     }
-  }, []);
+  };
 
-  const clearError = useCallback(() => {
-    setError(null);
-  }, []);
+  const extractText = async (id: string) => {
+    try {
+      const response = await newApi.post(`/api/documents/${id}/extract`);
+      return response.data.text;
+    } catch (err) {
+      console.error('Error extracting text:', err);
+      throw new Error('Metin çıkarılırken bir hata oluştu');
+    }
+  };
 
   return (
     <DocumentContext.Provider
@@ -93,14 +114,15 @@ export const DocumentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         documents,
         loading,
         error,
-        loadDocuments,
         uploadDocument,
+        getDocument,
         deleteDocument,
         extractText,
-        clearError,
       }}
     >
       {children}
     </DocumentContext.Provider>
   );
-}; 
+};
+
+export default DocumentProvider; 

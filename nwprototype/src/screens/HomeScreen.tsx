@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigation';
+import { RootStackParamList, MainTabParamList } from '../types/navigation';
 import { useNotes } from '../contexts/NoteContext';
 import { useAuth } from '../contexts/AuthContext';
 import { FloatingActionButton } from '../components/ui/FloatingActionButton';
@@ -28,10 +28,8 @@ import { COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '../constants/theme';
 const { width, height } = Dimensions.get('window');
 const HEADER_HEIGHT = Platform.OS === 'ios' ? 280 : 300;
 
-type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
-
 const HomeScreen = () => {
-  const navigation = useNavigation<HomeScreenNavigationProp>();
+  const stackNavigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { notes } = useNotes();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,6 +54,25 @@ const HomeScreen = () => {
     // Burada yenileme işlemleri yapılabilir
     setTimeout(() => setRefreshing(false), 1500);
   }, []);
+
+  const handleCreateNote = () => {
+    stackNavigation.navigate('NoteDetail', {
+      title: '',
+      content: '',
+      category: '',
+      isImportant: false,
+      color: '',
+      folderId: null
+    });
+  };
+
+  const handleCreateTask = () => {
+    stackNavigation.navigate('TaskDetail', {});
+  };
+
+  const handleViewSharedNotes = () => {
+    stackNavigation.navigate('SharedNotes');
+  };
 
   if (isLoading) {
     return (
@@ -161,7 +178,7 @@ const HomeScreen = () => {
                     updatedAt: new Date(note.updatedAt)
                   }}
                   index={index}
-                  onPress={() => navigation.navigate('NoteDetail', { noteId: note.id })}
+                  onPress={() => stackNavigation.navigate('NoteDetail', { noteId: parseInt(note.id) })}
                 />
               ))}
             </ScrollView>
@@ -176,7 +193,7 @@ const HomeScreen = () => {
                 key={note.id}
                 note={note}
                 index={index}
-                onPress={() => navigation.navigate('NoteDetail', { noteId: note.id })}
+                onPress={() => stackNavigation.navigate('NoteDetail', { noteId: parseInt(note.id) })}
               />
             ))}
           </View>
@@ -186,24 +203,14 @@ const HomeScreen = () => {
       </ScrollView>
 
       <FloatingActionButton
-        onPress={() => navigation.navigate('NoteDetail', {
-          noteId: undefined,
-          title: '',
-          content: '',
-          isImportant: false
-        })}
+        onPress={handleCreateNote}
         style={styles.fab}
       />
 
       <View style={styles.grid}>
         <TouchableOpacity
           style={styles.card}
-          onPress={() => navigation.navigate('NoteDetail', {
-            noteId: undefined,
-            title: '',
-            content: '',
-            isImportant: false
-          })}
+          onPress={handleCreateNote}
         >
           <NotesIcon size={32} color={COLORS.primary.main} />
           <Text style={styles.cardText}>Yeni Not</Text>
@@ -211,7 +218,7 @@ const HomeScreen = () => {
 
         <TouchableOpacity
           style={styles.card}
-          onPress={() => navigation.navigate('DocumentUpload')}
+          onPress={() => stackNavigation.navigate('DocumentUpload')}
         >
           <DocumentIcon size={32} color={COLORS.primary.main} />
           <Text style={styles.cardText}>Doküman Yükle</Text>
@@ -219,7 +226,7 @@ const HomeScreen = () => {
 
         <TouchableOpacity
           style={styles.card}
-          onPress={() => navigation.navigate('TaskDetail', { taskId: undefined })}
+          onPress={handleCreateTask}
         >
           <TaskIcon size={32} color={COLORS.primary.main} />
           <Text style={styles.cardText}>Görev Ekle</Text>
@@ -227,7 +234,7 @@ const HomeScreen = () => {
 
         <TouchableOpacity
           style={styles.card}
-          onPress={() => navigation.navigate('SharedNotes')}
+          onPress={handleViewSharedNotes}
         >
           <ShareIcon size={32} color={COLORS.primary.main} />
           <Text style={styles.cardText}>Paylaşılan Notlar</Text>

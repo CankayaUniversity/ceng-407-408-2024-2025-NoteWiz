@@ -9,7 +9,7 @@ export interface IconProps {
 }
 
 // Missing icons that were causing errors in App.tsx
-export const HomeIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
+const HomeIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
     <Path
       d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z"
@@ -28,7 +28,7 @@ export const HomeIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style
   </Svg>
 );
 
-export const SettingsIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
+const SettingsIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
     <Path
       d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
@@ -47,7 +47,7 @@ export const SettingsIcon: React.FC<IconProps> = ({ size = 24, color = '#000', s
   </Svg>
 );
 
-export const TaskIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
+const TaskIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
     <Path
       d="M9 11L12 14L22 4"
@@ -66,7 +66,7 @@ export const TaskIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style
   </Svg>
 );
 
-export const CalendarIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
+const CalendarIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
     <Rect
       x="3"
@@ -146,7 +146,7 @@ export const CalendarIcon: React.FC<IconProps> = ({ size = 24, color = '#000', s
 );
 
 // Existing icons from your file
-export const NotesIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
+const NotesIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
     <Path
       d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z"
@@ -179,7 +179,7 @@ export const NotesIcon: React.FC<IconProps> = ({ size = 24, color = '#000', styl
   </Svg>
 );
 
-export const StarIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
+const StarIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
     <Path
       d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
@@ -192,7 +192,7 @@ export const StarIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style
   </Svg>
 );
 
-export const TimeIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
+const TimeIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
     <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth="2" />
     <Path
@@ -205,7 +205,7 @@ export const TimeIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style
   </Svg>
 );
 
-export const SearchIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
+const SearchIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
     <Path
       d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z"
@@ -224,7 +224,7 @@ export const SearchIcon: React.FC<IconProps> = ({ size = 24, color = '#000', sty
   </Svg>
 );
 
-export const CreateIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
+const CreateIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
     <Path
       d="M12 5V19"
@@ -243,7 +243,7 @@ export const CreateIcon: React.FC<IconProps> = ({ size = 24, color = '#000', sty
   </Svg>
 );
 
-export const CloseIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
+const CloseIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
     <Path
       d="M18 6L6 18"
@@ -262,7 +262,7 @@ export const CloseIcon: React.FC<IconProps> = ({ size = 24, color = '#000', styl
   </Svg>
 );
 
-export const FolderIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
+const FolderIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
     <Path
       d="M22 19C22 19.5304 21.7893 20.0391 21.4142 20.4142C21.0391 20.7893 20.5304 21 20 21H4C3.46957 21 2.96086 20.7893 2.58579 20.4142C2.21071 20.0391 2 19.5304 2 19V5C2 4.46957 2.21071 3.96086 2.58579 3.58579C2.96086 3.21071 3.46957 3 4 3H9L11 6H20C20.5304 6 21.0391 6.21071 21.4142 6.58579C21.7893 6.96086 22 7.46957 22 8V19Z"
@@ -275,7 +275,7 @@ export const FolderIcon: React.FC<IconProps> = ({ size = 24, color = '#000', sty
   </Svg>
 );
 
-export const DocumentIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
+const DocumentIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
     <Path
       d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
@@ -315,7 +315,7 @@ export const DocumentIcon: React.FC<IconProps> = ({ size = 24, color = '#000', s
   </Svg>
 );
 
-export const PdfIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
+const PdfIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
     <Path
       d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
@@ -348,7 +348,7 @@ export const PdfIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style 
   </Svg>
 );
 
-export const ImageIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
+const ImageIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
     <Rect
       x="3"
@@ -372,7 +372,7 @@ export const ImageIcon: React.FC<IconProps> = ({ size = 24, color = '#000', styl
   </Svg>
 );
 
-export const CloudIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
+const CloudIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
     <Path
       d="M18 10H19.5C20.163 10 20.7989 10.2634 21.2678 10.7322C21.7366 11.2011 22 11.837 22 12.5C22 13.163 21.7366 13.7989 21.2678 14.2678C20.7989 14.7366 20.163 15 19.5 15H18"
@@ -405,7 +405,7 @@ export const CloudIcon: React.FC<IconProps> = ({ size = 24, color = '#000', styl
   </Svg>
 );
 
-export const CheckIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
+const CheckIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
     <Path
       d="M20 6L9 17L4 12"
@@ -417,7 +417,7 @@ export const CheckIcon: React.FC<IconProps> = ({ size = 24, color = '#000', styl
   </Svg>
 );
 
-export const ShareIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
+const ShareIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
     <Path
       d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"
@@ -442,3 +442,24 @@ export const ShareIcon: React.FC<IconProps> = ({ size = 24, color = '#000', styl
     />
   </Svg>
 );
+
+// Export all icons at the bottom
+export {
+  HomeIcon,
+  NotesIcon,
+  SettingsIcon,
+  StarIcon,
+  TaskIcon,
+  CalendarIcon,
+  TimeIcon,
+  SearchIcon,
+  CreateIcon,
+  CloseIcon,
+  FolderIcon,
+  DocumentIcon,
+  PdfIcon,
+  ImageIcon,
+  CloudIcon,
+  CheckIcon,
+  ShareIcon,
+};

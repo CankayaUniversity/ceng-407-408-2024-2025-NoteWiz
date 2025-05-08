@@ -19,7 +19,7 @@ namespace NoteWiz.API.Controllers
 
         public class DrawingSaveRequest
         {
-            public string DrawingData { get; set; }
+            public required string DrawingData { get; set; }
         }
 
         [HttpPost("{noteId}")]
@@ -37,9 +37,9 @@ namespace NoteWiz.API.Controllers
                 Console.WriteLine($"ArgumentException: {ex.Message}");
                 return NotFound(ex.Message);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Exception: {ex.Message}");
+                Console.WriteLine("An error occurred while saving the drawing");
                 return StatusCode(500, "An error occurred while saving the drawing");
             }
         }
@@ -52,7 +52,7 @@ namespace NoteWiz.API.Controllers
                 var drawings = await _drawingService.GetDrawings(noteId);
                 return Ok(drawings);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, "An error occurred while retrieving drawings");
             }
@@ -70,7 +70,7 @@ namespace NoteWiz.API.Controllers
                 }
                 return Ok();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, "An error occurred while deleting the drawing");
             }
@@ -88,7 +88,7 @@ namespace NoteWiz.API.Controllers
                 }
                 return Ok();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, "An error occurred while updating the drawing");
             }

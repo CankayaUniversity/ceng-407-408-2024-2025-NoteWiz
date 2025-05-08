@@ -1,7 +1,7 @@
 // src/components/notes/EmptyState.tsx
 import React from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
-import { NotesIcon } from '../icons';
+import { NotesIcon } from '../icons/index.tsx';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 interface EmptyStateProps {

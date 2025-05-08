@@ -8,6 +8,14 @@ import { COLORS, SHADOWS } from './src/constants/theme';
 import notifee from '@notifee/react-native';
 import { NoteProvider } from './src/contexts/NoteContext';
 import ApiDiagnostic from './src/components/debug/ApiDiagnostic';
+import {
+  HomeIcon,
+  NotesIcon,
+  SettingsIcon,
+  StarIcon,
+  TaskIcon,
+  CalendarIcon,
+} from './src/components/icons';
 
 // Screens
 import WelcomeScreen from './src/screens/WelcomeScreen';
@@ -22,19 +30,11 @@ import TasksScreen from './src/screens/TasksScreen';
 import TaskDetailScreen from './src/screens/TaskDetailScreen';
 import CalendarScreen from './src/screens/CalendarScreen';
 import DocumentUploadScreen from './src/screens/DocumentUploadScreen';
+import SharedNotesScreen from './src/screens/SharedNotesScreen';
+import ShareNoteScreen from './src/screens/ShareNoteScreen';
 
 // Types
 import { RootStackParamList, MainTabParamList } from './src/types/navigation';
-
-// Icons
-import {
-  HomeIcon,
-  NotesIcon,
-  SettingsIcon,
-  StarIcon,
-  TaskIcon,
-  CalendarIcon,
-} from './src/components/icons';
 
 // Contexts
 import { ThemeProvider } from './src/contexts/ThemeContext';
@@ -130,83 +130,17 @@ const App = () => {
               <NoteProvider>
                 <TaskProvider>
                   <NavigationContainer>
-                    <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+                    <Stack.Navigator screenOptions={{ headerShown: false }}>
                       <Stack.Screen name="Auth" component={AuthScreen} />
-                      <Stack.Screen name="MainApp" component={TabNavigator} />
-                      <Stack.Screen
-                        name="NoteDetail"
-                        component={NoteDetailScreen}
-                        options={{
-                          headerShown: true,
-                          presentation: 'modal',
-                          animation: 'slide_from_bottom',
-                          headerTitle: '',
-                          headerShadowVisible: false,
-                          headerStyle: {
-                            backgroundColor: COLORS.background.default,
-                          },
-                          headerTintColor: COLORS.primary.main,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="DocumentUpload"
-                        component={DocumentUploadScreen}
-                        options={{
-                          headerShown: true,
-                          presentation: 'modal',
-                          animation: 'slide_from_bottom',
-                          headerTitle: 'Dosya Yükle',
-                          headerShadowVisible: false,
-                          headerStyle: {
-                            backgroundColor: COLORS.background.default,
-                          },
-                          headerTintColor: COLORS.primary.main,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="Drawing"
-                        component={DrawingScreen}
-                        options={{ presentation: 'fullScreenModal', animation: 'fade_from_bottom' }}
-                      />
-                      <Stack.Screen
-                        name="TaskDetail"
-                        component={TaskDetailScreen}
-                        options={{
-                          headerShown: true,
-                          presentation: 'modal',
-                          animation: 'slide_from_bottom',
-                          headerTitle: '',
-                          headerShadowVisible: false,
-                          headerStyle: {
-                            backgroundColor: COLORS.background.default,
-                          },
-                          headerTintColor: COLORS.primary.main,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="Calendar"
-                        component={CalendarScreen}
-                        options={{
-                          headerShown: true,
-                          headerTitle: 'Takvim',
-                          headerStyle: {
-                            backgroundColor: COLORS.background.default,
-                          },
-                          headerTintColor: COLORS.primary.main,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="Diagnostic"
-                        component={ApiDiagnostic}
-                        options={{
-                          headerShown: true,
-                          headerTitle: 'API Tanılama',
-                          headerStyle: {
-                            backgroundColor: COLORS.background.default,
-                          },
-                          headerTintColor: COLORS.primary.main,
-                        }}
-                      />
+                      <Stack.Screen name="TabNavigator" component={TabNavigator} />
+                      <Stack.Screen name="NoteDetail" component={NoteDetailScreen} />
+                      <Stack.Screen name="TaskDetail" component={TaskDetailScreen} />
+                      <Stack.Screen name="Drawing" component={DrawingScreen} />
+                      <Stack.Screen name="DocumentUpload" component={DocumentUploadScreen} />
+                      <Stack.Screen name="SharedNotes" component={SharedNotesScreen} />
+                      <Stack.Screen name="ShareNote" component={ShareNoteScreen} />
+                      <Stack.Screen name="Settings" component={SettingsScreen} />
+                      <Stack.Screen name="Diagnostic" component={ApiDiagnostic} />
                     </Stack.Navigator>
                   </NavigationContainer>
                 </TaskProvider>

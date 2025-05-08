@@ -12,12 +12,12 @@ namespace NoteWiz.Infrastructure.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<Note> Notes { get; set; }
+        public DbSet<Document> Documents { get; set; }
         public DbSet<NoteDrawing> NoteDrawings { get; set; }
         public DbSet<NoteImage> NoteImages { get; set; }
         public DbSet<NoteShare> NoteShares { get; set; }
         public DbSet<TaskItem> TaskItems { get; set; }
         public DbSet<Friendship> Friendships { get; set; }
-        public DbSet<DocumentUpload> DocumentUploads { get; set; }
         public DbSet<AuthToken> AuthTokens { get; set; }
         public DbSet<UserDevice> UserDevices { get; set; }
         public DbSet<Notification> Notifications { get; set; }
@@ -100,13 +100,6 @@ namespace NoteWiz.Infrastructure.Data
                 .HasForeignKey(f => f.FriendId)
                 .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete conflicts
 
-            // Configure relationship between User and DocumentUpload
-            modelBuilder.Entity<DocumentUpload>()
-                .HasOne(d => d.User)
-                .WithMany(u => u.UploadedDocuments)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
             // Configure relationship between User and AuthToken
             modelBuilder.Entity<AuthToken>()
                 .HasOne(at => at.User)
@@ -126,6 +119,32 @@ namespace NoteWiz.Infrastructure.Data
                 .HasOne(n => n.User)
                 .WithMany(u => u.Notifications)
                 .HasForeignKey(n => n.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // User entity configuration
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.Notes)
+                .WithOne(n => n.User)
+                .HasForeignKey(n => n.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.Documents)
+                .WithOne(d => d.User)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Document entity configuration
+            modelBuilder.Entity<Document>()
+                .HasOne(d => d.User)
+                .WithMany(u => u.Documents)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Document>()
+                .HasMany(d => d.Notes)
+                .WithOne()
+                .HasForeignKey(n => n.DocumentId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

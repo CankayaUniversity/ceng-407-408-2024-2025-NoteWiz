@@ -185,7 +185,7 @@ const SettingsScreen: FC = () => {
             }
           />
           <MenuItem
-            icon={SettingsIcon} // Farklı bir icon da kullanabilirsiniz
+            icon={SettingsIcon}
             title="API Tanılama"
             subtitle="Bağlantı sorunlarını tespit edin"
             onPress={() => navigation.navigate('Diagnostic')}

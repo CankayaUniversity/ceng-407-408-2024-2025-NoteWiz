@@ -3,28 +3,20 @@
   "WorkspaceRootPath": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250505174532_AddTaskTitleToTaskItem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250505174532_AddTaskTitleToTaskItem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|d:\\ceng-407-408-2024-2025-notewiz\\notewiz\\src\\notewiz.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|solutionrelative:src\\notewiz.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250505163133_AddNoteDrawingTable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250505163133_AddNoteDrawingTable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|d:\\ceng-407-408-2024-2025-notewiz\\notewiz\\src\\notewiz.api\\controllers\\documentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|solutionrelative:src\\notewiz.api\\controllers\\documentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250505162734_AddMissingTables.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250505162734_AddMissingTables.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506125717_RemoveDocumentUpload.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506125717_RemoveDocumentUpload.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1569A404-9934-48E8-BF30-02A996205620}|src\\NoteWiz.Infrastructure\\NoteWiz.Infrastructure.csproj|d:\\ceng-407-408-2024-2025-notewiz\\notewiz\\src\\notewiz.infrastructure\\data\\notewizdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1569A404-9934-48E8-BF30-02A996205620}|src\\NoteWiz.Infrastructure\\NoteWiz.Infrastructure.csproj|solutionrelative:src\\notewiz.infrastructure\\data\\notewizdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{1569A404-9934-48E8-BF30-02A996205620}|src\\NoteWiz.Infrastructure\\NoteWiz.Infrastructure.csproj|d:\\ceng-407-408-2024-2025-notewiz\\notewiz\\src\\notewiz.infrastructure\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1569A404-9934-48E8-BF30-02A996205620}|src\\NoteWiz.Infrastructure\\NoteWiz.Infrastructure.csproj|solutionrelative:src\\notewiz.infrastructure\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\20250505162458_AddNoteDrawingTable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\NoteWiz.Infrastructure\\Migrations\\20250505162458_AddNoteDrawingTable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506123907_AddDocumentTable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506123907_AddDocumentTable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -47,79 +39,53 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "20250505174532_AddTaskTitleToTaskItem.cs",
-              "DocumentMoniker": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250505174532_AddTaskTitleToTaskItem.cs",
-              "RelativeDocumentMoniker": "src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250505174532_AddTaskTitleToTaskItem.cs",
-              "ToolTip": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250505174532_AddTaskTitleToTaskItem.cs",
-              "RelativeToolTip": "src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250505174532_AddTaskTitleToTaskItem.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB0AAAAAAAAAAAAAAA==",
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.API\\Program.cs",
+              "RelativeDocumentMoniker": "src\\NoteWiz.API\\Program.cs",
+              "ToolTip": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.API\\Program.cs",
+              "RelativeToolTip": "src\\NoteWiz.API\\Program.cs",
+              "ViewState": "AgIAAC8BAAAAAAAAAAAjwEQBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-05T17:45:33.145Z",
+              "WhenOpened": "2025-05-06T13:11:21.046Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "20250505163133_AddNoteDrawingTable.cs",
-              "DocumentMoniker": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250505163133_AddNoteDrawingTable.cs",
-              "RelativeDocumentMoniker": "src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250505163133_AddNoteDrawingTable.cs",
-              "ToolTip": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250505163133_AddNoteDrawingTable.cs",
-              "RelativeToolTip": "src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250505163133_AddNoteDrawingTable.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Title": "DocumentController.cs",
+              "DocumentMoniker": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.API\\Controllers\\DocumentController.cs",
+              "RelativeDocumentMoniker": "src\\NoteWiz.API\\Controllers\\DocumentController.cs",
+              "ToolTip": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.API\\Controllers\\DocumentController.cs",
+              "RelativeToolTip": "src\\NoteWiz.API\\Controllers\\DocumentController.cs",
+              "ViewState": "AgIAAA8AAAAAAAAAAAAAABgAAABSAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-05T16:31:33.698Z",
+              "WhenOpened": "2025-05-06T12:59:31.967Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "20250505162734_AddMissingTables.cs",
-              "DocumentMoniker": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250505162734_AddMissingTables.cs",
-              "RelativeDocumentMoniker": "src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250505162734_AddMissingTables.cs",
-              "ToolTip": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250505162734_AddMissingTables.cs",
-              "RelativeToolTip": "src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250505162734_AddMissingTables.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAAAAAAAAAAAAA==",
+              "Title": "20250506125717_RemoveDocumentUpload.cs",
+              "DocumentMoniker": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506125717_RemoveDocumentUpload.cs",
+              "RelativeDocumentMoniker": "src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506125717_RemoveDocumentUpload.cs",
+              "ToolTip": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506125717_RemoveDocumentUpload.cs",
+              "RelativeToolTip": "src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506125717_RemoveDocumentUpload.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-05T16:27:34.206Z",
+              "WhenOpened": "2025-05-06T12:57:17.521Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 3,
-              "Title": "NoteWizDbContext.cs",
-              "DocumentMoniker": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Data\\NoteWizDbContext.cs",
-              "RelativeDocumentMoniker": "src\\NoteWiz.Infrastructure\\Data\\NoteWizDbContext.cs",
-              "ToolTip": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Data\\NoteWizDbContext.cs",
-              "RelativeToolTip": "src\\NoteWiz.Infrastructure\\Data\\NoteWizDbContext.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Title": "20250506123907_AddDocumentTable.cs",
+              "DocumentMoniker": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506123907_AddDocumentTable.cs",
+              "RelativeDocumentMoniker": "src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506123907_AddDocumentTable.cs",
+              "ToolTip": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506123907_AddDocumentTable.cs",
+              "RelativeToolTip": "src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506123907_AddDocumentTable.cs",
+              "ViewState": "AgIAAA4AAAAAAAAAAAAAwDMAAAAjAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-05T16:27:02.705Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "ApplicationDbContext.cs",
-              "DocumentMoniker": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Data\\ApplicationDbContext.cs",
-              "RelativeDocumentMoniker": "src\\NoteWiz.Infrastructure\\Data\\ApplicationDbContext.cs",
-              "ToolTip": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Data\\ApplicationDbContext.cs",
-              "RelativeToolTip": "src\\NoteWiz.Infrastructure\\Data\\ApplicationDbContext.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-05T16:26:54.372Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "20250505162458_AddNoteDrawingTable.cs",
-              "DocumentMoniker": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\20250505162458_AddNoteDrawingTable.cs",
-              "RelativeDocumentMoniker": "src\\NoteWiz.Infrastructure\\Migrations\\20250505162458_AddNoteDrawingTable.cs",
-              "ToolTip": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\20250505162458_AddNoteDrawingTable.cs",
-              "RelativeToolTip": "src\\NoteWiz.Infrastructure\\Migrations\\20250505162458_AddNoteDrawingTable.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-05T16:24:59.122Z",
+              "WhenOpened": "2025-05-06T12:39:07.416Z",
               "EditorCaption": ""
             }
           ]

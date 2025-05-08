@@ -40,11 +40,10 @@ namespace NoteWiz.Infrastructure.Repositories
             return await _dbSet.Where(predicate).ToListAsync();
         }
 
-        public async Task<AIInteractionLog> UpdateAsync(AIInteractionLog entity)
+        public async Task UpdateAsync(AIInteractionLog entity)
         {
             _context.Entry(entity).State = EntityState.Modified;
             await _context.SaveChangesAsync();
-            return entity;
         }
 
         public async Task DeleteAsync(int id)

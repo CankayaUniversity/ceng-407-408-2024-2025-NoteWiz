@@ -8,7 +8,6 @@ namespace NoteWiz.Core.Interfaces
         IUserRepository Users { get; }
         INoteRepository Notes { get; }
         ITaskRepository Tasks { get; }
-        IDocumentUploadRepository DocumentUploads { get; }
         IAuthTokenRepository AuthTokens { get; }
         IUserDeviceRepository UserDevices { get; }
         INotificationRepository Notifications { get; }
@@ -16,6 +15,7 @@ namespace NoteWiz.Core.Interfaces
         IFriendshipRequestRepository FriendshipRequests { get; }
         INoteShareRepository NoteShares { get; }
         IRepository<AIInteractionLog> AIInteractionLogs { get; }
+        IDocumentRepository Documents { get; }
 
         Task<int> SaveChangesAsync();
     }

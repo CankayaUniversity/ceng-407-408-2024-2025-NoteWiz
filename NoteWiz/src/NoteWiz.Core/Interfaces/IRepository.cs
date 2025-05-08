@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using NoteWiz.Core.Entities;
 
 namespace NoteWiz.Core.Interfaces
 {
@@ -20,7 +21,7 @@ namespace NoteWiz.Core.Interfaces
         Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate);
 
         // Update
-        Task<T> UpdateAsync(T entity);
+        Task UpdateAsync(T entity);
 
         // Delete
         Task DeleteAsync(int id);

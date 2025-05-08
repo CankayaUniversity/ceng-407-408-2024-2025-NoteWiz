@@ -9,7 +9,7 @@ import Animated, {
   withDelay,
   withTiming,
 } from 'react-native-reanimated';
-import { NotesIcon } from '../icons';
+import { NotesIcon } from '../icons/index.tsx';
 
 export const AnimatedLogo = () => {
   const rotation = useSharedValue(0);

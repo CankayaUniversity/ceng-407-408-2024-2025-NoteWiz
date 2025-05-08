@@ -1,64 +1,42 @@
-import { apiClient } from './newApi';
+import { apiClient as newApi } from './newApi';
+
+export interface UploadDocumentDTO {
+  title: string;
+  file: File;
+}
 
 export interface Document {
   id: string;
+  title: string;
   filePath: string;
-  extractedText: string;
-  uploadedAt: string;
-  userId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface UploadDocumentDTO {
-  file: {
-    uri: string;
-    type: string;
-    name: string;
-  };
-}
+export const uploadDocument = async (title: string, file: File): Promise<Document> => {
+  const formData = new FormData();
+  formData.append('title', title);
+  formData.append('file', file);
 
-class DocumentService {
-  async uploadDocument(data: UploadDocumentDTO): Promise<Document> {
-    const formData = new FormData();
-    formData.append('file', {
-      uri: data.file.uri,
-      type: data.file.type,
-      name: data.file.name,
-    } as any);
+  const response = await newApi.post<Document>('/documents', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
 
-    const response = await apiClient.post('/Documents/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return this.transformApiDocument(response.data);
-  }
+  return response.data;
+};
 
-  async getDocuments(): Promise<Document[]> {
-    const response = await apiClient.get('/Documents');
-    return response.data.map(this.transformApiDocument);
-  }
+export const getDocument = async (documentId: string): Promise<Document> => {
+  const response = await newApi.get<Document>(`/documents/${documentId}`);
+  return response.data;
+};
 
-  async getDocument(id: string): Promise<Document> {
-    const response = await apiClient.get(`/Documents/${id}`);
-    return this.transformApiDocument(response.data);
-  }
+export const getDocuments = async (): Promise<Document[]> => {
+  const response = await newApi.get<Document[]>('/documents');
+  return response.data;
+};
 
-  async deleteDocument(id: string): Promise<void> {
-    await apiClient.delete(`/Documents/${id}`);
-  }
-
-  async extractText(id: string): Promise<string> {
-    const response = await apiClient.post(`/Documents/${id}/extract-text`);
-    return response.data.text;
-  }
-
-  private transformApiDocument(apiDocument: any): Document {
-    return {
-      ...apiDocument,
-      id: apiDocument.id.toString(),
-      userId: apiDocument.userId.toString()
-    };
-  }
-}
-
-export const documentService = new DocumentService(); 
+export const deleteDocument = async (documentId: string): Promise<void> => {
+  await newApi.delete(`/documents/${documentId}`);
+}; 

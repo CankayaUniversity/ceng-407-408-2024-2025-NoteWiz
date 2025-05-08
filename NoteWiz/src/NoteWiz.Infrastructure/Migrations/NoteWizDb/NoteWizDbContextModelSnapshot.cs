@@ -114,7 +114,7 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
                     b.ToTable("AuthTokens");
                 });
 
-            modelBuilder.Entity("NoteWiz.Core.Entities.DocumentUpload", b =>
+            modelBuilder.Entity("NoteWiz.Core.Entities.Document", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -122,7 +122,10 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ExtractedText")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FileName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -130,7 +133,14 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("UploadedAt")
+                    b.Property<long>("FileSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("UserId")
@@ -140,7 +150,7 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("DocumentUploads");
+                    b.ToTable("Documents");
                 });
 
             modelBuilder.Entity("NoteWiz.Core.Entities.Friendship", b =>
@@ -233,6 +243,9 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("DocumentId")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsPinned")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -262,6 +275,8 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DocumentId");
 
                     b.HasIndex("UserId");
 
@@ -709,10 +724,10 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("NoteWiz.Core.Entities.DocumentUpload", b =>
+            modelBuilder.Entity("NoteWiz.Core.Entities.Document", b =>
                 {
                     b.HasOne("NoteWiz.Core.Entities.User", "User")
-                        .WithMany("UploadedDocuments")
+                        .WithMany("Documents")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -764,11 +779,18 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
 
             modelBuilder.Entity("NoteWiz.Core.Entities.Note", b =>
                 {
+                    b.HasOne("NoteWiz.Core.Entities.Document", "Document")
+                        .WithMany("Notes")
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("NoteWiz.Core.Entities.User", "User")
                         .WithMany("Notes")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Document");
 
                     b.Navigation("User");
                 });
@@ -902,6 +924,11 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("NoteWiz.Core.Entities.Document", b =>
+                {
+                    b.Navigation("Notes");
+                });
+
             modelBuilder.Entity("NoteWiz.Core.Entities.Note", b =>
                 {
                     b.Navigation("NoteDrawings");
@@ -917,6 +944,8 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
 
                     b.Navigation("Devices");
 
+                    b.Navigation("Documents");
+
                     b.Navigation("Friendships");
 
                     b.Navigation("FriendshipsInitiated");
@@ -930,8 +959,6 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
                     b.Navigation("SharedWithMe");
 
                     b.Navigation("Tasks");
-
-                    b.Navigation("UploadedDocuments");
                 });
 #pragma warning restore 612, 618
         }

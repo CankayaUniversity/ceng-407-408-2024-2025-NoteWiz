@@ -13,7 +13,7 @@ import { Calendar, DateData } from 'react-native-calendars';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
-import { useTasks, Task } from '../contexts/TaskContext';
+import { useTask, Task } from '../contexts/TaskContext';
 import { COLORS, SHADOWS } from '../constants/theme';
 
 type CalendarScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -23,8 +23,8 @@ interface DayTasks {
 }
 
 const CalendarScreen: React.FC = () => {
-  const { tasks } = useTasks();
-  const navigation = useNavigation<CalendarScreenNavigationProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { tasks } = useTask();
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0] // Bugünün tarihi (YYYY-MM-DD formatında)
   );
@@ -91,17 +91,15 @@ const CalendarScreen: React.FC = () => {
     });
   };
 
-  const handleTaskPress = (taskId: string) => {
-    navigation.navigate('TaskDetail', { taskId });
+  const handleTaskPress = (task: Task) => {
+    navigation.navigate('TaskDetail', {
+      taskId: typeof task.id === 'string' ? parseInt(task.id) : task.id
+    });
   };
 
-  const handleAddTask = () => {
-    const selectedDateObj = new Date(selectedDate);
-    // Saat bilgisini 12:00 olarak ayarla
-    selectedDateObj.setHours(12, 0, 0, 0);
-    
-    navigation.navigate('TaskDetail', { 
-      presetDueDate: selectedDateObj.toISOString() 
+  const handleAddTask = (date: Date) => {
+    navigation.navigate('TaskDetail', {
+      presetDueDate: date.toISOString()
     });
   };
 
@@ -133,7 +131,7 @@ const CalendarScreen: React.FC = () => {
         <Text style={styles.dateHeaderText}>{formatDate(selectedDate)}</Text>
         <TouchableOpacity 
           style={styles.addButton}
-          onPress={handleAddTask}
+          onPress={() => handleAddTask(new Date(selectedDate))}
         >
           <Text style={styles.addButtonText}>Görev Ekle</Text>
         </TouchableOpacity>
@@ -149,7 +147,7 @@ const CalendarScreen: React.FC = () => {
                 styles.taskItem,
                 item.completed && styles.completedTask
               ]}
-              onPress={() => handleTaskPress(item.id)}
+              onPress={() => handleTaskPress(item)}
             >
               <View style={[
                 styles.priorityIndicator,

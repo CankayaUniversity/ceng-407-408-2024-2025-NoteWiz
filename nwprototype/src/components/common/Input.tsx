@@ -1,96 +1,90 @@
 import React from 'react';
-import { TextInput, View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
-import { colors, typography, spacing, borderRadius } from '../../constants/theme';
+import { View, TextInput, Text, StyleSheet } from 'react-native';
+import { COLORS, typography } from '../../constants/theme';
 
 interface InputProps {
+  label?: string;
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
-  label?: string;
-  error?: string;
   secureTextEntry?: boolean;
+  error?: string;
+  disabled?: boolean;
   multiline?: boolean;
   numberOfLines?: number;
-  style?: ViewStyle;
-  inputStyle?: TextStyle;
-  labelStyle?: TextStyle;
-  errorStyle?: TextStyle;
+  style?: object;
 }
 
-export const Input: React.FC<InputProps> = ({
+const Input: React.FC<InputProps> = ({
+  label,
   value,
   onChangeText,
   placeholder,
-  label,
-  error,
   secureTextEntry = false,
+  error,
+  disabled = false,
   multiline = false,
   numberOfLines = 1,
   style,
-  inputStyle,
-  labelStyle,
-  errorStyle,
 }) => {
   return (
     <View style={[styles.container, style]}>
-      {label && (
-        <Text style={[styles.label, labelStyle]}>
-          {label}
-        </Text>
-      )}
+      {label && <Text style={styles.label}>{label}</Text>}
       <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={colors.gray[500]}
-        secureTextEntry={secureTextEntry}
-        multiline={multiline}
-        numberOfLines={numberOfLines}
         style={[
           styles.input,
           error && styles.inputError,
-          multiline && styles.multilineInput,
-          inputStyle,
+          disabled && styles.inputDisabled,
+          multiline && styles.inputMultiline,
         ]}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={COLORS.text.disabled}
+        secureTextEntry={secureTextEntry}
+        editable={!disabled}
+        multiline={multiline}
+        numberOfLines={numberOfLines}
       />
-      {error && (
-        <Text style={[styles.error, errorStyle]}>
-          {error}
-        </Text>
-      )}
+      {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: spacing.md,
+    marginBottom: 16,
   },
   label: {
     fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.medium,
-    color: colors.gray[700],
-    marginBottom: spacing.xs,
+    fontWeight: '500',
+    color: COLORS.text.primary,
+    marginBottom: 4,
   },
   input: {
     borderWidth: 1,
-    borderColor: colors.gray[300],
-    borderRadius: borderRadius.md,
-    padding: spacing.sm,
+    borderColor: COLORS.border.main,
+    borderRadius: 8,
+    padding: 10,
     fontSize: typography.sizes.md,
-    color: colors.dark,
-    backgroundColor: colors.white,
+    color: COLORS.text.primary,
+    backgroundColor: COLORS.background.paper,
   },
   inputError: {
-    borderColor: colors.danger,
+    borderColor: COLORS.error.main,
   },
-  multilineInput: {
-    minHeight: 100,
+  inputDisabled: {
+    backgroundColor: COLORS.background.paper,
+    opacity: 0.5,
+  },
+  inputMultiline: {
     textAlignVertical: 'top',
   },
-  error: {
-    fontSize: typography.sizes.sm,
-    color: colors.danger,
-    marginTop: spacing.xs,
+  errorText: {
+    color: COLORS.error.main,
+    fontSize: typography.sizes.xs,
+    marginTop: 4,
   },
-}); 
+});
+
+export default Input; 
