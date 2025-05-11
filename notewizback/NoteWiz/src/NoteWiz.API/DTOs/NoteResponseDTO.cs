@@ -49,5 +49,7 @@ namespace NoteWiz.API.DTOs
         /// List of users who have shared the note
         /// </summary>
         public List<NoteShareResponseDTO> SharedWith { get; set; } = new();
+
+        public string? CoverImageUrl { get; set; }
     }
 } 

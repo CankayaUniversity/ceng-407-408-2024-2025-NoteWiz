@@ -114,6 +114,43 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.ToTable("AuthTokens");
                 });
 
+            modelBuilder.Entity("NoteWiz.Core.Entities.Category", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UserId1")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId1");
+
+                    b.ToTable("Categories");
+                });
+
             modelBuilder.Entity("NoteWiz.Core.Entities.Document", b =>
                 {
                     b.Property<int>("Id")
@@ -121,6 +158,13 @@ namespace NoteWiz.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -136,6 +180,13 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.Property<long>("FileSize")
                         .HasColumnType("bigint");
 
+                    b.Property<bool>("IsPrivate")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Tags")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -147,6 +198,8 @@ namespace NoteWiz.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
 
                     b.HasIndex("UserId");
 
@@ -227,6 +280,9 @@ namespace NoteWiz.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("CategoryId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Color")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -276,6 +332,8 @@ namespace NoteWiz.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
 
                     b.HasIndex("DocumentId");
 
@@ -725,13 +783,35 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("NoteWiz.Core.Entities.Category", b =>
+                {
+                    b.HasOne("NoteWiz.Core.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("NoteWiz.Core.Entities.User", null)
+                        .WithMany("Categories")
+                        .HasForeignKey("UserId1");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("NoteWiz.Core.Entities.Document", b =>
                 {
+                    b.HasOne("NoteWiz.Core.Entities.Category", "Category")
+                        .WithMany("Documents")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("NoteWiz.Core.Entities.User", "User")
                         .WithMany("Documents")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Category");
 
                     b.Navigation("User");
                 });
@@ -780,6 +860,11 @@ namespace NoteWiz.Infrastructure.Migrations
 
             modelBuilder.Entity("NoteWiz.Core.Entities.Note", b =>
                 {
+                    b.HasOne("NoteWiz.Core.Entities.Category", "Category")
+                        .WithMany("Notes")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("NoteWiz.Core.Entities.Document", "Document")
                         .WithMany("Notes")
                         .HasForeignKey("DocumentId")
@@ -790,6 +875,8 @@ namespace NoteWiz.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Category");
 
                     b.Navigation("Document");
 
@@ -925,6 +1012,13 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("NoteWiz.Core.Entities.Category", b =>
+                {
+                    b.Navigation("Documents");
+
+                    b.Navigation("Notes");
+                });
+
             modelBuilder.Entity("NoteWiz.Core.Entities.Document", b =>
                 {
                     b.Navigation("Notes");
@@ -942,6 +1036,8 @@ namespace NoteWiz.Infrastructure.Migrations
             modelBuilder.Entity("NoteWiz.Core.Entities.User", b =>
                 {
                     b.Navigation("AuthTokens");
+
+                    b.Navigation("Categories");
 
                     b.Navigation("Devices");
 

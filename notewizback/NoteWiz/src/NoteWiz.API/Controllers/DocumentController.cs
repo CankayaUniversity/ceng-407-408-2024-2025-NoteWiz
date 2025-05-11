@@ -1,10 +1,12 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using NoteWiz.Core.Entities;
+using Microsoft.Extensions.Logging;
+using NoteWiz.Application.Services;
 using NoteWiz.Core.Interfaces;
-using System.Security.Claims;
 
 namespace NoteWiz.API.Controllers
 {
@@ -23,41 +25,19 @@ namespace NoteWiz.API.Controllers
         }
 
         [HttpPost("upload")]
-        public async Task<IActionResult> UploadDocument([FromForm] IFormFile file)
+        public async Task<IActionResult> UploadDocument(IFormFile file)
         {
             try
             {
-                // Token kontrolü
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-                if (userIdClaim == null)
-                {
-                    _logger.LogError("Token'da kullanıcı ID bulunamadı");
-                    return Unauthorized(new { message = "Geçersiz token" });
-                }
-
-                _logger.LogInformation("PDF yükleme isteği alındı. Dosya adı: {FileName}, Boyut: {FileSize}, Kullanıcı ID: {UserId}", 
-                    file?.FileName, file?.Length, userIdClaim.Value);
-
                 if (file == null || file.Length == 0)
                 {
-                    _logger.LogWarning("Boş dosya gönderildi");
                     return BadRequest(new { message = "Dosya boş olamaz" });
                 }
 
                 using (var memoryStream = new MemoryStream())
                 {
                     await file.CopyToAsync(memoryStream);
-                    _logger.LogInformation("Dosya memory stream'e kopyalandı");
-
                     var document = await _documentService.UploadDocumentAsync(memoryStream.ToArray(), file.FileName);
-                    _logger.LogInformation("Document servisi çağrıldı ve döküman oluşturuldu: {@Document}", document);
-
-                    if (document == null)
-                    {
-                        _logger.LogError("Document servisi null döndü");
-                        return StatusCode(500, new { message = "Döküman oluşturulamadı" });
-                    }
-
                     return Ok(new { message = "Döküman başarıyla yüklendi", document });
                 }
             }
@@ -101,18 +81,48 @@ namespace NoteWiz.API.Controllers
                 var document = await _documentService.GetDocumentWithNotesAsync(id);
                 return Ok(document);
             }
-            catch (KeyNotFoundException)
+            catch (KeyNotFoundException ex)
             {
-                return NotFound(new { message = "Döküman bulunamadı" });
+                return NotFound(new { message = ex.Message });
             }
-            catch (UnauthorizedAccessException)
+            catch (UnauthorizedAccessException ex)
             {
-                return Forbid();
+                return Unauthorized(new { message = ex.Message });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Döküman getirilirken bir hata oluştu");
                 return StatusCode(500, new { message = "Döküman getirilirken bir hata oluştu" });
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateDocument(int id, [FromBody] UpdateDocumentRequest request)
+        {
+            try
+            {
+                var document = await _documentService.UpdateDocumentAsync(
+                    id,
+                    request.Title,
+                    request.Content,
+                    request.IsPrivate,
+                    request.Tags,
+                    request.CategoryId
+                );
+                return Ok(document);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Döküman güncellenirken bir hata oluştu");
+                return StatusCode(500, new { message = "Döküman güncellenirken bir hata oluştu" });
             }
         }
 
@@ -124,13 +134,13 @@ namespace NoteWiz.API.Controllers
                 await _documentService.DeleteDocumentAsync(id);
                 return Ok(new { message = "Döküman başarıyla silindi" });
             }
-            catch (KeyNotFoundException)
+            catch (KeyNotFoundException ex)
             {
-                return NotFound(new { message = "Döküman bulunamadı" });
+                return NotFound(new { message = ex.Message });
             }
-            catch (UnauthorizedAccessException)
+            catch (UnauthorizedAccessException ex)
             {
-                return Forbid();
+                return Unauthorized(new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -138,5 +148,14 @@ namespace NoteWiz.API.Controllers
                 return StatusCode(500, new { message = "Döküman silinirken bir hata oluştu" });
             }
         }
+    }
+
+    public class UpdateDocumentRequest
+    {
+        public string Title { get; set; }
+        public string Content { get; set; }
+        public bool IsPrivate { get; set; }
+        public string Tags { get; set; }
+        public int? CategoryId { get; set; }
     }
 } 

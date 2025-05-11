@@ -46,15 +46,12 @@ namespace NoteWiz.Application.Services
                     _logger.LogError("Kullanıcı ID bulunamadı. HttpContext veya User null olabilir.");
                     throw new UnauthorizedAccessException("Kullanıcı kimliği bulunamadı");
                 }
-
-                var userId = int.Parse(userIdClaim.Value);
-                _logger.LogInformation("Kullanıcı ID başarıyla alındı: {UserId}", userId);
-                return userId;
+                return int.Parse(userIdClaim.Value);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Kullanıcı ID alınırken hata oluştu");
-                throw new UnauthorizedAccessException("Kullanıcı kimliği alınamadı", ex);
+                throw;
             }
         }
 
@@ -62,31 +59,12 @@ namespace NoteWiz.Application.Services
         {
             try
             {
-                _logger.LogInformation("PDF yükleme başladı: {FileName}", fileName);
-
-                if (fileData == null || fileData.Length == 0)
-                {
-                    throw new ArgumentException("Dosya boş olamaz");
-                }
-
-                if (Path.GetExtension(fileName).ToLower() != ".pdf")
-                {
-                    throw new ArgumentException("Sadece PDF dosyaları yüklenebilir");
-                }
-
                 var userId = GetCurrentUserId();
-                if (userId <= 0)
-                {
-                    throw new UnauthorizedAccessException("Geçersiz kullanıcı ID");
-                }
-
-                _logger.LogInformation("Kullanıcı ID: {UserId}", userId);
-
-                var uniqueFileName = $"{Guid.NewGuid()}{Path.GetExtension(fileName)}";
+                var uniqueFileName = $"{Guid.NewGuid()}_{fileName}";
                 var filePath = Path.Combine(_uploadPath, uniqueFileName);
 
                 await File.WriteAllBytesAsync(filePath, fileData);
-                _logger.LogInformation("PDF dosyası kaydedildi: {FilePath}", filePath);
+                _logger.LogInformation("Dosya başarıyla kaydedildi: {FilePath}", filePath);
 
                 var document = new Document
                 {
@@ -95,7 +73,10 @@ namespace NoteWiz.Application.Services
                     FilePath = filePath,
                     FileSize = fileData.Length,
                     CreatedAt = DateTime.UtcNow,
-                    UserId = userId
+                    UserId = userId,
+                    IsPrivate = true, // Default olarak private
+                    Content = "", // Boş içerik ile başla
+                    Tags = "" // Boş etiketler ile başla
                 };
 
                 _logger.LogInformation("Document entity oluşturuldu: {@Document}", document);
@@ -105,25 +86,6 @@ namespace NoteWiz.Application.Services
 
                 await _unitOfWork.SaveChangesAsync();
                 _logger.LogInformation("Değişiklikler kaydedildi. Document ID: {DocumentId}", document.Id);
-
-                // PDF yüklendiğinde otomatik olarak ilişkili bir Note oluştur
-                var note = new Note
-                {
-                    Title = document.Title,
-                    Content = "",
-                    IsPrivate = true,
-                    UserId = userId,
-                    CreatedAt = DateTime.UtcNow,
-                    DocumentId = document.Id
-                };
-
-                _logger.LogInformation("Note entity oluşturuldu: {@Note}", note);
-
-                await _unitOfWork.Notes.AddAsync(note);
-                _logger.LogInformation("Note repository'e eklendi");
-
-                await _unitOfWork.SaveChangesAsync();
-                _logger.LogInformation("Note değişiklikleri kaydedildi. Note ID: {NoteId}", note.Id);
 
                 return document;
             }
@@ -153,6 +115,30 @@ namespace NoteWiz.Application.Services
                 throw new UnauthorizedAccessException("Bu dökümana erişim izniniz yok");
             }
 
+            return document;
+        }
+
+        public async Task<Document> UpdateDocumentAsync(int documentId, string title, string content, bool isPrivate, string tags, int? categoryId)
+        {
+            var document = await _documentRepository.GetByIdAsync(documentId);
+            if (document == null)
+            {
+                throw new KeyNotFoundException("Döküman bulunamadı");
+            }
+
+            if (document.UserId != GetCurrentUserId())
+            {
+                throw new UnauthorizedAccessException("Bu dökümanı düzenleme izniniz yok");
+            }
+
+            document.Title = title;
+            document.Content = content;
+            document.IsPrivate = isPrivate;
+            document.Tags = tags;
+            document.CategoryId = categoryId;
+            document.UpdatedAt = DateTime.UtcNow;
+
+            await _unitOfWork.SaveChangesAsync();
             return document;
         }
 

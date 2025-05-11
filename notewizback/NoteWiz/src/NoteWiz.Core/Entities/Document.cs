@@ -34,6 +34,15 @@ namespace NoteWiz.Core.Entities
         [ForeignKey("UserId")]
         public User User { get; set; }
 
+        // Note-specific fields
+        public string Content { get; set; }
+        public bool IsPrivate { get; set; }
+        public string Tags { get; set; }
+        public int? CategoryId { get; set; }
+
+        [ForeignKey("CategoryId")]
+        public Category Category { get; set; }
+
         // PDF ile ilişkili notlar
         public ICollection<Note> Notes { get; set; }
     }

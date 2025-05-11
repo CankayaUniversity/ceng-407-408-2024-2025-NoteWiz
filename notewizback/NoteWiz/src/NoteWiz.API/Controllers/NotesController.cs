@@ -58,6 +58,7 @@ namespace NoteWiz.API.Controllers
                 Color = n.Color ?? "#FFFFFF",
                 CreatedAt = n.CreatedAt,
                 UpdatedAt = n.UpdatedAt,
+                CoverImageUrl = n.CoverImageUrl,
                 SharedWith = n.SharedWith?.Select(sw => new NoteShareResponseDTO
                 {
                     Id = sw.Id,
@@ -174,6 +175,7 @@ namespace NoteWiz.API.Controllers
                 Color = note.Color ?? "#FFFFFF",
                 CreatedAt = note.CreatedAt,
                 UpdatedAt = note.UpdatedAt,
+                CoverImageUrl = note.CoverImageUrl,
                 SharedWith = note.SharedWith?.Select(sw => new NoteShareResponseDTO
                 {
                     Id = sw.Id,
@@ -204,7 +206,8 @@ namespace NoteWiz.API.Controllers
                 Content = noteDTO.Content,
                 IsPrivate = noteDTO.IsPrivate,
                 UserId = userId,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                CoverImageUrl = noteDTO.CoverImageUrl
             };
 
             note = await _noteService.CreateNoteAsync(note);
@@ -218,6 +221,7 @@ namespace NoteWiz.API.Controllers
                 Color = note.Color ?? "#FFFFFF",
                 CreatedAt = note.CreatedAt,
                 UpdatedAt = note.UpdatedAt,
+                CoverImageUrl = note.CoverImageUrl,
                 SharedWith = note.SharedWith?.Select(sw => new NoteShareResponseDTO
                 {
                     Id = sw.Id,
@@ -258,6 +262,7 @@ namespace NoteWiz.API.Controllers
             note.Content = noteDTO.Content;
             note.IsPrivate = noteDTO.IsPrivate;
             note.UpdatedAt = DateTime.UtcNow;
+            note.CoverImageUrl = noteDTO.CoverImageUrl;
 
             note = await _noteService.UpdateNoteAsync(note);
 
@@ -270,6 +275,7 @@ namespace NoteWiz.API.Controllers
                 Color = note.Color ?? "#FFFFFF",
                 CreatedAt = note.CreatedAt,
                 UpdatedAt = note.UpdatedAt,
+                CoverImageUrl = note.CoverImageUrl,
                 SharedWith = note.SharedWith?.Select(sw => new NoteShareResponseDTO
                 {
                     Id = sw.Id,

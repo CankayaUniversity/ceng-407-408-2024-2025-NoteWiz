@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using NoteWiz.Core.Interfaces;
 
 namespace NoteWiz.Core.Entities
@@ -33,6 +34,11 @@ namespace NoteWiz.Core.Entities
 
         public List<string> Tags { get; set; } = new();
 
+        public int? CategoryId { get; set; }
+
+        [ForeignKey("CategoryId")]
+        public Category Category { get; set; }
+
         public DateTime CreatedAt { get; set; }
 
         public DateTime? UpdatedAt { get; set; }
@@ -41,8 +47,12 @@ namespace NoteWiz.Core.Entities
         public DateTime? LastSyncedAt { get; set; }
 
         // Navigation properties
+        [ForeignKey("UserId")]
         public virtual User User { get; set; }
+
+        [ForeignKey("DocumentId")]
         public virtual Document Document { get; set; }
+
         public virtual ICollection<NoteShare> SharedWith { get; set; }
         public virtual ICollection<NoteDrawing> NoteDrawings { get; set; }
         public virtual ICollection<NoteImage> NoteImages { get; set; }

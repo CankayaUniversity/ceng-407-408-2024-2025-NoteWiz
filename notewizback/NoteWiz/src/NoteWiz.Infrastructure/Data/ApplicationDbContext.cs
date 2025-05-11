@@ -28,6 +28,7 @@ namespace NoteWiz.Infrastructure.Data
         public DbSet<NoteAIPopup> NoteAIPopups { get; set; }
         public DbSet<AIInteractionLog> AIInteractionLogs { get; set; }
         public DbSet<FriendshipRequest> FriendshipRequests { get; set; }
+        public DbSet<Category> Categories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -153,6 +154,25 @@ namespace NoteWiz.Infrastructure.Data
                 .WithOne(n => n.Document)
                 .HasForeignKey(n => n.DocumentId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Category entity configuration
+            modelBuilder.Entity<Category>()
+                .HasOne(c => c.User)
+                .WithMany()
+                .HasForeignKey(c => c.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Category>()
+                .HasMany(c => c.Documents)
+                .WithOne(d => d.Category)
+                .HasForeignKey(d => d.CategoryId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Category>()
+                .HasMany(c => c.Notes)
+                .WithOne(n => n.Category)
+                .HasForeignKey(n => n.CategoryId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 } 

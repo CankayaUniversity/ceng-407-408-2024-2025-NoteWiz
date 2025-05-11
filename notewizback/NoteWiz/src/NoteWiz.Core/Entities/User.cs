@@ -39,6 +39,7 @@ namespace NoteWiz.Core.Entities
         public virtual ICollection<Friendship> FriendshipsInitiated { get; set; }
         public virtual ICollection<Friendship> FriendshipsReceived { get; set; }
         public virtual ICollection<Document> Documents { get; set; }
+        public virtual ICollection<Category> Categories { get; set; }
 
         public User()
         {
@@ -52,6 +53,7 @@ namespace NoteWiz.Core.Entities
             FriendshipsInitiated = new HashSet<Friendship>();
             FriendshipsReceived = new HashSet<Friendship>();
             Documents = new HashSet<Document>();
+            Categories = new HashSet<Category>();
         }
     }
 } 
