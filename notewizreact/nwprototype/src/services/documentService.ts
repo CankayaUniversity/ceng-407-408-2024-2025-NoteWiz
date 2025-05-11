@@ -30,7 +30,9 @@ class DocumentService {
         'Content-Type': 'multipart/form-data',
       },
     });
-    return this.transformApiDocument(response.data);
+    console.log('API response:', response.data);
+    const doc = response.data.document || response.data;
+    return this.transformApiDocument(doc);
   }
 
   async getDocuments(): Promise<Document[]> {
@@ -55,8 +57,8 @@ class DocumentService {
   private transformApiDocument(apiDocument: any): Document {
     return {
       ...apiDocument,
-      id: apiDocument.id.toString(),
-      userId: apiDocument.userId.toString()
+      id: apiDocument.id ? apiDocument.id.toString() : '',
+      userId: apiDocument.userId ? apiDocument.userId.toString() : ''
     };
   }
 }

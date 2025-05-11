@@ -14,9 +14,9 @@ namespace NoteWiz.Core.Entities
         public int Id { get; set; }
 
         [Required]
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
 
-        public string Content { get; set; }
+        public string? Content { get; set; }
 
         [Required]
         public int UserId { get; set; }
@@ -29,7 +29,7 @@ namespace NoteWiz.Core.Entities
 
         public bool IsPrivate { get; set; } = true; // Default to private
 
-        public string CoverImageUrl { get; set; }
+        public string? CoverImageUrl { get; set; }
 
         public List<string> Tags { get; set; } = new();
 

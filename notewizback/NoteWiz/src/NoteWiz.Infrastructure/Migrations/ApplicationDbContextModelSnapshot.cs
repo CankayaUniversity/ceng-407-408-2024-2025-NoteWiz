@@ -22,6 +22,60 @@ namespace NoteWiz.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("NoteWiz.Core.Entities.AIInteractionLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AIResponse")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Cost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("InputPrompt")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("InteractionType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ModelUsed")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("NoteId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProcessingTime")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TokensUsed")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NoteId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AIInteractionLogs");
+                });
+
             modelBuilder.Entity("NoteWiz.Core.Entities.AuthToken", b =>
                 {
                     b.Property<int>("Id")
@@ -60,7 +114,7 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.ToTable("AuthTokens");
                 });
 
-            modelBuilder.Entity("NoteWiz.Core.Entities.DocumentUpload", b =>
+            modelBuilder.Entity("NoteWiz.Core.Entities.Document", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -68,7 +122,10 @@ namespace NoteWiz.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ExtractedText")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FileName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -76,7 +133,14 @@ namespace NoteWiz.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("UploadedAt")
+                    b.Property<long>("FileSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("UserId")
@@ -86,7 +150,7 @@ namespace NoteWiz.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("DocumentUploads");
+                    b.ToTable("Documents");
                 });
 
             modelBuilder.Entity("NoteWiz.Core.Entities.Friendship", b =>
@@ -123,6 +187,38 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.ToTable("Friendships");
                 });
 
+            modelBuilder.Entity("NoteWiz.Core.Entities.FriendshipRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ReceiverId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SenderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReceiverId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("FriendshipRequests");
+                });
+
             modelBuilder.Entity("NoteWiz.Core.Entities.Note", b =>
                 {
                     b.Property<int>("Id")
@@ -138,7 +234,6 @@ namespace NoteWiz.Infrastructure.Migrations
                         .HasDefaultValue("#FFFFFF");
 
                     b.Property<string>("Content")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CoverImageUrl")
@@ -146,6 +241,9 @@ namespace NoteWiz.Infrastructure.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<int?>("DocumentId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsPinned")
                         .ValueGeneratedOnAdd()
@@ -179,9 +277,74 @@ namespace NoteWiz.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DocumentId");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("Notes");
+                });
+
+            modelBuilder.Entity("NoteWiz.Core.Entities.NoteAIPopup", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsAccepted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("NoteId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Suggestion")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NoteId");
+
+                    b.ToTable("NoteAIPopups");
+                });
+
+            modelBuilder.Entity("NoteWiz.Core.Entities.NoteAISelection", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AIResponse")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("NoteId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SelectedText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NoteId");
+
+                    b.ToTable("NoteAISelections");
                 });
 
             modelBuilder.Entity("NoteWiz.Core.Entities.NoteDrawing", b =>
@@ -238,6 +401,41 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.ToTable("NoteImages");
                 });
 
+            modelBuilder.Entity("NoteWiz.Core.Entities.NotePdfPage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ExtractedText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("NoteId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PageNumber")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PdfUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NoteId");
+
+                    b.ToTable("NotePdfPages");
+                });
+
             modelBuilder.Entity("NoteWiz.Core.Entities.NoteShare", b =>
                 {
                     b.Property<int>("Id")
@@ -265,6 +463,76 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.HasIndex("SharedWithUserId");
 
                     b.ToTable("NoteShares");
+                });
+
+            modelBuilder.Entity("NoteWiz.Core.Entities.NoteTemplate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("NoteTemplates");
+                });
+
+            modelBuilder.Entity("NoteWiz.Core.Entities.NoteText", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("NoteId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NoteId");
+
+                    b.ToTable("NoteTexts");
                 });
 
             modelBuilder.Entity("NoteWiz.Core.Entities.Notification", b =>
@@ -342,6 +610,10 @@ namespace NoteWiz.Infrastructure.Migrations
 
                     b.Property<DateTime?>("Reminder")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -425,6 +697,23 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.ToTable("UserDevices");
                 });
 
+            modelBuilder.Entity("NoteWiz.Core.Entities.AIInteractionLog", b =>
+                {
+                    b.HasOne("NoteWiz.Core.Entities.Note", "Note")
+                        .WithMany()
+                        .HasForeignKey("NoteId");
+
+                    b.HasOne("NoteWiz.Core.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Note");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("NoteWiz.Core.Entities.AuthToken", b =>
                 {
                     b.HasOne("NoteWiz.Core.Entities.User", "User")
@@ -436,10 +725,10 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("NoteWiz.Core.Entities.DocumentUpload", b =>
+            modelBuilder.Entity("NoteWiz.Core.Entities.Document", b =>
                 {
                     b.HasOne("NoteWiz.Core.Entities.User", "User")
-                        .WithMany("UploadedDocuments")
+                        .WithMany("Documents")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -470,15 +759,63 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("NoteWiz.Core.Entities.FriendshipRequest", b =>
+                {
+                    b.HasOne("NoteWiz.Core.Entities.User", "Receiver")
+                        .WithMany()
+                        .HasForeignKey("ReceiverId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("NoteWiz.Core.Entities.User", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Receiver");
+
+                    b.Navigation("Sender");
+                });
+
             modelBuilder.Entity("NoteWiz.Core.Entities.Note", b =>
                 {
+                    b.HasOne("NoteWiz.Core.Entities.Document", "Document")
+                        .WithMany("Notes")
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("NoteWiz.Core.Entities.User", "User")
                         .WithMany("Notes")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Document");
+
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("NoteWiz.Core.Entities.NoteAIPopup", b =>
+                {
+                    b.HasOne("NoteWiz.Core.Entities.Note", "Note")
+                        .WithMany()
+                        .HasForeignKey("NoteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Note");
+                });
+
+            modelBuilder.Entity("NoteWiz.Core.Entities.NoteAISelection", b =>
+                {
+                    b.HasOne("NoteWiz.Core.Entities.Note", "Note")
+                        .WithMany()
+                        .HasForeignKey("NoteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Note");
                 });
 
             modelBuilder.Entity("NoteWiz.Core.Entities.NoteDrawing", b =>
@@ -503,6 +840,17 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.Navigation("Note");
                 });
 
+            modelBuilder.Entity("NoteWiz.Core.Entities.NotePdfPage", b =>
+                {
+                    b.HasOne("NoteWiz.Core.Entities.Note", "Note")
+                        .WithMany()
+                        .HasForeignKey("NoteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Note");
+                });
+
             modelBuilder.Entity("NoteWiz.Core.Entities.NoteShare", b =>
                 {
                     b.HasOne("NoteWiz.Core.Entities.Note", "Note")
@@ -520,6 +868,28 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.Navigation("Note");
 
                     b.Navigation("SharedWithUser");
+                });
+
+            modelBuilder.Entity("NoteWiz.Core.Entities.NoteTemplate", b =>
+                {
+                    b.HasOne("NoteWiz.Core.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("NoteWiz.Core.Entities.NoteText", b =>
+                {
+                    b.HasOne("NoteWiz.Core.Entities.Note", "Note")
+                        .WithMany()
+                        .HasForeignKey("NoteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Note");
                 });
 
             modelBuilder.Entity("NoteWiz.Core.Entities.Notification", b =>
@@ -555,6 +925,11 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("NoteWiz.Core.Entities.Document", b =>
+                {
+                    b.Navigation("Notes");
+                });
+
             modelBuilder.Entity("NoteWiz.Core.Entities.Note", b =>
                 {
                     b.Navigation("NoteDrawings");
@@ -570,6 +945,8 @@ namespace NoteWiz.Infrastructure.Migrations
 
                     b.Navigation("Devices");
 
+                    b.Navigation("Documents");
+
                     b.Navigation("Friendships");
 
                     b.Navigation("FriendshipsInitiated");
@@ -583,8 +960,6 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.Navigation("SharedWithMe");
 
                     b.Navigation("Tasks");
-
-                    b.Navigation("UploadedDocuments");
                 });
 #pragma warning restore 612, 618
         }

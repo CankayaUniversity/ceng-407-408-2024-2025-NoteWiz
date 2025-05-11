@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Zeynep\\backfrontpdf\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj": {}
+    "C:\\Users\\turan\\amknotwizi\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Zeynep\\backfrontpdf\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj": {
+    "C:\\Users\\turan\\amknotwizi\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Zeynep\\backfrontpdf\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj",
+        "projectUniqueName": "C:\\Users\\turan\\amknotwizi\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj",
         "projectName": "NoteWiz.Core",
-        "projectPath": "C:\\Users\\Zeynep\\backfrontpdf\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj",
-        "packagesPath": "C:\\Users\\Zeynep\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Zeynep\\backfrontpdf\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\obj\\",
+        "projectPath": "C:\\Users\\turan\\amknotwizi\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj",
+        "packagesPath": "C:\\Users\\turan\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\turan\\amknotwizi\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Zeynep\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\turan\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -66,7 +66,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.201/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.203/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

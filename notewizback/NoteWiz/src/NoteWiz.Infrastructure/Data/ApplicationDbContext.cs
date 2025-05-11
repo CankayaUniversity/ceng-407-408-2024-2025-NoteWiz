@@ -16,11 +16,18 @@ namespace NoteWiz.Infrastructure.Data
         public DbSet<NoteDrawing> NoteDrawings { get; set; }
         public DbSet<NoteImage> NoteImages { get; set; }
         public DbSet<NoteShare> NoteShares { get; set; }
-        public DbSet<TaskItem> TaskItems { get; set; }
+        public DbSet<TaskItem> Tasks { get; set; }
         public DbSet<Friendship> Friendships { get; set; }
         public DbSet<AuthToken> AuthTokens { get; set; }
         public DbSet<UserDevice> UserDevices { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<NotePdfPage> NotePdfPages { get; set; }
+        public DbSet<NoteText> NoteTexts { get; set; }
+        public DbSet<NoteTemplate> NoteTemplates { get; set; }
+        public DbSet<NoteAISelection> NoteAISelections { get; set; }
+        public DbSet<NoteAIPopup> NoteAIPopups { get; set; }
+        public DbSet<AIInteractionLog> AIInteractionLogs { get; set; }
+        public DbSet<FriendshipRequest> FriendshipRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -143,7 +150,7 @@ namespace NoteWiz.Infrastructure.Data
 
             modelBuilder.Entity<Document>()
                 .HasMany(d => d.Notes)
-                .WithOne()
+                .WithOne(n => n.Document)
                 .HasForeignKey(n => n.DocumentId)
                 .OnDelete(DeleteBehavior.Cascade);
         }

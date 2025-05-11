@@ -10,7 +10,7 @@ namespace NoteWiz.Infrastructure.Repositories
 {
     public class NotificationRepository : GenericRepository<Notification>, INotificationRepository
     {
-        public NotificationRepository(NoteWizDbContext context) : base(context)
+        public NotificationRepository(ApplicationDbContext context) : base(context)
         {
         }
 

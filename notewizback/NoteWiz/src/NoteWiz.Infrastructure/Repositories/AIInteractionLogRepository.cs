@@ -9,10 +9,10 @@ namespace NoteWiz.Infrastructure.Repositories
 {
     public class AIInteractionLogRepository : IRepository<AIInteractionLog>
     {
-        private readonly NoteWizDbContext _context;
+        private readonly ApplicationDbContext _context;
         private readonly DbSet<AIInteractionLog> _dbSet;
 
-        public AIInteractionLogRepository(NoteWizDbContext context)
+        public AIInteractionLogRepository(ApplicationDbContext context)
         {
             _context = context;
             _dbSet = context.Set<AIInteractionLog>();

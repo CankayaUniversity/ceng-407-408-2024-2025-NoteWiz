@@ -10,7 +10,7 @@ namespace NoteWiz.Infrastructure.Repositories
 {
     public class UserDeviceRepository : GenericRepository<UserDevice>, IUserDeviceRepository
     {
-        public UserDeviceRepository(NoteWizDbContext context) : base(context)
+        public UserDeviceRepository(ApplicationDbContext context) : base(context)
         {
         }
 

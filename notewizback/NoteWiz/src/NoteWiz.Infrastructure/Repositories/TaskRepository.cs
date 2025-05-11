@@ -10,7 +10,7 @@ namespace NoteWiz.Infrastructure.Repositories
 {
     public class TaskRepository : GenericRepository<TaskItem>, ITaskRepository
     {
-        public TaskRepository(NoteWizDbContext context) : base(context)
+        public TaskRepository(ApplicationDbContext context) : base(context)
         {
         }
 

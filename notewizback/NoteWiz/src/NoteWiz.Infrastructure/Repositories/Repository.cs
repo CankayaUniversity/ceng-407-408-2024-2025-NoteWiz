@@ -16,10 +16,10 @@ namespace NoteWiz.Infrastructure.Repositories
     /// <typeparam name="T">Entity type</typeparam>
     public class Repository<T> : IRepository<T> where T : class, IEntity
     {
-        protected readonly NoteWizDbContext _context;
+        protected readonly ApplicationDbContext _context;
         protected readonly DbSet<T> _dbSet;
 
-        public Repository(NoteWizDbContext context)
+        public Repository(ApplicationDbContext context)
         {
             _context = context;
             _dbSet = context.Set<T>();

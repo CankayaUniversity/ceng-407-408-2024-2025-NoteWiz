@@ -7,9 +7,9 @@ namespace NoteWiz.Infrastructure.Repositories
 {
     public class DocumentRepository : Repository<Document>, IDocumentRepository
     {
-        private readonly NoteWizDbContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public DocumentRepository(NoteWizDbContext context) : base(context)
+        public DocumentRepository(ApplicationDbContext context) : base(context)
         {
             _context = context;
         }

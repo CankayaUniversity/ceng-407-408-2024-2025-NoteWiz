@@ -7,7 +7,7 @@ namespace NoteWiz.Infrastructure.Data
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private readonly NoteWizDbContext _context;
+        private readonly ApplicationDbContext _context;
         private IUserRepository _users;
         private INoteRepository _notes;
         private ITaskRepository _tasks;
@@ -20,7 +20,7 @@ namespace NoteWiz.Infrastructure.Data
         private IRepository<AIInteractionLog> _aiInteractionLogs;
         private IDocumentRepository _documents;
 
-        public UnitOfWork(NoteWizDbContext context)
+        public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
         }

@@ -9,10 +9,10 @@ namespace NoteWiz.Infrastructure.Repositories
 {
     public abstract class GenericRepository<T> : IGenericRepository<T> where T : class
     {
-        protected readonly NoteWizDbContext _context;
+        protected readonly ApplicationDbContext _context;
         protected readonly DbSet<T> _dbSet;
 
-        protected GenericRepository(NoteWizDbContext context)
+        protected GenericRepository(ApplicationDbContext context)
         {
             _context = context;
             _dbSet = context.Set<T>();

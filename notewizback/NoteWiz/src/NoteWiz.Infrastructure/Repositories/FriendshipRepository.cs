@@ -10,7 +10,7 @@ namespace NoteWiz.Infrastructure.Repositories
 {
     public class FriendshipRepository : GenericRepository<Friendship>, IFriendshipRepository
     {
-        public FriendshipRepository(NoteWizDbContext context) : base(context)
+        public FriendshipRepository(ApplicationDbContext context) : base(context)
         {
         }
 

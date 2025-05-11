@@ -14,14 +14,17 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { useDocuments } from '../contexts/DocumentContext';
+import { useAuth } from '../contexts/AuthContext';
 import { COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '../constants/theme';
 import { PdfIcon, CloseIcon } from '../components/icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type DocumentUploadScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'DocumentUpload'>;
 
 const DocumentUploadScreen = () => {
   const navigation = useNavigation<DocumentUploadScreenNavigationProp>();
   const { uploadDocument, loading, error } = useDocuments();
+  const { token } = useAuth();
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleDocumentPick = async () => {
@@ -58,26 +61,54 @@ const DocumentUploadScreen = () => {
 
   const handleUpload = async (file: any) => {
     try {
+      console.log('Upload başladı:', { uri: file.uri, name: file.name });
+      
+      // Token'ı AsyncStorage'dan al
+      const token = await AsyncStorage.getItem('userToken');
+      if (!token) {
+        throw new Error('Oturum açmanız gerekiyor');
+      }
+
       const formData = new FormData();
       formData.append('file', {
         uri: file.uri,
         type: file.type,
         name: file.name,
-      } as any);
+      });
 
-      await uploadDocument({
-        file: {
-          uri: file.uri,
-          type: file.type,
-          name: file.name,
+      console.log('FormData hazırlandı, istek gönderiliyor...');
+      
+      // Android emülatör için doğru IP
+      const response = await fetch('http://10.0.2.2:5263/api/Document/upload', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
       });
+
+      console.log('Response status:', response.status);
+      const responseText = await response.text();
+      console.log('Response text:', responseText);
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('JSON parse hatası:', parseError);
+        throw new Error('Sunucudan geçersiz yanıt alındı');
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Yükleme başarısız');
+      }
 
       Alert.alert('Başarılı', 'Dosya başarıyla yüklendi');
       navigation.goBack();
     } catch (err) {
       console.error('Yükleme hatası:', err);
-      Alert.alert('Hata', 'Dosya yüklenirken bir hata oluştu');
+      Alert.alert('Hata', 'Dosya yüklenirken bir hata oluştu: ' + err.message);
     }
   };
 

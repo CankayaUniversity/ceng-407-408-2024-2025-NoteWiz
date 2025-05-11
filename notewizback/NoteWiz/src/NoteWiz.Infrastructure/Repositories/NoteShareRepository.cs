@@ -10,7 +10,7 @@ namespace NoteWiz.Infrastructure.Repositories
 {
     public class NoteShareRepository : GenericRepository<NoteShare>, INoteShareRepository
     {
-        public NoteShareRepository(NoteWizDbContext context) : base(context)
+        public NoteShareRepository(ApplicationDbContext context) : base(context)
         {
         }
 

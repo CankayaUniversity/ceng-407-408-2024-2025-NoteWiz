@@ -122,19 +122,13 @@ const NoteDetailScreen = () => {
       const result = await DocumentPicker.pick({
         type: [DocumentPicker.types.pdf],
       });
-      
       const selectedPdf = result[0];
-      
       Alert.alert(
         'PDF Selected',
-        `"${selectedPdf.name || 'Unnamed PDF'}" file selected.`,
+        `"${selectedPdf.name || 'Unnamed PDF'}" file selected. Lütfen kaydetmek için Kaydet butonuna basın.`,
         [
           {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'Use',
+            text: 'Tamam',
             onPress: () => {
               setPdfName(selectedPdf.name || 'Unnamed PDF');
               setIsPdf(true);
@@ -144,7 +138,6 @@ const NoteDetailScreen = () => {
           }
         ]
       );
-      
     } catch (err) {
       if (DocumentPicker.isCancel(err)) {
         console.log('User cancelled file selection');
@@ -165,37 +158,48 @@ const NoteDetailScreen = () => {
   
   // PDF Upload - Updated for .NET API
   const uploadPdf = async (pdfUri: string, pdfName: string): Promise<string> => {
+    console.log('uploadPdf fonksiyonu çağrıldı');
     try {
       const filePath = await getPathFromURI(pdfUri);
       
-      // Create FormData for file upload
       const formData = new FormData();
       formData.append('file', {
-        uri: filePath,
-        name: pdfName,
+        uri: Platform.OS === 'ios' ? pdfUri.replace('file://', '') : pdfUri,
         type: 'application/pdf',
-      } as any);
+        name: pdfName
+      });
       
-      // Send to .NET API endpoint for file upload
-      const response = await fetch('http://localhost:5263/api/files/upload', {
+      console.log('Uploading PDF:', { uri: filePath, name: pdfName });
+      
+      const response = await fetch('http://10.0.2.2:5263/api/documents/upload', {
         method: 'POST',
         body: formData,
         headers: {
-          'Content-Type': 'multipart/form-data',
-          // Add authorization header if needed
-          // 'Authorization': `Bearer ${token}`
+          'Accept': 'application/json',
         },
       });
       
+      console.log('Upload response status:', response.status);
+      const data = await response.text();
+      console.log('Upload response data:', data);
+      
       if (!response.ok) {
-        throw new Error('Failed to upload PDF');
+        throw new Error('Failed to upload PDF: ' + data);
       }
       
-      const data = await response.json();
-      return data.fileUrl; // Return the URL from the server
+      try {
+        const json = JSON.parse(data);
+        console.log('uploadPdf: dönen json:', json);
+        return json.fileUrl || '';
+      } catch (e) {
+        console.error('uploadPdf: JSON parse hatası', e);
+        return '';
+      }
     } catch (error) {
       console.error('Error uploading PDF:', error);
       throw error;
+    } finally {
+      console.log('uploadPdf fonksiyonu bitti');
     }
   };
 
@@ -264,19 +268,24 @@ useEffect(() => {
 }, [navigation, noteId, title, content, category, isImportant, isPdf, pdfUrl, pdfName, coverImage, showMoreOptions]);
 // Modified handleSave function for NoteDetailScreen.tsx
 const handleSave = async () => {
+  console.log('handleSave fonksiyonu çağrıldı');
+  console.log('handleSave state:', { isPdf, pdfUrl, pdfName });
   if (!isPdf && !title.trim()) {
     Alert.alert('Warning', 'Please enter a title');
     return;
   }
-  
   setIsLoading(true);
   try {
     let finalPdfUrl = pdfUrl;
-    
-    // If a new PDF was selected and not yet uploaded
     if (isPdf && pdfUrl && !pdfUrl.startsWith('https://')) {
-      // Upload PDF to API
+      console.log('handleSave: uploadPdf çağrılıyor');
       finalPdfUrl = await uploadPdf(pdfUrl, pdfName);
+      console.log('handleSave: uploadPdf tamamlandı, finalPdfUrl:', finalPdfUrl);
+      if (!finalPdfUrl) {
+        Alert.alert('Hata', 'PDF yüklenemedi.');
+        setIsLoading(false);
+        return;
+      }
     }
     
     // Create a properly formatted hexadecimal color code based on category
@@ -318,6 +327,7 @@ const handleSave = async () => {
     } else {
       await createNote(noteData);
     }
+    Alert.alert('Başarılı', 'Not ve PDF başarıyla kaydedildi!');
     navigation.goBack();
   } catch (error) {
     console.error('Error saving note:', error);
@@ -600,6 +610,23 @@ const handleSave = async () => {
           </View>
         </View>
       </Modal>
+      <TouchableOpacity
+        style={{
+          backgroundColor: '#4C6EF5',
+          padding: 16,
+          borderRadius: 8,
+          margin: 16,
+          alignItems: 'center',
+          position: 'absolute',
+          bottom: 0,
+          left: 16,
+          right: 16,
+          zIndex: 100,
+        }}
+        onPress={handleSave}
+      >
+        <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 18 }}>Kaydet</Text>
+      </TouchableOpacity>
     </KeyboardAvoidingView>
   );
 };

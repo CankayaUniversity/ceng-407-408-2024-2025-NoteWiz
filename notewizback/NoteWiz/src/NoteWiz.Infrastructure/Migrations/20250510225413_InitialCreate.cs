@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
+namespace NoteWiz.Infrastructure.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration
@@ -36,11 +36,12 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Token = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
+                    IsRevoked = table.Column<bool>(type: "bit", nullable: false),
+                    ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     DeviceInfo = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    LastUsedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -54,25 +55,57 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
                 });
 
             migrationBuilder.CreateTable(
-                name: "DocumentUploads",
+                name: "Documents",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     FilePath = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ExtractedText = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UploadedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    FileName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FileSize = table.Column<long>(type: "bigint", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UserId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DocumentUploads", x => x.Id);
+                    table.PrimaryKey("PK_Documents", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_DocumentUploads_Users_UserId",
+                        name: "FK_Documents_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "FriendshipRequests",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SenderId = table.Column<int>(type: "int", nullable: false),
+                    ReceiverId = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FriendshipRequests", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_FriendshipRequests_Users_ReceiverId",
+                        column: x => x.ReceiverId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_FriendshipRequests_Users_SenderId",
+                        column: x => x.SenderId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(
@@ -84,6 +117,7 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
                     UserId = table.Column<int>(type: "int", nullable: false),
                     FriendId = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UserId1 = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
@@ -109,28 +143,24 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
                 });
 
             migrationBuilder.CreateTable(
-                name: "Notes",
+                name: "NoteTemplates",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CoverImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsPublic = table.Column<bool>(type: "bit", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    IsSynced = table.Column<bool>(type: "bit", nullable: false),
-                    LastSyncedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Tags = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Color = table.Column<string>(type: "nvarchar(7)", nullable: false, defaultValue: "#FFFFFF"),
-                    IsPinned = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Notes", x => x.Id);
+                    table.PrimaryKey("PK_NoteTemplates", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Notes_Users_UserId",
+                        name: "FK_NoteTemplates_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -143,14 +173,15 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<int>(type: "int", nullable: false),
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
                     IsRead = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     RelatedEntityId = table.Column<int>(type: "int", nullable: true),
-                    RelatedEntityType = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    RelatedEntityType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -164,11 +195,12 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
                 });
 
             migrationBuilder.CreateTable(
-                name: "Tasks",
+                name: "TaskItems",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsCompleted = table.Column<bool>(type: "bit", nullable: false),
                     DueDate = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -180,9 +212,9 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Tasks", x => x.Id);
+                    table.PrimaryKey("PK_TaskItems", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Tasks_Users_UserId",
+                        name: "FK_TaskItems_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -209,6 +241,123 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
                         name: "FK_UserDevices_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Notes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Content = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    DocumentId = table.Column<int>(type: "int", nullable: true),
+                    Color = table.Column<string>(type: "nvarchar(7)", nullable: false, defaultValue: "#FFFFFF"),
+                    IsPinned = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    IsPrivate = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
+                    CoverImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Tags = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsSynced = table.Column<bool>(type: "bit", nullable: false),
+                    LastSyncedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Notes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Notes_Documents_DocumentId",
+                        column: x => x.DocumentId,
+                        principalTable: "Documents",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey(
+                        name: "FK_Notes_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AIInteractionLogs",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    InteractionType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    InputPrompt = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AIResponse = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    NoteId = table.Column<int>(type: "int", nullable: true),
+                    ModelUsed = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TokensUsed = table.Column<int>(type: "int", nullable: false),
+                    ProcessingTime = table.Column<int>(type: "int", nullable: false),
+                    Cost = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AIInteractionLogs", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AIInteractionLogs_Notes_NoteId",
+                        column: x => x.NoteId,
+                        principalTable: "Notes",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_AIInteractionLogs_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "NoteAIPopups",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    NoteId = table.Column<int>(type: "int", nullable: false),
+                    Suggestion = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsAccepted = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_NoteAIPopups", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_NoteAIPopups_Notes_NoteId",
+                        column: x => x.NoteId,
+                        principalTable: "Notes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "NoteAISelections",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    NoteId = table.Column<int>(type: "int", nullable: false),
+                    SelectedText = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AIResponse = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_NoteAISelections", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_NoteAISelections_Notes_NoteId",
+                        column: x => x.NoteId,
+                        principalTable: "Notes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -257,6 +406,30 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
                 });
 
             migrationBuilder.CreateTable(
+                name: "NotePdfPages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    NoteId = table.Column<int>(type: "int", nullable: false),
+                    PdfUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PageNumber = table.Column<int>(type: "int", nullable: false),
+                    ExtractedText = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_NotePdfPages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_NotePdfPages_Notes_NoteId",
+                        column: x => x.NoteId,
+                        principalTable: "Notes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "NoteShares",
                 columns: table => new
                 {
@@ -284,15 +457,58 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
                         onDelete: ReferentialAction.Restrict);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "NoteTexts",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    NoteId = table.Column<int>(type: "int", nullable: false),
+                    Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Position = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_NoteTexts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_NoteTexts_Notes_NoteId",
+                        column: x => x.NoteId,
+                        principalTable: "Notes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AIInteractionLogs_NoteId",
+                table: "AIInteractionLogs",
+                column: "NoteId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AIInteractionLogs_UserId",
+                table: "AIInteractionLogs",
+                column: "UserId");
+
             migrationBuilder.CreateIndex(
                 name: "IX_AuthTokens_UserId",
                 table: "AuthTokens",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DocumentUploads_UserId",
-                table: "DocumentUploads",
+                name: "IX_Documents_UserId",
+                table: "Documents",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FriendshipRequests_ReceiverId",
+                table: "FriendshipRequests",
+                column: "ReceiverId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FriendshipRequests_SenderId",
+                table: "FriendshipRequests",
+                column: "SenderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Friendships_FriendId",
@@ -310,6 +526,16 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
                 column: "UserId1");
 
             migrationBuilder.CreateIndex(
+                name: "IX_NoteAIPopups_NoteId",
+                table: "NoteAIPopups",
+                column: "NoteId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_NoteAISelections_NoteId",
+                table: "NoteAISelections",
+                column: "NoteId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_NoteDrawings_NoteId",
                 table: "NoteDrawings",
                 column: "NoteId");
@@ -318,6 +544,16 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
                 name: "IX_NoteImages_NoteId",
                 table: "NoteImages",
                 column: "NoteId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_NotePdfPages_NoteId",
+                table: "NotePdfPages",
+                column: "NoteId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notes_DocumentId",
+                table: "Notes",
+                column: "DocumentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Notes_UserId",
@@ -335,13 +571,23 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
                 column: "SharedWithUserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_NoteTemplates_UserId",
+                table: "NoteTemplates",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_NoteTexts_NoteId",
+                table: "NoteTexts",
+                column: "NoteId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Notifications_UserId",
                 table: "Notifications",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tasks_UserId",
-                table: "Tasks",
+                name: "IX_TaskItems_UserId",
+                table: "TaskItems",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
@@ -354,13 +600,22 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "AIInteractionLogs");
+
+            migrationBuilder.DropTable(
                 name: "AuthTokens");
 
             migrationBuilder.DropTable(
-                name: "DocumentUploads");
+                name: "FriendshipRequests");
 
             migrationBuilder.DropTable(
                 name: "Friendships");
+
+            migrationBuilder.DropTable(
+                name: "NoteAIPopups");
+
+            migrationBuilder.DropTable(
+                name: "NoteAISelections");
 
             migrationBuilder.DropTable(
                 name: "NoteDrawings");
@@ -369,19 +624,31 @@ namespace NoteWiz.Infrastructure.Migrations.NoteWizDb
                 name: "NoteImages");
 
             migrationBuilder.DropTable(
+                name: "NotePdfPages");
+
+            migrationBuilder.DropTable(
                 name: "NoteShares");
+
+            migrationBuilder.DropTable(
+                name: "NoteTemplates");
+
+            migrationBuilder.DropTable(
+                name: "NoteTexts");
 
             migrationBuilder.DropTable(
                 name: "Notifications");
 
             migrationBuilder.DropTable(
-                name: "Tasks");
+                name: "TaskItems");
 
             migrationBuilder.DropTable(
                 name: "UserDevices");
 
             migrationBuilder.DropTable(
                 name: "Notes");
+
+            migrationBuilder.DropTable(
+                name: "Documents");
 
             migrationBuilder.DropTable(
                 name: "Users");

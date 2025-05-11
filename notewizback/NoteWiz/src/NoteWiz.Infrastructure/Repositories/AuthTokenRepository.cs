@@ -8,7 +8,7 @@ namespace NoteWiz.Infrastructure.Repositories
 {
     public class AuthTokenRepository : GenericRepository<AuthToken>, IAuthTokenRepository
     {
-        public AuthTokenRepository(NoteWizDbContext context) : base(context)
+        public AuthTokenRepository(ApplicationDbContext context) : base(context)
         {
         }
 

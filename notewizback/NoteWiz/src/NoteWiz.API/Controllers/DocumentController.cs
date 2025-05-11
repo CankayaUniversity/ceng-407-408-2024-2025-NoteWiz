@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NoteWiz.Core.Entities;
 using NoteWiz.Core.Interfaces;
+using System.Security.Claims;
 
 namespace NoteWiz.API.Controllers
 {
@@ -26,26 +27,53 @@ namespace NoteWiz.API.Controllers
         {
             try
             {
+                // Token kontrolü
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                {
+                    _logger.LogError("Token'da kullanıcı ID bulunamadı");
+                    return Unauthorized(new { message = "Geçersiz token" });
+                }
+
+                _logger.LogInformation("PDF yükleme isteği alındı. Dosya adı: {FileName}, Boyut: {FileSize}, Kullanıcı ID: {UserId}", 
+                    file?.FileName, file?.Length, userIdClaim.Value);
+
                 if (file == null || file.Length == 0)
                 {
+                    _logger.LogWarning("Boş dosya gönderildi");
                     return BadRequest(new { message = "Dosya boş olamaz" });
                 }
 
                 using (var memoryStream = new MemoryStream())
                 {
                     await file.CopyToAsync(memoryStream);
+                    _logger.LogInformation("Dosya memory stream'e kopyalandı");
+
                     var document = await _documentService.UploadDocumentAsync(memoryStream.ToArray(), file.FileName);
+                    _logger.LogInformation("Document servisi çağrıldı ve döküman oluşturuldu: {@Document}", document);
+
+                    if (document == null)
+                    {
+                        _logger.LogError("Document servisi null döndü");
+                        return StatusCode(500, new { message = "Döküman oluşturulamadı" });
+                    }
+
                     return Ok(new { message = "Döküman başarıyla yüklendi", document });
                 }
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Yetkilendirme hatası: {Message}", ex.Message);
+                return Unauthorized(new { message = ex.Message });
+            }
             catch (ArgumentException ex)
             {
-                _logger.LogWarning(ex, "Döküman yükleme hatası");
+                _logger.LogWarning(ex, "Döküman yükleme hatası: {Message}", ex.Message);
                 return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Döküman yükleme sırasında bir hata oluştu");
+                _logger.LogError(ex, "Döküman yükleme sırasında bir hata oluştu: {Message}", ex.Message);
                 return StatusCode(500, new { message = "Döküman yüklenirken bir hata oluştu" });
             }
         }
