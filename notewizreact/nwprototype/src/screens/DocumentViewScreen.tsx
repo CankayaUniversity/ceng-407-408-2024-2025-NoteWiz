@@ -13,35 +13,48 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { DocumentViewScreenRouteProp, DocumentViewScreenNavigationProp } from '../types/navigation';
 import { useDocuments } from '../contexts/DocumentContext';
 import { COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '../constants/theme';
-import { CloseIcon, DeleteIcon } from '../components/icons';
+import { CloseIcon, DeleteIcon, EditIcon } from '../components/icons';
 import Pdf from 'react-native-pdf';
 
+// Types
+interface DocumentViewProps {
+  documentId: string;
+  title: string;
+}
+
 const DocumentViewScreen = () => {
+  // Navigation and Route
   const route = useRoute<DocumentViewScreenRouteProp>();
   const navigation = useNavigation<DocumentViewScreenNavigationProp>();
   const { documentId, title } = route.params;
-  const { getDocument, deleteDocument, extractText } = useDocuments();
+
+  // Context
+  const { getDocument, deleteDocument, extractText, updateDocument } = useDocuments();
+
+  // State
   const [document, setDocument] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [extractedText, setExtractedText] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
+  // Effects
   useEffect(() => {
     loadDocument();
   }, []);
 
+  // Handlers
   const loadDocument = async () => {
     try {
       setLoading(true);
       const doc = await getDocument(documentId);
       setDocument(doc);
       
-      // Extract text if not already extracted
-      if (!doc.extractedText) {
+      if (!doc.content) {
         const text = await extractText(documentId);
         setExtractedText(text);
       } else {
-        setExtractedText(doc.extractedText);
+        setExtractedText(doc.content);
       }
     } catch (err) {
       console.error('Error loading document:', err);
@@ -77,74 +90,110 @@ const DocumentViewScreen = () => {
     );
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary.main} />
-      </View>
-    );
-  }
+  const handleEdit = () => {
+    setIsEditing(true);
+    navigation.navigate('DocumentEdit', { documentId, document });
+  };
 
-  if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>{error}</Text>
+  // Render Methods
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
+        <CloseIcon color={COLORS.text.primary} />
+      </TouchableOpacity>
+      <Text style={styles.title} numberOfLines={1}>
+        {title}
+      </Text>
+      <View style={styles.headerButtons}>
+        <TouchableOpacity onPress={handleEdit} style={styles.headerButton}>
+          <EditIcon color={COLORS.text.primary} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleDelete} style={styles.headerButton}>
+          <DeleteIcon color={COLORS.error} />
+        </TouchableOpacity>
       </View>
-    );
-  }
+    </View>
+  );
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
-        <View style={styles.headerButtons}>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={handleDelete}
-          >
-            <DeleteIcon size={24} color={COLORS.error.main} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => navigation.goBack()}
-          >
-            <CloseIcon size={24} color={COLORS.text.primary} />
-          </TouchableOpacity>
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.primary.main} />
         </View>
-      </View>
+      );
+    }
 
+    if (error) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      );
+    }
+
+    return (
       <ScrollView style={styles.content}>
         {document?.filePath && (
-          <View style={styles.pdfContainer}>
-            <Pdf
-              source={{ uri: document.filePath }}
-              style={styles.pdf}
-              onLoadComplete={(numberOfPages) => {
-                console.log(`PDF loaded: ${numberOfPages} pages`);
-              }}
-              onError={(error) => {
-                console.error('PDF error:', error);
-                setError('PDF yüklenirken bir hata oluştu');
-              }}
-            />
-          </View>
+          <Pdf
+            source={{ uri: document.filePath }}
+            style={styles.pdf}
+            onLoadComplete={(numberOfPages, filePath) => {
+              console.log(`Number of pages: ${numberOfPages}`);
+            }}
+            onError={(error) => {
+              console.log(error);
+            }}
+          />
         )}
-
         {extractedText && (
           <View style={styles.textContainer}>
-            <Text style={styles.sectionTitle}>Çıkarılan Metin</Text>
-            <Text style={styles.textContent}>{extractedText}</Text>
+            <Text style={styles.text}>{extractedText}</Text>
           </View>
         )}
       </ScrollView>
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {renderHeader()}
+      {renderContent()}
     </SafeAreaView>
   );
 };
 
+// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background.paper,
+    backgroundColor: COLORS.background,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    backgroundColor: COLORS.surface,
+    ...SHADOWS.small,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerButton: {
+    padding: SPACING.xs,
+    marginLeft: SPACING.sm,
+  },
+  title: {
+    ...TYPOGRAPHY.h2,
+    flex: 1,
+    marginHorizontal: SPACING.md,
+  },
+  content: {
+    flex: 1,
   },
   loadingContainer: {
     flex: 1,
@@ -159,35 +208,8 @@ const styles = StyleSheet.create({
   },
   errorText: {
     ...TYPOGRAPHY.body1,
-    color: COLORS.error.main,
+    color: COLORS.error,
     textAlign: 'center',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border.light,
-  },
-  title: {
-    ...TYPOGRAPHY.h4,
-    color: COLORS.text.primary,
-    flex: 1,
-  },
-  headerButtons: {
-    flexDirection: 'row',
-  },
-  headerButton: {
-    padding: SPACING.sm,
-    marginLeft: SPACING.sm,
-  },
-  content: {
-    flex: 1,
-  },
-  pdfContainer: {
-    flex: 1,
-    minHeight: 500,
   },
   pdf: {
     flex: 1,
@@ -195,17 +217,11 @@ const styles = StyleSheet.create({
     height: 500,
   },
   textContainer: {
-    padding: SPACING.lg,
+    padding: SPACING.md,
   },
-  sectionTitle: {
-    ...TYPOGRAPHY.h6,
-    color: COLORS.text.primary,
-    marginBottom: SPACING.sm,
-  },
-  textContent: {
+  text: {
     ...TYPOGRAPHY.body1,
-    color: COLORS.text.secondary,
-    lineHeight: 24,
+    color: COLORS.text.primary,
   },
 });
 

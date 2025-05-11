@@ -1,10 +1,18 @@
 import { apiClient } from './newApi';
 
+// Types
 export interface Document {
   id: string;
+  title: string;
   filePath: string;
-  extractedText: string;
-  uploadedAt: string;
+  fileName: string;
+  fileSize: number;
+  content: string;
+  isPrivate: boolean;
+  tags: string;
+  categoryId?: number;
+  createdAt: string;
+  updatedAt?: string;
   userId: string;
 }
 
@@ -16,7 +24,23 @@ export interface UploadDocumentDTO {
   };
 }
 
+export interface UpdateDocumentDTO {
+  title: string;
+  content: string;
+  isPrivate: boolean;
+  tags: string;
+  categoryId?: number;
+}
+
+// API Endpoints
+const ENDPOINTS = {
+  DOCUMENTS: '/Documents',
+  UPLOAD: '/Documents/upload',
+  EXTRACT_TEXT: (id: string) => `/Documents/${id}/extract-text`,
+} as const;
+
 class DocumentService {
+  // Document CRUD Operations
   async uploadDocument(data: UploadDocumentDTO): Promise<Document> {
     const formData = new FormData();
     formData.append('file', {
@@ -25,40 +49,54 @@ class DocumentService {
       name: data.file.name,
     } as any);
 
-    const response = await apiClient.post('/Documents/upload', formData, {
+    const response = await apiClient.post(ENDPOINTS.UPLOAD, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
-    console.log('API response:', response.data);
-    const doc = response.data.document || response.data;
-    return this.transformApiDocument(doc);
+
+    return this.transformApiDocument(response.data.document || response.data);
   }
 
   async getDocuments(): Promise<Document[]> {
-    const response = await apiClient.get('/Documents');
+    const response = await apiClient.get(ENDPOINTS.DOCUMENTS);
     return response.data.map(this.transformApiDocument);
   }
 
   async getDocument(id: string): Promise<Document> {
-    const response = await apiClient.get(`/Documents/${id}`);
+    const response = await apiClient.get(`${ENDPOINTS.DOCUMENTS}/${id}`);
+    return this.transformApiDocument(response.data);
+  }
+
+  async updateDocument(id: string, data: UpdateDocumentDTO): Promise<Document> {
+    const response = await apiClient.put(`${ENDPOINTS.DOCUMENTS}/${id}`, data);
     return this.transformApiDocument(response.data);
   }
 
   async deleteDocument(id: string): Promise<void> {
-    await apiClient.delete(`/Documents/${id}`);
+    await apiClient.delete(`${ENDPOINTS.DOCUMENTS}/${id}`);
   }
 
   async extractText(id: string): Promise<string> {
-    const response = await apiClient.post(`/Documents/${id}/extract-text`);
+    const response = await apiClient.post(ENDPOINTS.EXTRACT_TEXT(id));
     return response.data.text;
   }
 
+  // Helper Methods
   private transformApiDocument(apiDocument: any): Document {
     return {
-      ...apiDocument,
-      id: apiDocument.id ? apiDocument.id.toString() : '',
-      userId: apiDocument.userId ? apiDocument.userId.toString() : ''
+      id: apiDocument.id?.toString() || '',
+      title: apiDocument.title || '',
+      filePath: apiDocument.filePath || '',
+      fileName: apiDocument.fileName || '',
+      fileSize: apiDocument.fileSize || 0,
+      content: apiDocument.content || '',
+      isPrivate: apiDocument.isPrivate || false,
+      tags: apiDocument.tags || '',
+      categoryId: apiDocument.categoryId,
+      createdAt: apiDocument.createdAt || '',
+      updatedAt: apiDocument.updatedAt,
+      userId: apiDocument.userId?.toString() || '',
     };
   }
 }

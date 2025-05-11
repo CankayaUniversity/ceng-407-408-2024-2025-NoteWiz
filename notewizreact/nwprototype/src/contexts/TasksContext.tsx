@@ -18,8 +18,8 @@ export interface Task {
 interface TasksContextType {
   tasks: Task[];
   isLoading: boolean;
-  addTask: (taskData: Partial<Task>) => Promise<number>;
-  updateTask: (id: number, taskData: Partial<Task>) => Promise<boolean>;
+  addTask: (taskData: Partial<Task>) => Promise<Task>;
+  updateTask: (id: number, taskData: Partial<Task>) => Promise<Task>;
   deleteTask: (id: number) => Promise<boolean>;
   completeTask: (id: number) => Promise<boolean>;
 }
@@ -28,8 +28,8 @@ interface TasksContextType {
 const TasksContext = createContext<TasksContextType>({
   tasks: [],
   isLoading: false,
-  addTask: async () => 0,
-  updateTask: async () => false,
+  addTask: async () => null as any,
+  updateTask: async () => null as any,
   deleteTask: async () => false,
   completeTask: async () => false,
 });
@@ -51,6 +51,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setIsLoading(true);
     try {
       const data = await tasksService.getTasks();
+      console.log('Fetched tasks:', data);
       setTasks(data);
     } catch (error) {
       console.error('Error fetching tasks:', error);
@@ -60,43 +61,41 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  const addTask = async (taskData: Partial<Task>): Promise<number> => {
-    if (!isAuthenticated) return 0;
-    
+  const addTask = async (taskData: Partial<Task>): Promise<Task> => {
+    if (!isAuthenticated) return null as any;
     try {
       const apiTaskData = {
         title: taskData.title || "New Task",
         description: taskData.description || "",
-        dueDate: taskData.dueDate
+        dueDate: taskData.dueDate,
+        reminder: (taskData as any).reminder,
       };
-      
       const createdTask = await tasksService.createTask(apiTaskData);
       setTasks(prevTasks => [...prevTasks, createdTask]);
-      return createdTask.id;
+      return createdTask;
     } catch (error) {
       console.error('Error adding task:', error);
-      return 0;
+      throw error;
     }
   };
 
-  const updateTask = async (id: number, taskData: Partial<Task>): Promise<boolean> => {
-    if (!isAuthenticated) return false;
-    
+  const updateTask = async (id: number, taskData: Partial<Task>): Promise<Task> => {
+    if (!isAuthenticated) return null as any;
     try {
       const apiTaskData = {
         title: taskData.title || '',
         description: taskData.description || '',
-        dueDate: taskData.dueDate
+        dueDate: taskData.dueDate,
+        reminder: (taskData as any).reminder,
       };
-      
       const updatedTask = await tasksService.updateTask(id, apiTaskData);
       setTasks(prevTasks => 
         prevTasks.map(task => task.id === id ? updatedTask : task)
       );
-      return true;
+      return updatedTask;
     } catch (error) {
       console.error('Error updating task:', error);
-      return false;
+      throw error;
     }
   };
 

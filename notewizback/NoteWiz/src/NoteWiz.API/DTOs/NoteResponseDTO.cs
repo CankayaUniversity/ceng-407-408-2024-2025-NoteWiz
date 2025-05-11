@@ -50,6 +50,6 @@ namespace NoteWiz.API.DTOs
         /// </summary>
         public List<NoteShareResponseDTO> SharedWith { get; set; } = new();
 
-        public string? CoverImageUrl { get; set; }
+        public string? CoverImage { get; set; }
     }
 } 

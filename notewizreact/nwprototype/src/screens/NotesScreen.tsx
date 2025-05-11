@@ -556,9 +556,9 @@ const NotesScreen: React.FC = () => {
       />
 
       {/* Notes and Folders List */}
-      <FlatList
+      <Animated.FlatList<Note>
         data={sortedItems()}
-        keyExtractor={(item: Note) => item.id.toString()}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}

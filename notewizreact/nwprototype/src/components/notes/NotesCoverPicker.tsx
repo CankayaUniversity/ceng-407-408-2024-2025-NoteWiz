@@ -13,28 +13,37 @@ import {
   Dimensions,
   ScrollView,
   ActivityIndicator,
+  ImageSourcePropType,
 } from 'react-native';
 import { CloseIcon } from '../icons';
 import { COLORS, SHADOWS } from '../../constants/theme';
 
 const { width } = Dimensions.get('window');
 
+interface CoverOption {
+  id: string;
+  type: string;
+  image: ImageSourcePropType | null;
+  imageUrl: string | null;
+  color: string | null;
+}
+
 // Kapak kategorileri ve seçenekleri
-const COVER_OPTIONS = {
+const COVER_OPTIONS: { [key: string]: CoverOption[] } = {
   basic: [
-    { id: 'none', type: 'basic', image: null, color: '#FFFFFF' },
-    { id: 'basic-black', type: 'basic', image: null, color: '#000000' },
+    { id: 'none', type: 'basic', image: null, imageUrl: null, color: '#FFFFFF' },
+    { id: 'basic-black', type: 'basic', image: null, imageUrl: null, color: '#000000' },
   ],
   illust: [
-    { id: 'gradient-blue', type: 'illust', image: require('../../assets/images/gradient-blue.png') },
-    { id: 'ai-cover', type: 'illust', image: require('../../assets/images/ai-cover.png') },
-    { id: 'ai-cover2', type: 'illust', image: require('../../assets/images/ai-cover2.png') },
-    { id: 'blue-sky', type: 'illust', image: require('../../assets/images/blue-sky.png') },
+    { id: 'gradient-blue', type: 'illust', image: require('../../assets/images/gradient-blue.png'), imageUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb', color: null },
+    { id: 'ai-cover', type: 'illust', image: require('../../assets/images/ai-cover.png'), imageUrl: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca', color: null },
+    { id: 'ai-cover2', type: 'illust', image: require('../../assets/images/ai-cover2.png'), imageUrl: 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308', color: null },
+    { id: 'blue-sky', type: 'illust', image: require('../../assets/images/blue-sky.png'), imageUrl: 'https://images.unsplash.com/photo-1465101178521-c1a9136a3b99', color: null },
   ],
   pastel: [
-    { id: 'pastel-pink', type: 'pastel', image: null, color: '#FFE4E1' },
-    { id: 'pastel-blue', type: 'pastel', image: null, color: '#E0FFFF' },
-    { id: 'pastel-green', type: 'pastel', image: null, color: '#E0FFF0' },
+    { id: 'pastel-pink', type: 'pastel', image: null, imageUrl: null, color: '#FFE4E1' },
+    { id: 'pastel-blue', type: 'pastel', image: null, imageUrl: null, color: '#E0FFFF' },
+    { id: 'pastel-green', type: 'pastel', image: null, imageUrl: null, color: '#E0FFF0' },
   ]
 };
 
@@ -123,10 +132,10 @@ const NoteCoverPicker: React.FC<NoteCoverPickerProps> = ({
                       key={cover.id}
                       style={[
                         styles.coverPreview,
-                        { backgroundColor: cover.color },
+                        { backgroundColor: cover.color || '#FFFFFF' },
                         selectedCoverId === cover.id && styles.selectedCover,
                       ]}
-                      onPress={() => onSelectCover(cover.id, cover.color)}
+                      onPress={() => onSelectCover(cover.id, cover.color || undefined)}
                     />
                   ))}
                 </View>
@@ -147,7 +156,9 @@ const NoteCoverPicker: React.FC<NoteCoverPickerProps> = ({
                       ]}
                       onPress={() => onSelectCover(cover.id)}
                     >
-                      <Image source={cover.image} style={styles.coverImage} />
+                      {cover.image && (
+                        <Image source={cover.image} style={styles.coverImage} />
+                      )}
                     </TouchableOpacity>
                   ))}
                 </View>

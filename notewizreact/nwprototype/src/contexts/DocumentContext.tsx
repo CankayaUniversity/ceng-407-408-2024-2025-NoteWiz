@@ -1,19 +1,23 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { Document, documentService, UploadDocumentDTO } from '../services/documentService';
+import { Document, documentService, UploadDocumentDTO, UpdateDocumentDTO } from '../services/documentService';
 
+// Types
 interface DocumentContextData {
   documents: Document[];
   loading: boolean;
   error: string | null;
   loadDocuments: () => Promise<void>;
   uploadDocument: (data: UploadDocumentDTO) => Promise<Document>;
-  deleteDocument: (id: number) => Promise<void>;
-  extractText: (id: number) => Promise<string>;
+  updateDocument: (id: string, data: UpdateDocumentDTO) => Promise<Document>;
+  deleteDocument: (id: string) => Promise<void>;
+  extractText: (id: string) => Promise<string>;
   clearError: () => void;
 }
 
+// Context
 const DocumentContext = createContext<DocumentContextData>({} as DocumentContextData);
 
+// Hook
 export const useDocuments = () => {
   const context = useContext(DocumentContext);
   if (!context) {
@@ -22,18 +26,21 @@ export const useDocuments = () => {
   return context;
 };
 
+// Provider Component
 export const DocumentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // State
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Document Operations
   const loadDocuments = useCallback(async () => {
     try {
       setLoading(true);
       const response = await documentService.getDocuments();
       setDocuments(response);
     } catch (err) {
-      setError('Failed to load documents');
+      setError('Dökümanlar yüklenirken bir hata oluştu');
       console.error(err);
     } finally {
       setLoading(false);
@@ -47,7 +54,7 @@ export const DocumentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setDocuments(prev => [...prev, newDocument]);
       return newDocument;
     } catch (err) {
-      setError('Failed to upload document');
+      setError('Döküman yüklenirken bir hata oluştu');
       console.error(err);
       throw err;
     } finally {
@@ -55,13 +62,30 @@ export const DocumentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, []);
 
-  const deleteDocument = useCallback(async (id: number) => {
+  const updateDocument = useCallback(async (id: string, data: UpdateDocumentDTO) => {
+    try {
+      setLoading(true);
+      const updatedDocument = await documentService.updateDocument(id, data);
+      setDocuments(prev => prev.map(doc => 
+        doc.id === id ? updatedDocument : doc
+      ));
+      return updatedDocument;
+    } catch (err) {
+      setError('Döküman güncellenirken bir hata oluştu');
+      console.error(err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const deleteDocument = useCallback(async (id: string) => {
     try {
       setLoading(true);
       await documentService.deleteDocument(id);
       setDocuments(prev => prev.filter(doc => doc.id !== id));
     } catch (err) {
-      setError('Failed to delete document');
+      setError('Döküman silinirken bir hata oluştu');
       console.error(err);
       throw err;
     } finally {
@@ -69,13 +93,13 @@ export const DocumentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, []);
 
-  const extractText = useCallback(async (id: number) => {
+  const extractText = useCallback(async (id: string) => {
     try {
       setLoading(true);
       const text = await documentService.extractText(id);
       return text;
     } catch (err) {
-      setError('Failed to extract text');
+      setError('Metin çıkarılırken bir hata oluştu');
       console.error(err);
       throw err;
     } finally {
@@ -87,19 +111,21 @@ export const DocumentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setError(null);
   }, []);
 
+  // Context Value
+  const value = {
+    documents,
+    loading,
+    error,
+    loadDocuments,
+    uploadDocument,
+    updateDocument,
+    deleteDocument,
+    extractText,
+    clearError,
+  };
+
   return (
-    <DocumentContext.Provider
-      value={{
-        documents,
-        loading,
-        error,
-        loadDocuments,
-        uploadDocument,
-        deleteDocument,
-        extractText,
-        clearError,
-      }}
-    >
+    <DocumentContext.Provider value={value}>
       {children}
     </DocumentContext.Provider>
   );

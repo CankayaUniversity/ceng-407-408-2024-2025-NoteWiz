@@ -1,6 +1,7 @@
 // src/screens/NoteDetailScreen.tsx - .NET API hatası düzeltildi
 import React, { useState, useEffect } from 'react';
 import RNFS from 'react-native-fs';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {
   View,
@@ -17,6 +18,7 @@ import {
   Image,
   Modal,
   SafeAreaView,
+  ImageSourcePropType,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -41,16 +43,32 @@ const CATEGORIES = [
   'Other',
 ];
 
+interface CoverOption {
+  id: string;
+  type: string;
+  image: ImageSourcePropType | null;
+  imageUrl: string | null;
+  color: string | null;
+}
+
 // Predefined cover options
-const COVER_OPTIONS = [
-  { id: 'none', title: 'No Cover', image: null, color: '#F5F5F5' },
-  { id: 'gradient1', title: 'Gradient 1', image: null, color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
-  { id: 'gradient2', title: 'Gradient 2', image: null, color: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)' },
-  { id: 'gradient3', title: 'Gradient 3', image: null, color: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)' },
-  { id: 'solid1', title: 'Solid 1', image: null, color: '#E3F2FD' },
-  { id: 'solid2', title: 'Solid 2', image: null, color: '#F3E5F5' },
-  { id: 'solid3', title: 'Solid 3', image: null, color: '#E8F5E9' },
-];
+const COVER_OPTIONS: { [key: string]: CoverOption[] } = {
+  basic: [
+    { id: 'none', type: 'basic', image: null, imageUrl: null, color: '#FFFFFF' },
+    { id: 'basic-black', type: 'basic', image: null, imageUrl: null, color: '#000000' },
+  ],
+  illust: [
+    { id: 'gradient-blue', type: 'illust', image: require('../assets/images/gradient-blue.png'), imageUrl: 'https://yourcdn.com/gradient-blue.png', color: null },
+    { id: 'ai-cover', type: 'illust', image: require('../assets/images/ai-cover.png'), imageUrl: 'https://yourcdn.com/ai-cover.png', color: null },
+    { id: 'ai-cover2', type: 'illust', image: require('../assets/images/ai-cover2.png'), imageUrl: 'https://yourcdn.com/ai-cover2.png', color: null },
+    { id: 'blue-sky', type: 'illust', image: require('../assets/images/blue-sky.png'), imageUrl: 'https://yourcdn.com/blue-sky.png', color: null },
+  ],
+  pastel: [
+    { id: 'pastel-pink', type: 'pastel', image: null, imageUrl: null, color: '#FFE4E1' },
+    { id: 'pastel-blue', type: 'pastel', image: null, imageUrl: null, color: '#E0FFFF' },
+    { id: 'pastel-green', type: 'pastel', image: null, imageUrl: null, color: '#E0FFF0' },
+  ]
+};
 
 type NoteDetailScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'NoteDetail'>;
 type NoteDetailScreenRouteProp = RouteProp<RootStackParamList, 'NoteDetail'>;
@@ -58,7 +76,7 @@ type NoteDetailScreenRouteProp = RouteProp<RootStackParamList, 'NoteDetail'>;
 const NoteDetailScreen = () => {
   const navigation = useNavigation<NoteDetailScreenNavigationProp>();
   const route = useRoute<NoteDetailScreenRouteProp>();
-  const { createNote, updateNote, deleteNote } = useNotes();
+  const { createNote, updateNote, deleteNote, notes } = useNotes();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -76,7 +94,7 @@ const NoteDetailScreen = () => {
   const [category, setCategory] = useState(route.params?.category || 'Other');
   const [isImportant, setIsImportant] = useState(route.params?.isImportant || false);
   // Cover image
-  const [coverImage, setCoverImage] = useState<string | null>(null);
+  const [coverImage, setCoverImage] = useState<ImageSourcePropType | string | null>(null);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
   
   // PDF related state
@@ -93,28 +111,41 @@ const NoteDetailScreen = () => {
   const [aiResponse, setAiResponse] = useState('');
   const [selectedText, setSelectedText] = useState('');
 
-  // PDF Viewer Component
-  const PdfViewer = ({ uri }: { uri: string }) => {
-    const source = { uri, cache: true };
-    return (
-      <View style={styles.pdfContainer}>
-        <Text style={styles.pdfNameText}>{pdfName || 'PDF Document'}</Text>
-        <Pdf
-          source={source}
-          onLoadComplete={(numberOfPages, filePath) => {
-            console.log(`PDF loaded: ${numberOfPages} pages`);
-          }}
-          onPageChanged={(page, numberOfPages) => {
-            console.log(`Current page: ${page}`);
-          }}
-          onError={(error) => {
-            console.error(error);
-          }}
-          style={styles.pdf}
-        />
-      </View>
-    );
-  };
+  // New state for selected cover ID
+  const [selectedCoverId, setSelectedCoverId] = useState<string>('none');
+
+  useEffect(() => {
+    if (noteId) {
+      const note = notes.find(n => n.id?.toString() === noteId.toString());
+      if (note) {
+        console.log('Açılan not:', note);
+        setTitle(note.title || '');
+        setContent(note.content || '');
+        setCategory(note.category || 'Other');
+        setIsImportant(note.isImportant || false);
+        setIsPdf(note.isPdf || false);
+        setPdfUrl(note.pdfUrl || '');
+        setPdfName(note.pdfName || '');
+
+        // DÜZELTME: Doğru alanı kullan!
+        setCoverImage(note.coverImage || null);
+        console.log('coverImage state set edildi:', note.coverImage || null);
+
+        const allCovers = Object.values(COVER_OPTIONS).flat();
+        const found = allCovers.find(
+          c => c.imageUrl === note.coverImage || c.color === note.coverImage
+        );
+        setSelectedCoverId(found?.id || 'none');
+      }
+    }
+  }, [noteId, notes]);
+
+  // PDF'yi cache'e kopyalayan fonksiyon
+  async function copyPdfToCache(uri: string, name: string): Promise<string> {
+    const destPath = `${RNFS.CachesDirectoryPath}/${Date.now()}_${name}`;
+    await RNFS.copyFile(uri, destPath);
+    return destPath;
+  }
 
   // PDF File Selection
   const selectPdf = async () => {
@@ -123,6 +154,8 @@ const NoteDetailScreen = () => {
         type: [DocumentPicker.types.pdf],
       });
       const selectedPdf = result[0];
+      const uri = selectedPdf.fileCopyUri || selectedPdf.uri;
+      const cachedPath = await copyPdfToCache(uri, selectedPdf.name || 'document.pdf');
       Alert.alert(
         'PDF Selected',
         `"${selectedPdf.name || 'Unnamed PDF'}" file selected. Lütfen kaydetmek için Kaydet butonuna basın.`,
@@ -133,7 +166,7 @@ const NoteDetailScreen = () => {
               setPdfName(selectedPdf.name || 'Unnamed PDF');
               setIsPdf(true);
               setContent('');
-              setPdfUrl(selectedPdf.uri);
+              setPdfUrl(cachedPath); // Artık cache yolunu kullanıyoruz!
             }
           }
         ]
@@ -147,46 +180,33 @@ const NoteDetailScreen = () => {
     }
   };
 
-  const getPathFromURI = async (uri: string): Promise<string> => {
-    if (Platform.OS === 'android' && uri.startsWith('content://')) {
-      const destPath = `${RNFS.CachesDirectoryPath}/${Date.now()}.pdf`;
-      await RNFS.copyFile(uri, destPath);
-      return destPath;
-    }
-    return uri;
-  };
-  
   // PDF Upload - Updated for .NET API
   const uploadPdf = async (pdfUri: string, pdfName: string): Promise<string> => {
     console.log('uploadPdf fonksiyonu çağrıldı');
     try {
-      const filePath = await getPathFromURI(pdfUri);
-      
+      // pdfUri artık cache dizininde bir yol
       const formData = new FormData();
       formData.append('file', {
-        uri: Platform.OS === 'ios' ? pdfUri.replace('file://', '') : pdfUri,
+        uri: Platform.OS === 'android' ? `file://${pdfUri}` : pdfUri,
         type: 'application/pdf',
         name: pdfName
       });
-      
-      console.log('Uploading PDF:', { uri: filePath, name: pdfName });
-      
-      const response = await fetch('http://10.0.2.2:5263/api/documents/upload', {
+      console.log('Uploading PDF:', { uri: pdfUri, name: pdfName });
+      const token = await AsyncStorage.getItem('userToken');
+      const response = await fetch('http://10.0.2.2:5263/api/document/upload', {
         method: 'POST',
         body: formData,
         headers: {
           'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
       });
-      
       console.log('Upload response status:', response.status);
       const data = await response.text();
       console.log('Upload response data:', data);
-      
       if (!response.ok) {
         throw new Error('Failed to upload PDF: ' + data);
       }
-      
       try {
         const json = JSON.parse(data);
         console.log('uploadPdf: dönen json:', json);
@@ -203,17 +223,20 @@ const NoteDetailScreen = () => {
     }
   };
 
-  // Handle Cover Image Selection
-  const handleCoverSelect = async (coverId: string, coverColor?: string) => {
+  // Kapak seçimi fonksiyonu
+  const handleCoverSelect = (coverId: string, coverColor?: string) => {
     setShowCoverPicker(false);
-    
-    if (coverId === 'none') {
+    setSelectedCoverId(coverId);
+    const allCovers = Object.values(COVER_OPTIONS).flat();
+    const selected = allCovers.find(c => c.id === coverId);
+    if (!selected) return;
+    if (selected.image) {
+      setCoverImage(selected.image);
+    } else if (selected.color) {
+      setCoverImage(selected.color);
+    } else {
       setCoverImage(null);
-      return;
     }
-    
-    // Seçilen kapağın rengini veya resmini ayarla
-    setCoverImage(coverColor || null);
   };
 
   // Set up header with additional options
@@ -287,9 +310,6 @@ const handleSave = async () => {
         return;
       }
     }
-    
-    // Create a properly formatted hexadecimal color code based on category
-    // This maps category names to valid hex color codes
     const categoryColorMap: { [key: string]: string } = {
       'Work': '#4C6EF5',
       'Personal': '#15AABF',
@@ -298,31 +318,26 @@ const handleSave = async () => {
       'To-Do': '#F06595',
       'Other': '#7950F2'
     };
-    
-    // Get color from map or use default
     const colorCode = categoryColorMap[category] || '#CCCCCC';
-    
-    // For simplicity, we'll create a data object that matches our API's expected format
+    const allCovers = Object.values(COVER_OPTIONS).flat();
+    const selectedCover = allCovers.find(c => c.id === selectedCoverId);
     const noteData: any = {
       title: title?.trim() || (isPdf ? pdfName : 'Note'),
-      // Ensure content field is never empty - use empty string if no content
       content: isPdf ? 'PDF Document' : (content?.trim() || ''),
-      tags: [], // Replace with actual tags if you have them
-      color: colorCode, // Use proper hex color format
+      tags: [],
+      color: colorCode,
       isPinned: isImportant,
       folderId: folderId,
+      // TEST: Her zaman gerçek bir Unsplash URL'si gönder
+      coverImage: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb',
     };
-    
     if (isPdf) {
       noteData.pdfUrl = finalPdfUrl;
       noteData.pdfName = pdfName;
       noteData.isPdf = true;
     }
-    
     console.log("Saving note data:", noteData);
-    
     if (noteId) {
-      // Artık noteId number tipinde, doğrudan kullanabiliriz
       await updateNote(noteId.toString(), noteData);
     } else {
       await createNote(noteData);
@@ -369,6 +384,29 @@ const handleSave = async () => {
     );
   };
 
+  // PDF Viewer Component
+  const PdfViewer = ({ uri }: { uri: string }) => {
+    const source = { uri: Platform.OS === 'android' ? `file://${uri}` : uri, cache: true };
+    return (
+      <View style={styles.pdfContainer}>
+        <Text style={styles.pdfNameText}>{pdfName || 'PDF Document'}</Text>
+        <Pdf
+          source={source}
+          onLoadComplete={(numberOfPages, filePath) => {
+            console.log(`PDF loaded: ${numberOfPages} pages`);
+          }}
+          onPageChanged={(page, numberOfPages) => {
+            console.log(`Current page: ${page}`);
+          }}
+          onError={(error) => {
+            console.error(error);
+          }}
+          style={styles.pdf}
+        />
+      </View>
+    );
+  };
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -385,19 +423,15 @@ const handleSave = async () => {
       <ScrollView style={styles.scrollView}>
         {/* Cover image */}
         {coverImage && (
-          <View style={styles.coverImageContainer}>
-            <Image 
-              source={{uri: coverImage}} 
+          typeof coverImage === 'string' && coverImage.startsWith('#') ? (
+            <View style={[styles.coverImage, { backgroundColor: coverImage }]} />
+          ) : (
+            <Image
+              source={typeof coverImage === 'string' ? { uri: coverImage } : coverImage}
               style={styles.coverImage}
               resizeMode="cover"
             />
-            <TouchableOpacity 
-              style={styles.changeCoverButton}
-              onPress={() => setShowCoverPicker(true)}
-            >
-              <Text style={styles.changeCoverText}>Change Cover</Text>
-            </TouchableOpacity>
-          </View>
+          )
         )}
 
         {/* Star button for marking important */}
@@ -559,7 +593,7 @@ const handleSave = async () => {
         visible={showCoverPicker}
         onClose={() => setShowCoverPicker(false)}
         onSelectCover={handleCoverSelect}
-        selectedCoverId={coverImage ? 'custom' : 'none'}
+        selectedCoverId={selectedCoverId}
       />
 
       {/* AI Modal */}

@@ -15,7 +15,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
-import { useTask, Task } from '../contexts/TaskContext';
+import { useTasks, Task } from '../contexts/TasksContext';
 import { useCategories } from '../contexts/CategoriesContext';
 import { SearchBar } from '../components/ui/SearchBar';
 import { COLORS, SHADOWS } from '../constants/theme';
@@ -72,15 +72,11 @@ const TasksScreen = () => {
   console.log('TasksScreen rendered'); // Debug için
   
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { tasks, loading, toggleCompleted, deleteTask, fetchTasks } = useTask();
+  const { tasks, isLoading, deleteTask, updateTask } = useTasks();
   const { categories } = useCategories();
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [refreshing, setRefreshing] = useState(false);
-
-  useEffect(() => {
-    fetchTasks();
-  }, []);
 
   useEffect(() => {
     console.log('TasksScreen useEffect - tasks:', tasks.length);
@@ -94,9 +90,9 @@ const TasksScreen = () => {
       (task.description?.toLowerCase().includes(searchQuery.toLowerCase()) || false);
     // Aktif/tamamlanmış filtreleme
     if (filter === 'active') {
-      return matchesSearch && !task.completed;
+      return matchesSearch && !task.isCompleted;
     } else if (filter === 'completed') {
-      return matchesSearch && task.completed;
+      return matchesSearch && task.isCompleted;
     }
     return matchesSearch;
   });
@@ -115,7 +111,7 @@ const TasksScreen = () => {
 
   // Gecikmiş görevler
   const overdueTasks = filteredTasks.filter((task: Task) => {
-    if (!task.dueDate || task.completed) return false;
+    if (!task.dueDate || task.isCompleted) return false;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const dueDate = new Date(task.dueDate);
@@ -135,7 +131,7 @@ const TasksScreen = () => {
       (taskDate.getDate() === today.getDate() &&
        taskDate.getMonth() === today.getMonth() &&
        taskDate.getFullYear() === today.getFullYear()) ||
-      (taskDate < today && !task.completed)
+      (taskDate < today && !task.isCompleted)
     );
   });
 
@@ -185,26 +181,26 @@ const TasksScreen = () => {
       <TouchableOpacity
         style={[
           styles.taskCard,
-          task.completed && styles.completedTaskCard
+          task.isCompleted && styles.completedTaskCard
         ]}
-        onPress={() => handleEditTask(task.id)}
+        onPress={() => handleEditTask(task.id.toString())}
         activeOpacity={0.7}
       >
         <TouchableOpacity
           style={[
             styles.checkbox,
-            task.completed && styles.checkedBox
+            task.isCompleted && styles.checkedBox
           ]}
-          onPress={() => toggleCompleted(task.id)}
+          onPress={() => updateTask(task.id, { isCompleted: !task.isCompleted })}
         >
-          {task.completed && <View style={styles.checkmark} />}
+          {task.isCompleted && <View style={styles.checkmark} />}
         </TouchableOpacity>
         
         <View style={styles.taskContent}>
           <Text 
             style={[
               styles.taskTitle,
-              task.completed && styles.completedTaskText
+              task.isCompleted && styles.completedTaskText
             ]}
             numberOfLines={1}
           >
@@ -215,7 +211,7 @@ const TasksScreen = () => {
             <Text 
               style={[
                 styles.taskDescription,
-                task.completed && styles.completedTaskText
+                task.isCompleted && styles.completedTaskText
               ]}
               numberOfLines={1}
             >
@@ -279,7 +275,7 @@ const TasksScreen = () => {
     </View>
   );
 
-  if (loading) {
+  if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.primary.main} />

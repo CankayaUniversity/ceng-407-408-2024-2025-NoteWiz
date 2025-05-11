@@ -13,7 +13,8 @@ import { Calendar, DateData } from 'react-native-calendars';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
-import { useTasks, Task } from '../contexts/TaskContext';
+import { useTasks } from '../contexts/TasksContext';
+import { Task } from '../contexts/TasksContext';
 import { COLORS, SHADOWS } from '../constants/theme';
 
 type CalendarScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -44,13 +45,14 @@ const CalendarScreen: React.FC = () => {
     // Görevleri tarihlere göre grupla
     tasks.forEach(task => {
       if (task.dueDate) {
-        const dateStr = new Date(task.dueDate).toISOString().split('T')[0];
+        const dateStr = task.dueDate.substring(0, 10);
+        console.log('Task:', task.title, 'dueDate:', task.dueDate, 'dateStr:', dateStr);
         
         // İşaretli tarihler için ayarlar
         newMarkedDates[dateStr] = {
           ...newMarkedDates[dateStr],
           marked: true,
-          dotColor: task.completed ? COLORS.success.main : COLORS.primary.main,
+          dotColor: task.isCompleted ? COLORS.success.main : COLORS.primary.main,
           selected: dateStr === selectedDate
         };
 
@@ -61,6 +63,7 @@ const CalendarScreen: React.FC = () => {
         newDayTasks[dateStr].push(task);
       }
     });
+    console.log('Selected date:', selectedDate);
 
     // Seçili gün için işaretleme
     if (newMarkedDates[selectedDate]) {
@@ -75,6 +78,8 @@ const CalendarScreen: React.FC = () => {
     setMarkedDates(newMarkedDates);
     setDayTasks(newDayTasks);
     setSelectedDateTasks(newDayTasks[selectedDate] || []);
+    console.log('newDayTasks:', newDayTasks);
+    console.log('selectedDateTasks:', newDayTasks[selectedDate] || []);
   }, [tasks, selectedDate]);
 
   const handleDayPress = (day: DateData) => {
@@ -100,9 +105,7 @@ const CalendarScreen: React.FC = () => {
     // Saat bilgisini 12:00 olarak ayarla
     selectedDateObj.setHours(12, 0, 0, 0);
     
-    navigation.navigate('TaskDetail', { 
-      presetDueDate: selectedDateObj.toISOString() 
-    });
+    navigation.navigate('TaskDetail', {});
   };
 
   return (
@@ -142,38 +145,34 @@ const CalendarScreen: React.FC = () => {
       {selectedDateTasks.length > 0 ? (
         <FlatList
           data={selectedDateTasks}
-          keyExtractor={item => item.id}
+          keyExtractor={item => item.id.toString()}
           renderItem={({ item }) => (
             <TouchableOpacity 
               style={[
                 styles.taskItem,
-                item.completed && styles.completedTask
+                item.isCompleted && styles.completedTask
               ]}
-              onPress={() => handleTaskPress(item.id)}
+              onPress={() => handleTaskPress(item.id.toString())}
             >
               <View style={[
                 styles.priorityIndicator,
-                { 
-                  backgroundColor: 
-                    item.priority === 'high' ? '#FF3B30' :
-                    item.priority === 'medium' ? '#FF9500' : '#34C759'
-                }
+                { backgroundColor: '#34C759' }
               ]} />
               <View style={styles.taskContent}>
                 <Text style={[
                   styles.taskTitle,
-                  item.completed && styles.completedText
+                  item.isCompleted && styles.completedText
                 ]}>{item.title}</Text>
                 {item.description ? (
                   <Text style={[
                     styles.taskDescription,
-                    item.completed && styles.completedText
+                    item.isCompleted && styles.completedText
                   ]} numberOfLines={1}>{item.description}</Text>
                 ) : null}
               </View>
               <View style={[
                 styles.statusIndicator,
-                { backgroundColor: item.completed ? '#34C759' : '#E5E5EA' }
+                { backgroundColor: item.isCompleted ? '#34C759' : '#E5E5EA' }
               ]} />
             </TouchableOpacity>
           )}

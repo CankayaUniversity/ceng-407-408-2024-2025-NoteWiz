@@ -41,7 +41,7 @@ import {
 import { ThemeProvider } from './src/contexts/ThemeContext';
 import { AuthProvider } from './src/contexts/AuthContext';
 import { CategoriesProvider } from './src/contexts/CategoriesContext';
-import { TaskProvider } from './src/contexts/TaskContext';
+import { TasksProvider } from './src/contexts/TasksContext';
 import { NotificationProvider } from './src/contexts/NotificationContext';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -129,7 +129,7 @@ const App = () => {
           <NotificationProvider>
             <CategoriesProvider>
               <NoteProvider>
-                <TaskProvider>
+                <TasksProvider>
                   <DocumentProvider>
                     <NavigationContainer>
                       <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
@@ -212,7 +212,7 @@ const App = () => {
                       </Stack.Navigator>
                     </NavigationContainer>
                   </DocumentProvider>
-                </TaskProvider>
+                </TasksProvider>
               </NoteProvider>
             </CategoriesProvider>
           </NotificationProvider>

@@ -50,7 +50,7 @@ namespace NoteWiz.Infrastructure.Data
                 entity.Property(n => n.IsPinned)
                     .HasDefaultValue(false);
 
-                entity.Property(n => n.CoverImageUrl)
+                entity.Property(n => n.CoverImage)
                     .IsRequired(false);
 
                 entity.Property(n => n.Tags)

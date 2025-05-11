@@ -58,7 +58,7 @@ namespace NoteWiz.API.Controllers
                 Color = n.Color ?? "#FFFFFF",
                 CreatedAt = n.CreatedAt,
                 UpdatedAt = n.UpdatedAt,
-                CoverImageUrl = n.CoverImageUrl,
+                CoverImage = n.CoverImageUrl,
                 SharedWith = n.SharedWith?.Select(sw => new NoteShareResponseDTO
                 {
                     Id = sw.Id,
@@ -94,6 +94,7 @@ namespace NoteWiz.API.Controllers
                 Color = n.Color ?? "#FFFFFF",
                 CreatedAt = n.CreatedAt,
                 UpdatedAt = n.UpdatedAt,
+                CoverImage = n.CoverImageUrl,
                 SharedWith = n.SharedWith?.Select(sw => new NoteShareResponseDTO
                 {
                     Id = sw.Id,
@@ -129,6 +130,7 @@ namespace NoteWiz.API.Controllers
                 Color = n.Color ?? "#FFFFFF",
                 CreatedAt = n.CreatedAt,
                 UpdatedAt = n.UpdatedAt,
+                CoverImage = n.CoverImageUrl,
                 SharedWith = n.SharedWith?.Select(sw => new NoteShareResponseDTO
                 {
                     Id = sw.Id,
@@ -175,7 +177,7 @@ namespace NoteWiz.API.Controllers
                 Color = note.Color ?? "#FFFFFF",
                 CreatedAt = note.CreatedAt,
                 UpdatedAt = note.UpdatedAt,
-                CoverImageUrl = note.CoverImageUrl,
+                CoverImage = note.CoverImageUrl,
                 SharedWith = note.SharedWith?.Select(sw => new NoteShareResponseDTO
                 {
                     Id = sw.Id,
@@ -207,7 +209,7 @@ namespace NoteWiz.API.Controllers
                 IsPrivate = noteDTO.IsPrivate,
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow,
-                CoverImageUrl = noteDTO.CoverImageUrl
+                CoverImageUrl = noteDTO.CoverImage
             };
 
             note = await _noteService.CreateNoteAsync(note);
@@ -221,7 +223,7 @@ namespace NoteWiz.API.Controllers
                 Color = note.Color ?? "#FFFFFF",
                 CreatedAt = note.CreatedAt,
                 UpdatedAt = note.UpdatedAt,
-                CoverImageUrl = note.CoverImageUrl,
+                CoverImage = note.CoverImageUrl,
                 SharedWith = note.SharedWith?.Select(sw => new NoteShareResponseDTO
                 {
                     Id = sw.Id,
@@ -262,7 +264,7 @@ namespace NoteWiz.API.Controllers
             note.Content = noteDTO.Content;
             note.IsPrivate = noteDTO.IsPrivate;
             note.UpdatedAt = DateTime.UtcNow;
-            note.CoverImageUrl = noteDTO.CoverImageUrl;
+            note.CoverImageUrl = noteDTO.CoverImage;
 
             note = await _noteService.UpdateNoteAsync(note);
 
@@ -275,7 +277,7 @@ namespace NoteWiz.API.Controllers
                 Color = note.Color ?? "#FFFFFF",
                 CreatedAt = note.CreatedAt,
                 UpdatedAt = note.UpdatedAt,
-                CoverImageUrl = note.CoverImageUrl,
+                CoverImage = note.CoverImageUrl,
                 SharedWith = note.SharedWith?.Select(sw => new NoteShareResponseDTO
                 {
                     Id = sw.Id,

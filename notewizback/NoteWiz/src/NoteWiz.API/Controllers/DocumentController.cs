@@ -38,7 +38,8 @@ namespace NoteWiz.API.Controllers
                 {
                     await file.CopyToAsync(memoryStream);
                     var document = await _documentService.UploadDocumentAsync(memoryStream.ToArray(), file.FileName);
-                    return Ok(new { message = "Döküman başarıyla yüklendi", document });
+                    var publicUrl = $"{Request.Scheme}://{Request.Host}/Uploads/Documents/{document.FileName}";
+                    return Ok(new { message = "Döküman başarıyla yüklendi", fileUrl = publicUrl, document });
                 }
             }
             catch (UnauthorizedAccessException ex)

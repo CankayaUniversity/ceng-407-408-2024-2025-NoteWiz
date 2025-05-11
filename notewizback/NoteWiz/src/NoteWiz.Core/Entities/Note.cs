@@ -30,6 +30,12 @@ namespace NoteWiz.Core.Entities
 
         public bool IsPrivate { get; set; } = true; // Default to private
 
+        [NotMapped]
+        public string? CoverImage
+        {
+            get => CoverImageUrl;
+            set => CoverImageUrl = value;
+        }
         public string? CoverImageUrl { get; set; }
 
         public List<string> Tags { get; set; } = new();
