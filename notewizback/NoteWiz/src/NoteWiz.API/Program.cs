@@ -13,8 +13,23 @@ using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using NoteWiz.Core.Entities;
 using NoteWiz.API.Middleware;
+using Microsoft.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Load environment variables from .env file
+var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+if (File.Exists(envPath))
+{
+    foreach (var line in File.ReadAllLines(envPath))
+    {
+        var parts = line.Split('=', 2);
+        if (parts.Length == 2 && !line.StartsWith("#"))
+        {
+            Environment.SetEnvironmentVariable(parts[0].Trim(), parts[1].Trim());
+        }
+    }
+}
 
 // Kestrel sunucusunu yapılandır
 builder.WebHost.ConfigureKestrel(options =>
