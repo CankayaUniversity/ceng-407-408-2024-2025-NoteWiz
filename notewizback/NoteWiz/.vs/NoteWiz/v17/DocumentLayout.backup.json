@@ -1,0 +1,96 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|d:\\ceng-407-408-2024-2025-notewiz\\notewiz\\src\\notewiz.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|solutionrelative:src\\notewiz.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|d:\\ceng-407-408-2024-2025-notewiz\\notewiz\\src\\notewiz.api\\controllers\\documentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|solutionrelative:src\\notewiz.api\\controllers\\documentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506125717_RemoveDocumentUpload.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506125717_RemoveDocumentUpload.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506123907_AddDocumentTable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506123907_AddDocumentTable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 1,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedHeight": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.API\\Program.cs",
+              "RelativeDocumentMoniker": "src\\NoteWiz.API\\Program.cs",
+              "ToolTip": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.API\\Program.cs",
+              "RelativeToolTip": "src\\NoteWiz.API\\Program.cs",
+              "ViewState": "AgIAAC8BAAAAAAAAAAAjwEQBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-06T13:11:21.046Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "DocumentController.cs",
+              "DocumentMoniker": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.API\\Controllers\\DocumentController.cs",
+              "RelativeDocumentMoniker": "src\\NoteWiz.API\\Controllers\\DocumentController.cs",
+              "ToolTip": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.API\\Controllers\\DocumentController.cs",
+              "RelativeToolTip": "src\\NoteWiz.API\\Controllers\\DocumentController.cs",
+              "ViewState": "AgIAAA8AAAAAAAAAAAAAABgAAABSAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-06T12:59:31.967Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "20250506125717_RemoveDocumentUpload.cs",
+              "DocumentMoniker": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506125717_RemoveDocumentUpload.cs",
+              "RelativeDocumentMoniker": "src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506125717_RemoveDocumentUpload.cs",
+              "ToolTip": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506125717_RemoveDocumentUpload.cs",
+              "RelativeToolTip": "src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506125717_RemoveDocumentUpload.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-06T12:57:17.521Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "20250506123907_AddDocumentTable.cs",
+              "DocumentMoniker": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506123907_AddDocumentTable.cs",
+              "RelativeDocumentMoniker": "src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506123907_AddDocumentTable.cs",
+              "ToolTip": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506123907_AddDocumentTable.cs",
+              "RelativeToolTip": "src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506123907_AddDocumentTable.cs",
+              "ViewState": "AgIAAA4AAAAAAAAAAAAAwDMAAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-06T12:39:07.416Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
