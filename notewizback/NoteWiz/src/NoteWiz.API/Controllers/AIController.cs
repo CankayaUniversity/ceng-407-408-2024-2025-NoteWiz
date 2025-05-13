@@ -77,5 +77,25 @@ namespace NoteWiz.API.Controllers
                 return StatusCode(500, new { error = "An error occurred while processing your request" });
             }
         }
+
+        [HttpPost("ask")]
+        public async Task<IActionResult> Ask([FromBody] AIQuestionRequest request)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var answer = await _aiService.AskQuestionAsync(request.Question);
+
+            // Loglama için AIChatRequest ve AIChatResponse oluştur
+            var aiRequest = new AIChatRequest { Prompt = request.Question };
+            var aiResponse = new AIChatResponse { ResponseText = answer, IsSuccess = true, Timestamp = DateTime.UtcNow };
+
+            await _aiService.LogInteractionAsync(userId, aiRequest, aiResponse);
+
+            return Ok(new { answer });
+        }
+    }
+
+    public class AIQuestionRequest
+    {
+        public string Question { get; set; }
     }
 } 

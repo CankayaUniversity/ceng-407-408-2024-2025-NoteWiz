@@ -168,6 +168,15 @@ namespace NoteWiz.API.Controllers
                     return Forbid();
             }
 
+            bool isPdf = false;
+            string? pdfUrl = null;
+            int? documentId = note.DocumentId;
+            if (note.DocumentId.HasValue && note.Document != null)
+            {
+                isPdf = note.Document.FileName?.ToLower().EndsWith(".pdf") == true;
+                pdfUrl = $"/api/document/file/{note.Document.FileName}";
+            }
+
             return Ok(new NoteResponseDTO
             {
                 Id = note.Id,
@@ -194,7 +203,10 @@ namespace NoteWiz.API.Controllers
                         FullName = sw.SharedWithUser.FullName,
                         CreatedAt = sw.SharedWithUser.CreatedAt
                     } : null
-                }).ToList() ?? new List<NoteShareResponseDTO>()
+                }).ToList() ?? new List<NoteShareResponseDTO>(),
+                IsPdf = isPdf,
+                PdfUrl = pdfUrl,
+                DocumentId = documentId
             });
         }
 

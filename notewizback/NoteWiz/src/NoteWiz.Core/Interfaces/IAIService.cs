@@ -20,5 +20,7 @@ namespace NoteWiz.Core.Interfaces
         /// <param name="response">The AI chat response</param>
         /// <returns>Whether the interaction was successfully logged</returns>
         Task<bool> LogInteractionAsync(int userId, AIChatRequest request, AIChatResponse response);
+
+        Task<string> AskQuestionAsync(string question);
     }
 } 

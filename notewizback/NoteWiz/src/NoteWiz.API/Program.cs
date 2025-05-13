@@ -262,7 +262,7 @@ builder.Services.AddSignalR();
 // Add CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReactNative",
+    options.AddPolicy("AllowAll",
         builder =>
         {
             builder
@@ -350,7 +350,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // Use CORS
-app.UseCors("AllowReactNative");
+app.UseCors("AllowAll");
 
 // Use authentication and authorization
 app.UseAuthentication();

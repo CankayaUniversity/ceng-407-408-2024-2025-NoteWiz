@@ -15,6 +15,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { useDocuments } from '../contexts/DocumentContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotes } from '../contexts/NoteContext';
 import { COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '../constants/theme';
 import { PdfIcon, CloseIcon } from '../components/icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -26,6 +27,7 @@ const DocumentUploadScreen = () => {
   const { uploadDocument, loading, error } = useDocuments();
   const { token } = useAuth();
   const [uploadProgress, setUploadProgress] = useState(0);
+  const { createNote } = useNotes();
 
   const handleDocumentPick = async () => {
     try {
@@ -102,6 +104,24 @@ const DocumentUploadScreen = () => {
 
       if (!response.ok) {
         throw new Error(data.message || 'Yükleme başarısız');
+      }
+
+      if (data && data.document) {
+        try {
+          await createNote({
+            title: data.document.title || data.document.fileName || 'PDF Document',
+            content: 'PDF Document',
+            isPdf: true,
+            pdfUrl: data.fileUrl,
+            pdfName: data.document.fileName,
+            color: '#4C6EF5',
+            tags: [],
+            isImportant: false,
+            folderId: null
+          });
+        } catch (e) {
+          console.error('Not eklenirken hata:', e);
+        }
       }
 
       Alert.alert('Başarılı', 'Dosya başarıyla yüklendi');

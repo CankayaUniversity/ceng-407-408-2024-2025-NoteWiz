@@ -240,117 +240,115 @@ const NoteDetailScreen = () => {
   };
 
   // Set up header with additional options
- // NoteDetailScreen.tsx içindeki headerRight fonksiyonunda düzeltme
-// Sadece değiştirilmesi gereken kod parçası
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={styles.headerButtons}>
+          {/* PDF button */}
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={selectPdf}
+          >
+            <Text style={styles.headerButtonText}>📄 PDF</Text>
+          </TouchableOpacity>
+          
+          {/* Draw button */}
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => {
+              if (noteId) {
+                navigation.navigate('Drawing', { noteId: noteId.toString() });
+              } else {
+                Alert.alert('Error', 'Note ID is required');
+              }
+            }}
+          >
+            <Text style={styles.headerButtonText}>✏️ Draw</Text>
+          </TouchableOpacity>
+          
+          {/* More options button */}
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => setShowMoreOptions(!showMoreOptions)}
+          >
+            <Text style={styles.headerButtonText}>•••</Text>
+          </TouchableOpacity>
+          
+          {/* Save button */}
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={handleSave}
+          >
+            <Text style={styles.headerButtonText}>Save</Text>
+          </TouchableOpacity>
+        </View>
+      ),
+    });
+  }, [navigation, noteId, title, content, category, isImportant, isPdf, pdfUrl, pdfName, coverImage, showMoreOptions]);
 
-// Set up header with additional options
-useEffect(() => {
-  navigation.setOptions({
-    headerRight: () => (
-      <View style={styles.headerButtons}>
-        {/* PDF button */}
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={selectPdf}
-        >
-          <Text style={styles.headerButtonText}>📄 PDF</Text>
-        </TouchableOpacity>
-        
-        {/* Draw button */}
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => {
-            if (noteId) {
-              navigation.navigate('Drawing', { noteId: noteId.toString() });
-            } else {
-              Alert.alert('Error', 'Note ID is required');
-            }
-          }}
-        >
-          <Text style={styles.headerButtonText}>✏️ Draw</Text>
-        </TouchableOpacity>
-        
-        {/* More options button */}
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => setShowMoreOptions(!showMoreOptions)}
-        >
-          <Text style={styles.headerButtonText}>•••</Text>
-        </TouchableOpacity>
-        
-        {/* Save button */}
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={handleSave}
-        >
-          <Text style={styles.headerButtonText}>Save</Text>
-        </TouchableOpacity>
-      </View>
-    ),
-  });
-}, [navigation, noteId, title, content, category, isImportant, isPdf, pdfUrl, pdfName, coverImage, showMoreOptions]);
-// Modified handleSave function for NoteDetailScreen.tsx
-const handleSave = async () => {
-  console.log('handleSave fonksiyonu çağrıldı');
-  console.log('handleSave state:', { isPdf, pdfUrl, pdfName });
-  if (!isPdf && !title.trim()) {
-    Alert.alert('Warning', 'Please enter a title');
-    return;
-  }
-  setIsLoading(true);
-  try {
-    let finalPdfUrl = pdfUrl;
-    if (isPdf && pdfUrl && !pdfUrl.startsWith('https://')) {
-      console.log('handleSave: uploadPdf çağrılıyor');
-      finalPdfUrl = await uploadPdf(pdfUrl, pdfName);
-      console.log('handleSave: uploadPdf tamamlandı, finalPdfUrl:', finalPdfUrl);
-      if (!finalPdfUrl) {
-        Alert.alert('Hata', 'PDF yüklenemedi.');
-        setIsLoading(false);
-        return;
+  // Modified handleSave function for NoteDetailScreen.tsx
+  const handleSave = async () => {
+    console.log('handleSave fonksiyonu çağrıldı');
+    console.log('handleSave state:', { isPdf, pdfUrl, pdfName });
+    if (!isPdf && !title.trim()) {
+      Alert.alert('Warning', 'Please enter a title');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      let finalPdfUrl = pdfUrl;
+      if (isPdf && pdfUrl && !pdfUrl.startsWith('https://')) {
+        console.log('handleSave: uploadPdf çağrılıyor');
+        finalPdfUrl = await uploadPdf(pdfUrl, pdfName);
+        console.log('handleSave: uploadPdf tamamlandı, finalPdfUrl:', finalPdfUrl);
+        if (!finalPdfUrl) {
+          Alert.alert('Hata', 'PDF yüklenemedi.');
+          setIsLoading(false);
+          return;
+        }
       }
+      const categoryColorMap: { [key: string]: string } = {
+        'Work': '#4C6EF5',
+        'Personal': '#15AABF',
+        'Shopping': '#40C057',
+        'Ideas': '#FD7E14',
+        'To-Do': '#F06595',
+        'Other': '#7950F2'
+      };
+      const colorCode = categoryColorMap[category] || '#CCCCCC';
+      const allCovers = Object.values(COVER_OPTIONS).flat();
+      const selectedCover = allCovers.find(c => c.id === selectedCoverId);
+      const noteData: any = {
+        title: title?.trim() || (isPdf ? pdfName : 'Note'),
+        content: isPdf ? 'PDF Document' : (content?.trim() || ''),
+        tags: [],
+        color: colorCode,
+        isPinned: isImportant,
+        folderId: folderId,
+        // TEST: Her zaman gerçek bir Unsplash URL'si gönder
+        coverImage: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb',
+      };
+      if (isPdf) {
+        noteData.pdfUrl = finalPdfUrl;
+        noteData.pdfName = pdfName;
+        noteData.isPdf = true;
+      }
+      console.log("Saving note data:", noteData);
+      if (noteId) {
+        await updateNote(noteId.toString(), noteData);
+      } else {
+        await createNote(noteData);
+      }
+      Alert.alert('Başarılı', 'Not ve PDF başarıyla kaydedildi!');
+      navigation.goBack();
+    } catch (error) {
+      console.error('Error saving note:', error);
+      Alert.alert('Error', 'Failed to save note');
+    } finally {
+      setIsLoading(false);
     }
-    const categoryColorMap: { [key: string]: string } = {
-      'Work': '#4C6EF5',
-      'Personal': '#15AABF',
-      'Shopping': '#40C057',
-      'Ideas': '#FD7E14',
-      'To-Do': '#F06595',
-      'Other': '#7950F2'
-    };
-    const colorCode = categoryColorMap[category] || '#CCCCCC';
-    const allCovers = Object.values(COVER_OPTIONS).flat();
-    const selectedCover = allCovers.find(c => c.id === selectedCoverId);
-    const noteData: any = {
-      title: title?.trim() || (isPdf ? pdfName : 'Note'),
-      content: isPdf ? 'PDF Document' : (content?.trim() || ''),
-      tags: [],
-      color: colorCode,
-      isPinned: isImportant,
-      folderId: folderId,
-      // TEST: Her zaman gerçek bir Unsplash URL'si gönder
-      coverImage: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb',
-    };
-    if (isPdf) {
-      noteData.pdfUrl = finalPdfUrl;
-      noteData.pdfName = pdfName;
-      noteData.isPdf = true;
-    }
-    console.log("Saving note data:", noteData);
-    if (noteId) {
-      await updateNote(noteId.toString(), noteData);
-    } else {
-      await createNote(noteData);
-    }
-    Alert.alert('Başarılı', 'Not ve PDF başarıyla kaydedildi!');
-    navigation.goBack();
-  } catch (error) {
-    console.error('Error saving note:', error);
-    Alert.alert('Error', 'Failed to save note');
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
+
   const handleDelete = () => {
     Alert.alert(
       'Delete Note',

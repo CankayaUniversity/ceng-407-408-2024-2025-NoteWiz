@@ -58,6 +58,7 @@ export const NoteCard: React.FC<NoteCardProps> = ({
 
   // Check if the note has a cover image
   const hasCover = note.coverImage !== undefined && note.coverImage !== null;
+  const isPdf = note.isPdf;
 
   return (
     <AnimatedTouchable
@@ -81,6 +82,11 @@ export const NoteCard: React.FC<NoteCardProps> = ({
             style={styles.coverImage}
             resizeMode="cover"
           />
+          {isPdf && (
+            <View style={styles.pdfBadge}>
+              <PdfIcon size={16} color="#FFFFFF" />
+            </View>
+          )}
         </View>
       )}
 
@@ -105,9 +111,16 @@ export const NoteCard: React.FC<NoteCardProps> = ({
 
         {/* Middle section - title and content */}
         <View style={styles.textContainer}>
-          <Text style={styles.title} numberOfLines={2}>
-            {note.title}
-          </Text>
+          <View style={styles.header}>
+            <Text style={styles.title} numberOfLines={2}>
+              {note.title}
+            </Text>
+            {note.isImportant && (
+              <View style={styles.importantBadge}>
+                <Text style={styles.importantText}>!</Text>
+              </View>
+            )}
+          </View>
           
           {/* For PDFs show the filename, for notes show content preview */}
           {note.isPdf ? (
@@ -123,15 +136,17 @@ export const NoteCard: React.FC<NoteCardProps> = ({
           )}
 
           <View style={styles.footer}>
+            <View style={[styles.categoryBadge, { backgroundColor: categoryColor }]}>
+              <Text style={[styles.category, { color: categoryColor }]}>
+                {category?.name || 'Uncategorized'}
+              </Text>
+            </View>
             <Text style={styles.date}>
               {new Date(note.updatedAt).toLocaleDateString('tr-TR', {
                 day: 'numeric',
                 month: 'short',
                 year: 'numeric'
               })}
-            </Text>
-            <Text style={[styles.category, { color: categoryColor }]}>
-              {category?.name || 'Uncategorized'}
             </Text>
           </View>
         </View>
@@ -164,11 +179,20 @@ const styles = StyleSheet.create({
   coverImageContainer: {
     width: '100%',
     height: 120,
+    position: 'relative',
   } as ViewStyle,
   coverImage: {
     width: '100%',
     height: '100%',
   } as ImageStyle,
+  pdfBadge: {
+    position: 'absolute',
+    top: SPACING.sm,
+    right: SPACING.sm,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: 12,
+    padding: SPACING.xs,
+  } as ViewStyle,
   content: {
     flexDirection: 'row',
     padding: SPACING.md,
@@ -189,12 +213,31 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: SPACING.md,
   } as ViewStyle,
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: SPACING.xs,
+  } as ViewStyle,
   title: {
     fontSize: TYPOGRAPHY.sizes.md,
     fontWeight: TYPOGRAPHY.weights.semibold as "600",
     color: COLORS.text.primary,
-    marginBottom: SPACING.xs,
-    lineHeight: 22,
+    flex: 1,
+    marginRight: SPACING.xs,
+  } as TextStyle,
+  importantBadge: {
+    backgroundColor: COLORS.error.main,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  } as ViewStyle,
+  importantText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
   } as TextStyle,
   preview: {
     fontSize: TYPOGRAPHY.sizes.sm,
@@ -206,10 +249,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   } as ViewStyle,
-  date: {
-    fontSize: TYPOGRAPHY.sizes.xs,
-    color: COLORS.text.secondary,
-  } as TextStyle,
+  categoryBadge: {
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: 12,
+  } as ViewStyle,
   category: {
     fontSize: TYPOGRAPHY.sizes.xs,
     fontWeight: TYPOGRAPHY.weights.medium as "500",

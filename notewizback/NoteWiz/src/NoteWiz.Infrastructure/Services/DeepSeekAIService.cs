@@ -33,9 +33,9 @@ namespace NoteWiz.Infrastructure.Services
             _configuration = configuration;
             _unitOfWork = unitOfWork;
             
-            // API yapılandırmasını yükle
-            _apiKey = _configuration["AI:DeepSeek:ApiKey"];
-            _apiEndpoint = _configuration["AI:DeepSeek:Endpoint"] ?? "https://api.deepseek.com/v1/chat/completions";
+            // API anahtarını environment variable veya appsettings.json'dan oku
+            _apiKey = _configuration["HuggingFace:ApiKey"] ?? Environment.GetEnvironmentVariable("HUGGINGFACE_API_KEY");
+            _apiEndpoint = "https://api-inference.huggingface.co/models/google-bert/bert-large-uncased-whole-word-masking-finetuned-squad";
             
             // HTTP istemcisini yapılandır
             _httpClient.DefaultRequestHeaders.Accept.Clear();
@@ -50,60 +50,39 @@ namespace NoteWiz.Infrastructure.Services
             
             try
             {
-                // DeepSeek için mesaj formatını hazırla
-                var messages = new List<object>();
-                
-                // Önceki mesajları ekle
-                foreach (var prevMessage in request.PreviousMessages)
-                {
-                    messages.Add(new
-                    {
-                        role = prevMessage.Role,
-                        content = prevMessage.Content
-                    });
-                }
-                
-                // Kullanıcı mesajını ekle
-                messages.Add(new
-                {
-                    role = "user",
-                    content = request.Prompt
-                });
-                
-                // API isteği için JSON oluştur
+                // Hugging Face question-answering modeli için uygun format
+                var question = request.Prompt;
+                var context = request.Context ?? request.Prompt; // Eğer context yoksa prompt'u kullan
                 var requestBody = new
                 {
-                    model = "deepseek-chat",
-                    messages,
-                    max_tokens = request.MaxTokens,
-                    temperature = request.Temperature
+                    inputs = new {
+                        question = question,
+                        context = context
+                    }
                 };
-                
                 var jsonRequest = JsonConvert.SerializeObject(requestBody);
                 var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
                 
-                // DeepSeek API'sine istek gönder
+                // Hugging Face API'sine istek gönder
                 var httpResponse = await _httpClient.PostAsync(_apiEndpoint, content);
                 
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var jsonResponse = await httpResponse.Content.ReadAsStringAsync();
                     dynamic responseData = JsonConvert.DeserializeObject(jsonResponse);
-                    
                     response.IsSuccess = true;
-                    response.ResponseText = responseData.choices[0].message.content;
-                    response.TokensUsed = responseData.usage.total_tokens;
+                    response.ResponseText = responseData.answer ?? string.Empty;
                 }
                 else
                 {
                     var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    _logger.LogError($"DeepSeek API Error: {httpResponse.StatusCode}, {errorContent}");
+                    _logger.LogError($"Hugging Face API Error: {httpResponse.StatusCode}, {errorContent}");
                     response.ErrorMessage = $"API Error: {httpResponse.StatusCode}, {errorContent}";
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error calling DeepSeek API");
+                _logger.LogError(ex, "Error calling Hugging Face API");
                 response.ErrorMessage = $"Exception: {ex.Message}";
             }
             
@@ -149,6 +128,13 @@ namespace NoteWiz.Infrastructure.Services
         {
             // İstek başına maliyet (1000 token başına yaklaşık $0.002)
             return tokens * 0.000002m;
+        }
+
+        public async Task<string> AskQuestionAsync(string question)
+        {
+            var request = new AIChatRequest { Prompt = question };
+            var response = await GetResponseAsync(request);
+            return response?.ResponseText ?? string.Empty;
         }
     }
 } 

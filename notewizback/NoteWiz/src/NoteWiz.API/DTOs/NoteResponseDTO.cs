@@ -51,5 +51,10 @@ namespace NoteWiz.API.DTOs
         public List<NoteShareResponseDTO> SharedWith { get; set; } = new();
 
         public string? CoverImage { get; set; }
+        
+        // PDF/Doküman desteği için ek alanlar
+        public bool IsPdf { get; set; } = false;
+        public string? PdfUrl { get; set; }
+        public int? DocumentId { get; set; }
     }
 } 

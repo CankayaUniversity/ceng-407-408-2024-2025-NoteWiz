@@ -8,5 +8,6 @@ namespace NoteWiz.Core.Models.AI
         public int? MaxTokens { get; set; } = 1024;
         public float? Temperature { get; set; } = 0.7f;
         public List<AIChatMessage> PreviousMessages { get; set; } = new List<AIChatMessage>();
+        public string? Context { get; set; }
     }
 } 

@@ -149,6 +149,17 @@ namespace NoteWiz.API.Controllers
                 return StatusCode(500, new { message = "Döküman silinirken bir hata oluştu" });
             }
         }
+
+        [HttpGet("file/{fileName}")]
+        public IActionResult GetFile(string fileName)
+        {
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads", fileName);
+            if (!System.IO.File.Exists(filePath))
+                return NotFound();
+            
+            var fileBytes = System.IO.File.ReadAllBytes(filePath);
+            return File(fileBytes, "application/pdf", fileName);
+        }
     }
 
     public class UpdateDocumentRequest

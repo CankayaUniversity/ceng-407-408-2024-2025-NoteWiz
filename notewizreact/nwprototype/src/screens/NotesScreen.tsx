@@ -493,7 +493,7 @@ const NotesScreen: React.FC = () => {
       >
         <NoteCard
           note={{
-            id: item.id.toString(),
+            id: typeof item.id === 'number' ? item.id.toString() : (typeof item.id === 'string' ? item.id : ''),
             title: item.title,
             content: item.content || '',
             isImportant: item.isPinned || false,
@@ -501,23 +501,23 @@ const NotesScreen: React.FC = () => {
             isPdf: item.isPdf,
             pdfUrl: item.pdfUrl,
             pdfName: item.pdfName,
-            coverImage: item.coverImage
+            coverImage: typeof item.coverImage === 'string' ? { uri: item.coverImage } : item.coverImage
           }}
           category={{
-            id: categoryObj?.id?.toString() || '',
+            id: categoryObj?.id ? (typeof categoryObj.id === 'number' ? categoryObj.id.toString() : (typeof categoryObj.id === 'string' ? categoryObj.id : '')) : '',
             name: categoryObj?.name || '',
             color: categoryObj?.color
           }}
           onPress={() => navigation.navigate('NoteDetail', {
-            noteId: item.id.toString(),
+            noteId: typeof item.id === 'number' ? item.id.toString() : (typeof item.id === 'string' ? item.id : ''),
             title: item.title,
             content: item.content,
             category: item.category,
             isImportant: item.isPinned || false,
             color: categoryObj?.color,
-            folderId: item.folderId ? item.folderId.toString() : null
+            folderId: item.folderId ? (typeof item.folderId === 'number' ? item.folderId.toString() : (typeof item.folderId === 'string' ? item.folderId : '')) : null
           })}
-          onLongPress={() => handleNoteOptions(item.id.toString())}
+          onLongPress={() => handleNoteOptions(typeof item.id === 'number' ? item.id.toString() : (typeof item.id === 'string' ? item.id : ''))}
         />
       </Animated.View>
     );

@@ -2,15 +2,17 @@
 import { apiClient } from './newApi';
 import { Alert } from 'react-native';
 
-const API_BASE_URL = 'http://localhost:5263/api/ai'; // Adjust if needed
+const API_BASE_URL = 'http://10.0.2.2:5263/api/ai'; // Adjust if needed
 
 /**
  * Genel AI fonksiyonu: prompt gönderir
  */
 export const askAI = async (prompt: string) => {
+  console.log('askAI çağrıldı:', prompt);
   try {
-    const response = await apiClient.post(`${API_BASE_URL}/ask`, { prompt });
-    return response.data.response;
+    const response = await apiClient.post(`${API_BASE_URL}/ask`, { Question: prompt });
+    console.log('askAI response:', response.data);
+    return response.data.answer;
   } catch (error) {
     console.error('askAI error:', error);
     throw error;
