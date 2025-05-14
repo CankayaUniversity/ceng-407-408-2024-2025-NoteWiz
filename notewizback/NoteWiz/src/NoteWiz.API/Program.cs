@@ -153,6 +153,14 @@ builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IAIService, DeepSeekAIService>();
 builder.Services.AddScoped<IDrawingService, DrawingService>();
+builder.Services.AddScoped<NoteShareService>(sp => 
+{
+    var noteShareRepository = sp.GetRequiredService<INoteShareRepository>();
+    var noteRepository = sp.GetRequiredService<INoteRepository>();
+    var userRepository = sp.GetRequiredService<IUserRepository>();
+    var baseUrl = builder.Configuration["AppSettings:BaseUrl"] ?? "http://localhost:3000";
+    return new NoteShareService(noteShareRepository, noteRepository, userRepository, baseUrl);
+});
 builder.Services.AddHttpClient<IAIService, DeepSeekAIService>();
 
 // Add memory cache for rate limiting
@@ -169,14 +177,14 @@ builder.Services.AddAuthentication(options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidIssuer = builder.Configuration["AppSettings:JWT:Issuer"],
         ValidateAudience = true,
-        ValidAudience = builder.Configuration["Jwt:Audience"],
+        ValidAudience = builder.Configuration["AppSettings:JWT:Audience"],
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "DefaultDevKeyForTesting12345678901234567890")),
-        ClockSkew = TimeSpan.FromMinutes(1), // 1 dakika tolerans
+            Encoding.UTF8.GetBytes(builder.Configuration["AppSettings:JWT:SecretKey"] ?? "DefaultDevKeyForTesting12345678901234567890")),
+        ClockSkew = TimeSpan.FromMinutes(1),
         RequireExpirationTime = true,
         RequireSignedTokens = true,
         SaveSigninToken = true
@@ -221,9 +229,9 @@ builder.Services.AddAuthentication(options =>
                 logger.LogError("Invalid Authorization header format");
             }
 
-            logger.LogError("Issuer: {Issuer}", builder.Configuration["Jwt:Issuer"]);
-            logger.LogError("Audience: {Audience}", builder.Configuration["Jwt:Audience"]);
-            logger.LogError("Key: {Key}", builder.Configuration["Jwt:Key"]);
+            logger.LogError("Issuer: {Issuer}", builder.Configuration["AppSettings:JWT:Issuer"]);
+            logger.LogError("Audience: {Audience}", builder.Configuration["AppSettings:JWT:Audience"]);
+            logger.LogError("Key: {Key}", builder.Configuration["AppSettings:JWT:SecretKey"]);
             return Task.CompletedTask;
         },
         OnTokenValidated = context =>
@@ -256,8 +264,8 @@ builder.Services.AddAuthentication(options =>
                 logger.LogWarning("Invalid Authorization header format");
             }
 
-            logger.LogWarning("Issuer: {Issuer}", builder.Configuration["Jwt:Issuer"]);
-            logger.LogWarning("Audience: {Audience}", builder.Configuration["Jwt:Audience"]);
+            logger.LogWarning("Issuer: {Issuer}", builder.Configuration["AppSettings:JWT:Issuer"]);
+            logger.LogWarning("Audience: {Audience}", builder.Configuration["AppSettings:JWT:Audience"]);
             return Task.CompletedTask;
         }
     };

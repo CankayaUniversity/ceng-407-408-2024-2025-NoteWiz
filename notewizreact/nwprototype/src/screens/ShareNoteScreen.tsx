@@ -10,50 +10,106 @@ import {
   Alert,
   SafeAreaView,
   Switch,
+  Modal,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { ShareNoteScreenRouteProp, ShareNoteScreenNavigationProp } from '../types/navigation';
 import { useShares } from '../contexts/ShareContext';
+import { useAuth } from '../contexts/AuthContext';
 import { COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '../constants/theme';
-import { SearchIcon, ShareIcon, UserIcon } from '../components/icons';
+import { SearchIcon, ShareIcon } from '../components/icons';
+import { friendshipService } from '../services/newApi';
+import { apiClient } from '../services/newApi';
+
+interface Friend {
+  id: number;
+  username: string;
+  fullName?: string;
+  email?: string;
+}
 
 const ShareNoteScreen = () => {
   const route = useRoute<ShareNoteScreenRouteProp>();
   const navigation = useNavigation<ShareNoteScreenNavigationProp>();
-  const { noteId } = route.params;
+  const noteId = route?.params?.noteId;
   const { shareNote, getNoteShares, loading, error } = useShares();
+  const { user } = useAuth();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<any[]>([]);
   const [canEdit, setCanEdit] = useState(false);
   const [existingShares, setExistingShares] = useState<any[]>([]);
-
-  // Örnek kullanıcı listesi - Gerçek uygulamada API'den gelecek
-  const [users] = useState([
-    { id: 1, fullName: 'John Doe', email: 'john@example.com' },
-    { id: 2, fullName: 'Jane Smith', email: 'jane@example.com' },
-    { id: 3, fullName: 'Alice Johnson', email: 'alice@example.com' },
-  ]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [emailToShare, setEmailToShare] = useState<string | null>(null);
+  const [shareModalVisible, setShareModalVisible] = useState(false);
+  const [shareMethod, setShareMethod] = useState<'friends' | 'email' | 'other' | null>(null);
+  const [emailModalVisible, setEmailModalVisible] = useState(false);
 
   useEffect(() => {
+    if (!noteId) {
+      console.error('noteId is undefined!');
+      return;
+    }
     loadExistingShares();
+    fetchFriends();
   }, [noteId]);
 
   const loadExistingShares = async () => {
+    if (!noteId) {
+      console.error('loadExistingShares: noteId is undefined!');
+      setExistingShares([]);
+      return;
+    }
     try {
       const shares = await getNoteShares(noteId);
+      console.log('API shares response:', shares);
+      if (!Array.isArray(shares)) {
+        setExistingShares([]);
+        return;
+      }
       setExistingShares(shares);
     } catch (err) {
       console.error('Error loading shares:', err);
     }
   };
 
+  const fetchFriends = async () => {
+    if (!user) return;
+    try {
+      const res = await apiClient.get('/friendship');
+      const allFriends: Friend[] = res.data.map((f: any) => {
+        if (f.friend && f.friend.id !== user.id) return f.friend;
+        if (f.user && f.user.id !== user.id) return f.user;
+        return null;
+      }).filter((f: Friend | null) => f && f.id !== user.id);
+      const uniqueFriends: Friend[] = Array.from(new Map(allFriends.map(f => [f.id, f])).values());
+      setUsers(uniqueFriends as Friend[]);
+    } catch (err) {
+      setUsers([]);
+    }
+  };
+
   const filteredUsers = users.filter(user => {
-    const isAlreadyShared = existingShares.some(share => share.sharedWithUserId === user.id);
-    const matchesSearch = user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const isAlreadyShared = existingShares.some(
+      share => {
+        const sharedId = String(share.sharedWithUserId);
+        const userId = String(user.id);
+        if (sharedId === userId) {
+          console.log('Zaten paylaşılmış:', { sharedId, userId });
+        }
+        return sharedId === userId;
+      }
+    );
+    const matchesSearch =
+      (user.fullName && user.fullName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase()));
     return !isAlreadyShared && matchesSearch;
   });
+
+  const isValidEmail = (email: string) => /\S+@\S+\.\S+/.test(email);
+  const showEmailShareOption =
+    searchQuery.length > 0 &&
+    isValidEmail(searchQuery);
 
   const handleUserSelect = (user: any) => {
     const isSelected = selectedUsers.some(u => u.id === user.id);
@@ -62,14 +118,23 @@ const ShareNoteScreen = () => {
     } else {
       setSelectedUsers([...selectedUsers, user]);
     }
+    setEmailToShare(null);
+  };
+
+  const handleEmailShareSelect = () => {
+    setSelectedUsers([]);
+    setEmailToShare(searchQuery);
   };
 
   const handleShare = async () => {
-    if (selectedUsers.length === 0) {
-      Alert.alert('Uyarı', 'Lütfen en az bir kullanıcı seçin');
+    if (!noteId) {
+      Alert.alert('Hata', 'Note ID bulunamadı!');
       return;
     }
-
+    if (selectedUsers.length === 0 && !emailToShare) {
+      Alert.alert('Uyarı', 'Lütfen en az bir kullanıcı veya e-posta seçin');
+      return;
+    }
     try {
       for (const user of selectedUsers) {
         await shareNote(noteId, {
@@ -77,7 +142,12 @@ const ShareNoteScreen = () => {
           canEdit,
         });
       }
-
+      if (emailToShare) {
+        await shareNote(noteId, {
+          sharedWithEmail: emailToShare,
+          canEdit,
+        });
+      }
       Alert.alert('Başarılı', 'Not başarıyla paylaşıldı');
       navigation.goBack();
     } catch (err) {
@@ -95,7 +165,8 @@ const ShareNoteScreen = () => {
         onPress={() => handleUserSelect(item)}
       >
         <View style={styles.userIcon}>
-          <UserIcon size={24} color={COLORS.primary.main} />
+          {/* UserIcon ile ilgili satırı kaldırıyorum:
+          <UserIcon size={24} color={COLORS.primary.main} /> */}
         </View>
         <View style={styles.userInfo}>
           <Text style={styles.userName}>{item.fullName}</Text>
@@ -105,6 +176,29 @@ const ShareNoteScreen = () => {
     );
   };
 
+  const openShareModal = () => setShareModalVisible(true);
+  const closeShareModal = () => setShareModalVisible(false);
+
+  const handleShareMethodSelect = (method: 'friends' | 'email' | 'other') => {
+    setShareMethod(method);
+    setShareModalVisible(false);
+    if (method === 'email') setEmailModalVisible(true);
+  };
+
+  const closeEmailModal = () => {
+    setEmailModalVisible(false);
+    setShareMethod(null);
+    setSearchQuery('');
+  };
+
+  if (!noteId) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ color: 'red', fontSize: 18 }}>Not bulunamadı veya parametre eksik!</Text>
+      </View>
+    );
+  }
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -113,8 +207,83 @@ const ShareNoteScreen = () => {
     );
   }
 
-  return (
-    <SafeAreaView style={styles.container}>
+  const renderShareModal = () => (
+    <Modal
+      visible={shareModalVisible}
+      transparent
+      animationType="slide"
+      onRequestClose={closeShareModal}
+    >
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.3)' }}>
+        <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 24, width: '80%' }}>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 24, textAlign: 'center' }}>Nasıl paylaşmak istersin?</Text>
+          <TouchableOpacity style={{ marginBottom: 16, backgroundColor: COLORS.primary.main, borderRadius: 8, padding: 16 }} onPress={() => handleShareMethodSelect('friends')}>
+            <Text style={{ color: '#fff', fontWeight: 'bold', textAlign: 'center' }}>Arkadaşlarım ile paylaş</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={{ marginBottom: 16, backgroundColor: COLORS.primary.main, borderRadius: 8, padding: 16 }} onPress={() => handleShareMethodSelect('email')}>
+            <Text style={{ color: '#fff', fontWeight: 'bold', textAlign: 'center' }}>E-posta ile paylaş</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={{ backgroundColor: COLORS.primary.light, borderRadius: 8, padding: 16 }} onPress={() => handleShareMethodSelect('other')}>
+            <Text style={{ color: COLORS.primary.main, fontWeight: 'bold', textAlign: 'center' }}>Diğer</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={{ marginTop: 16, alignSelf: 'center' }} onPress={closeShareModal}>
+            <Text style={{ color: COLORS.text.secondary }}>Vazgeç</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+
+  const renderEmailShareModal = () => (
+    <Modal
+      visible={emailModalVisible}
+      transparent
+      animationType="fade"
+      onRequestClose={closeEmailModal}
+    >
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.3)' }}>
+        <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 24, width: '80%' }}>
+          <Text style={{ fontSize: 16, marginBottom: 16, textAlign: 'center' }}>E-posta adresi gir:</Text>
+          <TextInput
+            style={{
+              width: '100%',
+              marginBottom: 24,
+              color: '#222',
+              backgroundColor: 'white',
+              borderRadius: 8,
+              padding: 12,
+              fontSize: 16
+            }}
+            placeholder="ornek@mail.com"
+            placeholderTextColor="#888"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+          <TouchableOpacity
+            style={[styles.shareButton, !isValidEmail(searchQuery) && styles.shareButtonDisabled]}
+            onPress={async () => {
+              if (!isValidEmail(searchQuery)) return;
+              setEmailToShare(searchQuery);
+              await handleShare();
+              closeEmailModal();
+            }}
+            disabled={!isValidEmail(searchQuery)}
+          >
+            <ShareIcon size={20} color={COLORS.text.primary} />
+            <Text style={styles.shareButtonText}>E-posta ile Paylaş</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={{ marginTop: 16, alignSelf: 'center' }} onPress={closeEmailModal}>
+            <Text style={{ color: COLORS.text.secondary }}>Vazgeç</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+
+  const renderFriendsShare = () => (
+    <>
       <View style={styles.searchContainer}>
         <SearchIcon size={20} color={COLORS.text.secondary} />
         <TextInput
@@ -122,15 +291,14 @@ const ShareNoteScreen = () => {
           placeholder="Kullanıcı ara..."
           value={searchQuery}
           onChangeText={setSearchQuery}
+          autoCapitalize="none"
         />
       </View>
-
       {error && (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
         </View>
       )}
-
       <FlatList
         data={filteredUsers}
         renderItem={renderUserItem}
@@ -144,24 +312,22 @@ const ShareNoteScreen = () => {
           </View>
         )}
       />
-
       <View style={styles.footer}>
         <View style={styles.permissionToggle}>
           <Text style={styles.permissionText}>Düzenleme izni ver</Text>
           <Switch
             value={canEdit}
             onValueChange={setCanEdit}
-            trackColor={{ false: COLORS.neutral[300], true: COLORS.primary.light }}
-            thumbColor={canEdit ? COLORS.primary.main : COLORS.neutral[100]}
+            trackColor={{ false: COLORS.primary.light, true: COLORS.primary.main }}
+            thumbColor={canEdit ? COLORS.primary.main : COLORS.primary.light}
           />
         </View>
-
         <TouchableOpacity
           style={[styles.shareButton, selectedUsers.length === 0 && styles.shareButtonDisabled]}
           onPress={handleShare}
           disabled={selectedUsers.length === 0}
         >
-          <ShareIcon size={20} color="#FFFFFF" />
+          <ShareIcon size={20} color={COLORS.text.primary} />
           <Text style={styles.shareButtonText}>
             {selectedUsers.length > 0
               ? `${selectedUsers.length} Kişi ile Paylaş`
@@ -169,6 +335,41 @@ const ShareNoteScreen = () => {
           </Text>
         </TouchableOpacity>
       </View>
+    </>
+  );
+
+  const renderOtherShare = () => (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+      <Text style={{ fontSize: 16, marginBottom: 16 }}>Paylaşım linki oluştur:</Text>
+      <TouchableOpacity
+        style={styles.shareButton}
+        onPress={() => {
+          Alert.alert('Link paylaşımı', 'Bu özellik yakında!');
+        }}
+      >
+        <ShareIcon size={20} color={COLORS.text.primary} />
+        <Text style={styles.shareButtonText}>Link Kopyala</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={{ marginTop: 16 }} onPress={() => setShareMethod(null)}>
+        <Text style={{ color: COLORS.text.secondary }}>Geri dön</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {renderShareModal()}
+      {renderEmailShareModal()}
+      {shareMethod === 'friends' && renderFriendsShare()}
+      {shareMethod === 'other' && renderOtherShare()}
+      {shareMethod === null && (
+        <View style={styles.footer}>
+          <TouchableOpacity style={styles.shareButton} onPress={openShareModal}>
+            <ShareIcon size={20} color={COLORS.text.primary} />
+            <Text style={styles.shareButtonText}>Paylaş</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -197,6 +398,7 @@ const styles = StyleSheet.create({
     marginLeft: SPACING.sm,
     ...TYPOGRAPHY.body1,
     color: COLORS.text.primary,
+    fontWeight: '400',
   },
   errorContainer: {
     margin: SPACING.md,
@@ -207,6 +409,7 @@ const styles = StyleSheet.create({
   errorText: {
     ...TYPOGRAPHY.body2,
     color: COLORS.error.main,
+    fontWeight: 400,
   },
   listContent: {
     padding: SPACING.md,
@@ -236,12 +439,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   userName: {
-    ...TYPOGRAPHY.subtitle1,
+    ...TYPOGRAPHY.body1,
     color: COLORS.text.primary,
+    fontWeight: 400,
   },
   userEmail: {
     ...TYPOGRAPHY.body2,
     color: COLORS.text.secondary,
+    fontWeight: 400,
   },
   emptyContainer: {
     padding: SPACING.xl,
@@ -251,6 +456,7 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.body1,
     color: COLORS.text.secondary,
     textAlign: 'center',
+    fontWeight: 400,
   },
   footer: {
     padding: SPACING.md,
@@ -266,6 +472,7 @@ const styles = StyleSheet.create({
   permissionText: {
     ...TYPOGRAPHY.body1,
     color: COLORS.text.primary,
+    fontWeight: 400,
   },
   shareButton: {
     flexDirection: 'row',
@@ -276,12 +483,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   shareButtonDisabled: {
-    backgroundColor: COLORS.neutral[300],
+    backgroundColor: COLORS.primary.light,
   },
   shareButtonText: {
-    ...TYPOGRAPHY.button,
-    color: COLORS.text.inverted,
+    ...TYPOGRAPHY.body1,
+    color: COLORS.text.primary,
     marginLeft: SPACING.sm,
+    fontWeight: 400,
   },
 });
 

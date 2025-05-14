@@ -91,61 +91,13 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   };
 
   useEffect(() => {
-    const initializeNotifications = async () => {
-      const token = await AsyncStorage.getItem('userToken');
-      if (token) {
-        loadNotifications();
-        signalRService.initializeNotificationConnection();
-      }
-    };
-
-    initializeNotifications();
-
-    // Bildirim dinleyicilerini ekle
-    const notificationHandler = (notification: Notification) => {
-      loadNotifications();
-      showNotification(notification.title, notification.message);
-    };
-
-    const taskReminderHandler = ({ taskId, taskTitle }: { taskId: number; taskTitle: string }) => {
-      loadNotifications();
-      showNotification('Görev Hatırlatması', `"${taskTitle}" görevi için hatırlatma`);
-    };
-
-    const noteSharedHandler = ({ noteId, noteTitle, sharedByUsername }: { 
-      noteId: number; 
-      noteTitle: string; 
-      sharedByUsername: string 
-    }) => {
-      loadNotifications();
-      showNotification('Not Paylaşıldı', `${sharedByUsername} sizinle "${noteTitle}" notunu paylaştı`);
-    };
-
-    // Unauthorized event listener ekle
-    const unauthorizedHandler = () => {
-      setNotifications([]);
-      setUnreadCount(0);
-      signalRService.disconnect();
-    };
-
-    EventEmitter.on('unauthorized', unauthorizedHandler);
-    EventEmitter.on('onNotification', notificationHandler);
-    EventEmitter.on('onTaskReminder', taskReminderHandler);
-    EventEmitter.on('onNoteShared', noteSharedHandler);
-
-    return () => {
-      signalRService.disconnect();
-      EventEmitter.off('unauthorized', unauthorizedHandler);
-      EventEmitter.off('onNotification', notificationHandler);
-      EventEmitter.off('onTaskReminder', taskReminderHandler);
-      EventEmitter.off('onNoteShared', noteSharedHandler);
-    };
+    // Sadece loadNotifications çağrısı kalsın
+    loadNotifications();
   }, []);
 
   const markAsRead = async (notificationId: number) => {
     try {
       await apiClient.put(`/Notifications/${notificationId}/read`);
-      await signalRService.markNotificationAsRead(notificationId);
       await loadNotifications();
     } catch (error) {
       console.error('Error marking notification as read:', error);

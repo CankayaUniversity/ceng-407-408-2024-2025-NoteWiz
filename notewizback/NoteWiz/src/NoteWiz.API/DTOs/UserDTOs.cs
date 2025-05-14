@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using NoteWiz.Core.DTOs;
 
 namespace NoteWiz.API.DTOs
 {
@@ -32,12 +33,9 @@ namespace NoteWiz.API.DTOs
         public required string Password { get; set; }
     }
 
-    public class UserResponseDTO
+    public class LoginResponseDTO
     {
-        public int Id { get; set; }
-        public required string Username { get; set; }
-        public required string Email { get; set; }
-        public required string FullName { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public required string Token { get; set; }
+        public required UserResponseDTO User { get; set; }
     }
 } 
