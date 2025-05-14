@@ -289,7 +289,7 @@ const HomeScreen = () => {
           onPress={() => navigation.navigate('SharedNotes')}
         >
           <ShareIcon size={32} color={COLORS.primary.main} />
-          <Text style={styles.cardText}>Paylaşılan Notlar</Text>
+          <Text style={styles.cardText}>Eş Zamanlı Notlar</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

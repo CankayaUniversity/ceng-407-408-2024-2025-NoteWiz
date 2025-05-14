@@ -29,6 +29,7 @@ import FriendSearchScreen from './src/screens/FriendSearchScreen';
 import FriendRequestsScreen from './src/screens/FriendRequestsScreen';
 import FriendsListScreen from './src/screens/FriendsListScreen';
 import ShareNoteScreen from './src/screens/ShareNoteScreen';
+import CollaboratiNotesScreen from './src/screens/CollaboratiNotesScreen';
 
 // Types
 import { RootStackParamList, MainTabParamList } from './src/types/navigation';
@@ -254,10 +255,10 @@ const App = () => {
                           />
                           <Stack.Screen
                             name="SharedNotes"
-                            component={ShareNoteScreen}
+                            component={CollaboratiNotesScreen}
                             options={{
                               headerShown: true,
-                              headerTitle: 'Paylaşılan Notlar',
+                              headerTitle: 'Eş Zamanlı Notlar',
                               headerStyle: {
                                 backgroundColor: COLORS.background.default,
                               },
