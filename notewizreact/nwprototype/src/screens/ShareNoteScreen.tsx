@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,8 @@ import {
   Switch,
   Modal,
 } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+
+import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { ShareNoteScreenRouteProp, ShareNoteScreenNavigationProp } from '../types/navigation';
 import { useShares } from '../contexts/ShareContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -20,6 +21,7 @@ import { COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '../constants/theme';
 import { SearchIcon, ShareIcon } from '../components/icons';
 import { friendshipService } from '../services/newApi';
 import { apiClient } from '../services/newApi';
+import * as signalR from '@microsoft/signalr';
 
 interface Friend {
   id: number;
@@ -32,6 +34,8 @@ const ShareNoteScreen = () => {
   const route = useRoute<ShareNoteScreenRouteProp>();
   const navigation = useNavigation<ShareNoteScreenNavigationProp>();
   const noteId = route?.params?.noteId;
+  console.log('ShareNoteScreen noteId:', noteId);
+  const refreshOnFocus = route?.params?.refreshOnFocus;
   const { shareNote, getNoteShares, loading, error } = useShares();
   const { user } = useAuth();
 
@@ -44,6 +48,8 @@ const ShareNoteScreen = () => {
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [shareMethod, setShareMethod] = useState<'friends' | 'email' | 'other' | null>(null);
   const [emailModalVisible, setEmailModalVisible] = useState(false);
+  const [noteContent, setNoteContent] = useState<string>('');
+  const connectionRef = useRef<signalR.HubConnection | null>(null);
 
   useEffect(() => {
     if (!noteId) {
@@ -52,6 +58,40 @@ const ShareNoteScreen = () => {
     }
     loadExistingShares();
     fetchFriends();
+  }, [noteId]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (refreshOnFocus && noteId) {
+        loadExistingShares();
+      }
+    }, [refreshOnFocus, noteId])
+  );
+
+  useEffect(() => {
+    if (!noteId) return;
+
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl('http://10.0.2.2:5263/notehub', {
+        accessTokenFactory: () => user?.token || '' // Eğer JWT ile korumalıysa
+      })
+      .withAutomaticReconnect()
+      .build();
+
+    connectionRef.current = connection;
+
+    connection.start().then(() => {
+      connection.invoke('JoinNoteSession', noteId);
+    });
+
+    connection.on('NoteUpdated', (content: string) => {
+      setNoteContent(content); // Anlık güncelleme
+    });
+
+    return () => {
+      connection.invoke('LeaveNoteSession', noteId);
+      connection.stop();
+    };
   }, [noteId]);
 
   const loadExistingShares = async () => {
@@ -154,6 +194,12 @@ const ShareNoteScreen = () => {
       console.error('Error sharing note:', err);
       Alert.alert('Hata', 'Not paylaşılırken bir hata oluştu');
     }
+  };
+
+  const handleContentChange = (text: string) => {
+    setNoteContent(text);
+    // SignalR ile diğer kullanıcılara bildir
+    connectionRef.current?.invoke('UpdateNote', noteId, text);
   };
 
   const renderUserItem = ({ item }: { item: any }) => {
@@ -370,6 +416,12 @@ const ShareNoteScreen = () => {
           </TouchableOpacity>
         </View>
       )}
+      <TextInput
+        value={noteContent}
+        onChangeText={handleContentChange}
+        multiline
+        style={{ minHeight: 120, backgroundColor: '#fff', borderRadius: 8, padding: 12 }}
+      />
     </SafeAreaView>
   );
 };

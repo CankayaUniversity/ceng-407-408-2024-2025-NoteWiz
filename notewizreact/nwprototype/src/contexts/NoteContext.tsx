@@ -115,7 +115,11 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
         ...noteData,
         isPinned: noteData.isImportant,
       };
-      const updatedNote = await noteService.updateNote(id, apiNoteData);
+      console.log('[updateNote] id:', id, 'type:', typeof id, 'noteData:', apiNoteData);
+      if (id === undefined || id === null) {
+        throw new Error('updateNote: id is undefined or null');
+      }
+      const updatedNote = await noteService.updateNote(id.toString(), apiNoteData);
       setNotes(prev => prev.map(note => 
         note.id === id 
           ? { ...updatedNote, isImportant: updatedNote.isPinned } 
@@ -124,7 +128,7 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return updatedNote;
     } catch (err) {
       setError('Failed to update note');
-      console.error(err);
+      console.error('[updateNote] error:', err, 'full error object:', JSON.stringify(err));
       throw err;
     } finally {
       setLoading(false);

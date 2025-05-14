@@ -296,7 +296,17 @@ namespace NoteWiz.API.Controllers
             note.UpdatedAt = DateTime.UtcNow;
             note.CoverImageUrl = noteDTO.CoverImage;
 
+            _logger.LogInformation("UpdateNote called for id: {id}", id);
+            _logger.LogInformation("Updated note: {@note}", note);
+
             note = await _noteService.UpdateNoteAsync(note);
+            note = await _noteService.GetNoteByIdAsync(id);
+
+            if (note == null)
+            {
+                _logger.LogError("UpdateNoteAsync returned null for id: {id}", id);
+                return StatusCode(500, "Note update failed");
+            }
 
             return Ok(new NoteResponseDTO
             {

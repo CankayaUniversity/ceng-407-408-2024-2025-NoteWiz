@@ -181,9 +181,12 @@ export const notesService = {
 
   updateNote: async (id: number, note: { title: string; content: string }) => {
     try {
+      console.log('[apiClient.put] Making request to:', `/Notes/${id}`, 'with data:', note);
       const response = await apiClient.put(`/Notes/${id}`, note);
+      console.log('[apiClient.put] Response:', response.data);
       return response.data;
     } catch (error) {
+      console.error('[apiClient.put] Error:', error);
       handleApiError(error);
     }
   },

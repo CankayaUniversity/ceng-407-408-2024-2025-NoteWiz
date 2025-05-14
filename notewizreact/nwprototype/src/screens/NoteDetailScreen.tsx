@@ -81,9 +81,14 @@ const NoteDetailScreen = () => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Tip uyumsuzluğunu çözmek için noteId'yi string olarak alıp number'a çevirme
   const noteIdParam = route.params?.noteId;
-  const noteId = noteIdParam ? (typeof noteIdParam === 'string' ? parseInt(noteIdParam) : noteIdParam) : undefined;
+  let noteId: number | undefined = undefined;
+  if (typeof noteIdParam === 'string') {
+    const parsed = parseInt(noteIdParam, 10);
+    noteId = isNaN(parsed) ? undefined : parsed;
+  } else if (typeof noteIdParam === 'number') {
+    noteId = noteIdParam;
+  }
   
   // Aynı şekilde folderId için de tip dönüşümü
   const folderIdParam = route.params?.folderId;
@@ -115,11 +120,24 @@ const NoteDetailScreen = () => {
   // New state for selected cover ID
   const [selectedCoverId, setSelectedCoverId] = useState<string>('none');
 
+  const canEdit = route.params?.canEdit !== false; // Varsayılan true, parametre false ise düzenleme kapalı
+
   useEffect(() => {
-    if (noteId) {
-      const note = notes.find(n => n.id?.toString() === noteId.toString());
+    const fetchNote = async () => {
+      if (!noteId) return;
+      // Önce localde var mı bak
+      let note = notes.find(n => n.id?.toString() === noteId.toString());
+      if (!note) {
+        // API'den çek
+        try {
+          const res = await apiClient.get(`/notes/${noteId}`);
+          note = res.data;
+        } catch (err) {
+          console.error("Not API'den çekilemedi:", err);
+          return;
+        }
+      }
       if (note) {
-        console.log('Açılan not:', note);
         setTitle(note.title || '');
         setContent(note.content || '');
         setCategory(note.category || 'Other');
@@ -127,18 +145,11 @@ const NoteDetailScreen = () => {
         setIsPdf(note.isPdf || false);
         setPdfUrl(note.pdfUrl || '');
         setPdfName(note.pdfName || '');
-
-        // DÜZELTME: Doğru alanı kullan!
         setCoverImage(note.coverImage || null);
-        console.log('coverImage state set edildi:', note.coverImage || null);
-
-        const allCovers = Object.values(COVER_OPTIONS).flat();
-        const found = allCovers.find(
-          c => c.imageUrl === note.coverImage || c.color === note.coverImage
-        );
-        setSelectedCoverId(found?.id || 'none');
+        // ... diğer state'ler
       }
-    }
+    };
+    fetchNote();
   }, [noteId, notes]);
 
   // PDF'yi cache'e kopyalayan fonksiyon
@@ -312,54 +323,39 @@ const NoteDetailScreen = () => {
     }
     setIsLoading(true);
     try {
-      let finalPdfUrl = pdfUrl;
-      if (isPdf && pdfUrl && !pdfUrl.startsWith('https://')) {
-        console.log('handleSave: uploadPdf çağrılıyor');
-        finalPdfUrl = await uploadPdf(pdfUrl, pdfName);
-        console.log('handleSave: uploadPdf tamamlandı, finalPdfUrl:', finalPdfUrl);
-        if (!finalPdfUrl) {
-          Alert.alert('Hata', 'PDF yüklenemedi.');
-          setIsLoading(false);
+      const noteData = {
+        title,
+        content,
+        isImportant,
+        color: '#7950F2',
+        coverImage: typeof coverImage === 'string' ? coverImage : undefined,
+        isPdf,
+        pdfUrl,
+        pdfName,
+        category,
+        folderId: folderId !== undefined && folderId !== null ? folderId.toString() : null,
+        tags: [],
+      };
+      console.log('Saving note data:', noteData);
+      if (!noteId) {
+        // Yeni not oluşturuluyor
+        const createdNote = await createNote(noteData);
+        if (createdNote && createdNote.id) {
+          navigation.replace('NoteDetail', { noteId: createdNote.id });
+        } else {
+          Alert.alert('Hata', 'Not oluşturulamadı!');
+        }
+      } else {
+        // Var olan not güncelleniyor
+        if (noteId === undefined || noteId === null) {
+          Alert.alert('Hata', 'Not ID bulunamadı!');
           return;
         }
+        await updateNote(noteId, noteData);
       }
-      const categoryColorMap: { [key: string]: string } = {
-        'Work': '#4C6EF5',
-        'Personal': '#15AABF',
-        'Shopping': '#40C057',
-        'Ideas': '#FD7E14',
-        'To-Do': '#F06595',
-        'Other': '#7950F2'
-      };
-      const colorCode = categoryColorMap[category] || '#CCCCCC';
-      const allCovers = Object.values(COVER_OPTIONS).flat();
-      const selectedCover = allCovers.find(c => c.id === selectedCoverId);
-      const noteData: any = {
-        title: title?.trim() || (isPdf ? pdfName : 'Note'),
-        content: isPdf ? 'PDF Document' : (content?.trim() || ''),
-        tags: [],
-        color: colorCode,
-        isPinned: isImportant,
-        folderId: folderId,
-        // TEST: Her zaman gerçek bir Unsplash URL'si gönder
-        coverImage: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb',
-      };
-      if (isPdf) {
-        noteData.pdfUrl = finalPdfUrl;
-        noteData.pdfName = pdfName;
-        noteData.isPdf = true;
-      }
-      console.log("Saving note data:", noteData);
-      if (noteId) {
-        await updateNote(noteId.toString(), noteData);
-      } else {
-        await createNote(noteData);
-      }
-      Alert.alert('Başarılı', 'Not ve PDF başarıyla kaydedildi!');
-      navigation.goBack();
-    } catch (error) {
-      console.error('Error saving note:', error);
-      Alert.alert('Error', 'Failed to save note');
+    } catch (err) {
+      Alert.alert('Error', 'Note could not be saved!');
+      console.error('Error saving note:', err);
     } finally {
       setIsLoading(false);
     }
@@ -427,6 +423,15 @@ const NoteDetailScreen = () => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      {/* Permission Bar */}
+      <View style={{ height: 6, width: '100%', backgroundColor: canEdit ? '#FF69B4' : '#4CAF50' }} />
+      {/* Legend Box */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 6, marginBottom: 2 }}>
+        <View style={{ width: 18, height: 8, backgroundColor: '#FF69B4', borderRadius: 2, marginRight: 4 }} />
+        <Text style={{ fontSize: 12, color: '#888', marginRight: 12 }}>Düzenleme Yetkisi</Text>
+        <View style={{ width: 18, height: 8, backgroundColor: '#4CAF50', borderRadius: 2, marginRight: 4 }} />
+        <Text style={{ fontSize: 12, color: '#888' }}>Sadece Görüntüleme</Text>
+      </View>
       <ScrollView style={{ flex: 1 }}>
         {/* Cover image */}
         {coverImage && (
@@ -472,6 +477,7 @@ const NoteDetailScreen = () => {
           value={title}
           onChangeText={setTitle}
           maxLength={100}
+          editable={canEdit}
         />
 
         {/* Category selector */}
@@ -520,6 +526,7 @@ const NoteDetailScreen = () => {
                 setSelectedText('');
               }
             }}
+            editable={canEdit}
           />
         )}
         
@@ -651,9 +658,10 @@ const NoteDetailScreen = () => {
           </View>
         </View>
       </Modal>
+      {/* Save Button (bottom floating) */}
       <TouchableOpacity
         style={{
-          backgroundColor: '#4C6EF5',
+          backgroundColor: canEdit ? '#4C6EF5' : '#B0B0B0',
           padding: 16,
           borderRadius: 8,
           margin: 16,
@@ -663,8 +671,10 @@ const NoteDetailScreen = () => {
           left: 16,
           right: 16,
           zIndex: 100,
+          opacity: canEdit ? 1 : 0.5,
         }}
         onPress={handleSave}
+        disabled={!canEdit}
       >
         <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 18 }}>Kaydet</Text>
       </TouchableOpacity>
