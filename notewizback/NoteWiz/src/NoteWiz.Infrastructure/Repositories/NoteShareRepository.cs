@@ -29,5 +29,16 @@ namespace NoteWiz.Infrastructure.Repositories
                 .Where(ns => ns.NoteId == noteId && ns.SharedWithUserId == userId)
                 .ToListAsync();
         }
+
+        public IQueryable<NoteShare> Query()
+        {
+            return _context.NoteShares;
+        }
+
+        public async Task DeleteAsync(NoteShare noteShare)
+        {
+            _context.NoteShares.Remove(noteShare);
+            await _context.SaveChangesAsync();
+        }
     }
 } 

@@ -505,13 +505,31 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.Property<bool>("CanEdit")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<int>("NoteId")
                         .HasColumnType("int");
+
+                    b.Property<string>("ShareLink")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ShareMethod")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ShareToken")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("SharedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("SharedWithUserId")
+                    b.Property<string>("SharedWithEmail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("SharedWithUserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -949,8 +967,7 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.HasOne("NoteWiz.Core.Entities.User", "SharedWithUser")
                         .WithMany("SharedWithMe")
                         .HasForeignKey("SharedWithUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Note");
 

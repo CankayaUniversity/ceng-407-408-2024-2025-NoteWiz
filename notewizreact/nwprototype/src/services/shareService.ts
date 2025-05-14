@@ -15,8 +15,9 @@ export interface NoteShare {
 }
 
 export interface ShareNoteDTO {
-  sharedWithUserId: string;
+  sharedWithUserId?: string;
   canEdit: boolean;
+  sharedWithEmail?: string;
 }
 
 class ShareService {
@@ -31,7 +32,11 @@ class ShareService {
   }
 
   async getNoteShares(noteId: string): Promise<NoteShare[]> {
-    const response = await apiClient.get(`/Notes/${noteId}/shares`);
+    const response = await apiClient.get(`/NoteShares/my-notes/${noteId}`);
+    if (!Array.isArray(response.data)) {
+      console.error('API getNoteShares: response.data is not array', response.data);
+      return [];
+    }
     return response.data.map(this.transformApiShare);
   }
 
@@ -47,13 +52,20 @@ class ShareService {
   private transformApiShare(apiShare: any): NoteShare {
     return {
       ...apiShare,
-      id: apiShare.id.toString(),
-      noteId: apiShare.noteId.toString(),
-      sharedWithUserId: apiShare.sharedWithUserId.toString(),
-      sharedWithUser: {
-        ...apiShare.sharedWithUser,
-        id: apiShare.sharedWithUser.id.toString()
-      }
+      id: apiShare.id ? apiShare.id.toString() : '',
+      noteId: apiShare.noteId ? apiShare.noteId.toString() : '',
+      sharedWithUserId: apiShare.sharedWithUserId ? apiShare.sharedWithUserId.toString() : '',
+      sharedWithUser: apiShare.sharedWithUser
+        ? {
+            ...apiShare.sharedWithUser,
+            id: apiShare.sharedWithUser.id ? apiShare.sharedWithUser.id.toString() : '',
+          }
+        : {
+            id: '',
+            username: '',
+            email: '',
+            fullName: '',
+          },
     };
   }
 }

@@ -1294,3 +1294,4 @@ C:\Users\d-disal\notewiz\notewizback\NoteWiz\src\NoteWiz.API\obj\Debug\net9.0\No
 C:\Users\d-disal\notewiz\notewizback\NoteWiz\src\NoteWiz.API\obj\Debug\net9.0\NoteWiz.API.pdb
 C:\Users\d-disal\notewiz\notewizback\NoteWiz\src\NoteWiz.API\obj\Debug\net9.0\NoteWiz.API.genruntimeconfig.cache
 C:\Users\d-disal\notewiz\notewizback\NoteWiz\src\NoteWiz.API\obj\Debug\net9.0\ref\NoteWiz.API.dll
+C:\Users\d-disal\notewiz\notewizback\NoteWiz\src\NoteWiz.API\bin\Debug\net9.0\Microsoft.Extensions.Configuration.EnvironmentVariables.dll

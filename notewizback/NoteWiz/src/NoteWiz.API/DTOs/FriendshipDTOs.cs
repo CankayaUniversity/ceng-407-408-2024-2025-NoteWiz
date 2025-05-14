@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using NoteWiz.Core.DTOs;
 
 namespace NoteWiz.API.DTOs
 {

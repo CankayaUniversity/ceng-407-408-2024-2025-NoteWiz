@@ -282,6 +282,21 @@ const NoteDetailScreen = () => {
           >
             <Text style={styles.headerButtonText}>Save</Text>
           </TouchableOpacity>
+          
+          {/* Share button */}
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => {
+              if (noteId) {
+                navigation.navigate('ShareNote', { noteId: noteId });
+              } else {
+                Alert.alert('Uyarı', 'Not kaydedilmeden paylaşamazsınız!');
+              }
+            }}
+            disabled={!noteId}
+          >
+            <Text style={[styles.headerButtonText, !noteId && { opacity: 0.5 }]}>Paylaş</Text>
+          </TouchableOpacity>
         </View>
       ),
     });

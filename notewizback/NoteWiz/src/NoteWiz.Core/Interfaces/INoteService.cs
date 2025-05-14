@@ -15,5 +15,6 @@ namespace NoteWiz.Core.Interfaces
         Task ShareNoteAsync(Note note, int sharedWithUserId, bool canEdit);
         Task<IEnumerable<Note>> GetSharedNotesAsync(int userId);
         Task<IEnumerable<NoteShare>> GetNoteSharesAsync(int noteId, int? userId = null);
+        Task ShareNoteWithEmailAsync(Note note, int? sharedWithUserId, string sharedWithEmail, bool canEdit);
     }
 } 

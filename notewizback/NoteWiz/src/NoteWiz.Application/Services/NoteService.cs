@@ -90,5 +90,20 @@ namespace NoteWiz.Application.Services
             else
                 return await _unitOfWork.NoteShares.GetNoteSharesByNoteIdAsync(noteId);
         }
+
+        public async Task ShareNoteWithEmailAsync(Note note, int? sharedWithUserId, string sharedWithEmail, bool canEdit)
+        {
+            var share = new NoteShare
+            {
+                NoteId = note.Id,
+                SharedWithUserId = sharedWithUserId,
+                SharedWithEmail = sharedWithEmail,
+                CanEdit = canEdit,
+                SharedAt = DateTime.UtcNow
+            };
+
+            await _unitOfWork.NoteShares.AddAsync(share);
+            await _unitOfWork.SaveChangesAsync();
+        }
     }
 } 

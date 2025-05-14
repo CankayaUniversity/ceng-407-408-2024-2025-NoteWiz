@@ -10,6 +10,7 @@ using System.Linq;
 using System;
 using Microsoft.EntityFrameworkCore;
 using NoteWiz.Infrastructure.Data;
+using NoteWiz.Core.DTOs;
 
 namespace NoteWiz.API.Controllers
 {

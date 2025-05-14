@@ -46,8 +46,8 @@ namespace NoteWiz.Infrastructure.Services
         public string GenerateJwtToken(User user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? "DefaultDevKeyForTesting12345678901234567890");
-            var durationInMinutes = int.Parse(_configuration["Jwt:DurationInMinutes"] ?? "60");
+            var key = Encoding.UTF8.GetBytes(_configuration["AppSettings:JWT:SecretKey"] ?? "DefaultDevKeyForTesting12345678901234567890");
+            var durationInMinutes = int.Parse(_configuration["AppSettings:JWT:ExpiryInMinutes"] ?? "60");
             
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -60,8 +60,8 @@ namespace NoteWiz.Infrastructure.Services
                 NotBefore = DateTime.UtcNow,
                 IssuedAt = DateTime.UtcNow,
                 Expires = DateTime.UtcNow.AddMinutes(durationInMinutes),
-                Issuer = _configuration["Jwt:Issuer"],
-                Audience = _configuration["Jwt:Audience"],
+                Issuer = _configuration["AppSettings:JWT:Issuer"],
+                Audience = _configuration["AppSettings:JWT:Audience"],
                 SigningCredentials = new SigningCredentials(
                     new SymmetricSecurityKey(key),
                     SecurityAlgorithms.HmacSha256Signature)
@@ -96,7 +96,7 @@ namespace NoteWiz.Infrastructure.Services
         public async Task<bool> ValidateTokenAsync(string token)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? "DefaultDevKeyForTesting12345678901234567890");
+            var key = Encoding.UTF8.GetBytes(_configuration["AppSettings:JWT:SecretKey"] ?? "DefaultDevKeyForTesting12345678901234567890");
             
             try
             {
@@ -107,11 +107,11 @@ namespace NoteWiz.Infrastructure.Services
                         ValidateIssuerSigningKey = true,
                         IssuerSigningKey = new SymmetricSecurityKey(key),
                         ValidateIssuer = true,
-                        ValidIssuer = _configuration["Jwt:Issuer"],
+                        ValidIssuer = _configuration["AppSettings:JWT:Issuer"],
                         ValidateAudience = true,
-                        ValidAudience = _configuration["Jwt:Audience"],
+                        ValidAudience = _configuration["AppSettings:JWT:Audience"],
                         ValidateLifetime = true,
-                        ClockSkew = TimeSpan.FromMinutes(1),  // 1 dakika tolerans
+                        ClockSkew = TimeSpan.FromMinutes(1),
                         RequireExpirationTime = true,
                         RequireSignedTokens = true
                     }, out SecurityToken validatedToken);
@@ -121,7 +121,6 @@ namespace NoteWiz.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                // Log the exception for debugging
                 Console.WriteLine($"Token validation failed: {ex.Message}");
                 return false;
             }

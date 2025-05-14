@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NoteWiz.API.DTOs;
+using NoteWiz.Core.DTOs;
 using NoteWiz.Core.Entities;
 using NoteWiz.Core.Interfaces;
 using System.Security.Claims;
@@ -51,26 +51,29 @@ namespace NoteWiz.API.Controllers
 
             foreach (var share in shares)
             {
-                var sharedWithUser = await _userRepository.GetByIdAsync(share.SharedWithUserId);
-                if (sharedWithUser != null)
+                if (share.SharedWithUserId.HasValue)
                 {
-                    result.Add(new NoteShareResponseDTO
+                    var sharedWithUser = await _userRepository.GetByIdAsync(share.SharedWithUserId.Value);
+                    if (sharedWithUser != null)
                     {
-                        Id = share.Id,
-                        NoteId = share.NoteId,
-                        SharedWithUserId = share.SharedWithUserId,
-                        SharedWithUserEmail = sharedWithUser.Email,
-                        CanEdit = share.CanEdit,
-                        SharedAt = share.SharedAt,
-                        SharedWithUser = new UserResponseDTO
+                        result.Add(new NoteShareResponseDTO
                         {
-                            Id = sharedWithUser.Id,
-                            Username = sharedWithUser.Username,
-                            Email = sharedWithUser.Email,
-                            FullName = sharedWithUser.FullName,
-                            CreatedAt = sharedWithUser.CreatedAt
-                        }
-                    });
+                            Id = share.Id,
+                            NoteId = share.NoteId,
+                            SharedWithUserId = share.SharedWithUserId,
+                            SharedWithEmail = share.SharedWithEmail,
+                            CanEdit = share.CanEdit,
+                            SharedAt = share.SharedAt,
+                            SharedWithUser = new UserResponseDTO
+                            {
+                                Id = sharedWithUser.Id,
+                                Username = sharedWithUser.Username,
+                                Email = sharedWithUser.Email,
+                                FullName = sharedWithUser.FullName,
+                                CreatedAt = sharedWithUser.CreatedAt
+                            }
+                        });
+                    }
                 }
             }
 
@@ -112,26 +115,29 @@ namespace NoteWiz.API.Controllers
 
             foreach (var share in allShares)
             {
-                var sharedWithUser = await _userRepository.GetByIdAsync(share.SharedWithUserId);
-                if (sharedWithUser != null)
+                if (share.SharedWithUserId.HasValue)
                 {
-                    result.Add(new NoteShareResponseDTO
+                    var sharedWithUser = await _userRepository.GetByIdAsync(share.SharedWithUserId.Value);
+                    if (sharedWithUser != null)
                     {
-                        Id = share.Id,
-                        NoteId = share.NoteId,
-                        SharedWithUserId = share.SharedWithUserId,
-                        SharedWithUserEmail = sharedWithUser.Email,
-                        CanEdit = share.CanEdit,
-                        SharedAt = share.SharedAt,
-                        SharedWithUser = new UserResponseDTO
+                        result.Add(new NoteShareResponseDTO
                         {
-                            Id = sharedWithUser.Id,
-                            Username = sharedWithUser.Username,
-                            Email = sharedWithUser.Email,
-                            FullName = sharedWithUser.FullName,
-                            CreatedAt = sharedWithUser.CreatedAt
-                        }
-                    });
+                            Id = share.Id,
+                            NoteId = share.NoteId,
+                            SharedWithUserId = share.SharedWithUserId,
+                            SharedWithEmail = share.SharedWithEmail,
+                            CanEdit = share.CanEdit,
+                            SharedAt = share.SharedAt,
+                            SharedWithUser = new UserResponseDTO
+                            {
+                                Id = sharedWithUser.Id,
+                                Username = sharedWithUser.Username,
+                                Email = sharedWithUser.Email,
+                                FullName = sharedWithUser.FullName,
+                                CreatedAt = sharedWithUser.CreatedAt
+                            }
+                        });
+                    }
                 }
             }
 
@@ -160,8 +166,13 @@ namespace NoteWiz.API.Controllers
                 return Forbid();
             }
 
+            if (!request.SharedWithUserId.HasValue)
+            {
+                return BadRequest("SharedWithUserId is required.");
+            }
+
             // Verify the user to share with exists
-            var userToShareWith = await _userRepository.GetByIdAsync(request.SharedWithUserId);
+            var userToShareWith = await _userRepository.GetByIdAsync(request.SharedWithUserId.Value);
             if (userToShareWith == null)
             {
                 return BadRequest("User to share with does not exist");
@@ -193,7 +204,7 @@ namespace NoteWiz.API.Controllers
                     Id = createdShare.Id,
                     NoteId = createdShare.NoteId,
                     SharedWithUserId = createdShare.SharedWithUserId,
-                    SharedWithUserEmail = userToShareWith.Email,
+                    SharedWithEmail = createdShare.SharedWithEmail,
                     CanEdit = createdShare.CanEdit,
                     SharedAt = createdShare.SharedAt,
                     SharedWithUser = new UserResponseDTO
@@ -265,7 +276,7 @@ namespace NoteWiz.API.Controllers
             noteShare.CanEdit = request.CanEdit;
             await _noteShareRepository.UpdateAsync(noteShare);
             
-            var userSharedWith = await _userRepository.GetByIdAsync(noteShare.SharedWithUserId);
+            var userSharedWith = noteShare.SharedWithUserId.HasValue ? await _userRepository.GetByIdAsync(noteShare.SharedWithUserId.Value) : null;
             if (userSharedWith == null)
             {
                 return NotFound("Shared user not found");
@@ -276,7 +287,7 @@ namespace NoteWiz.API.Controllers
                 Id = noteShare.Id,
                 NoteId = noteShare.NoteId,
                 SharedWithUserId = noteShare.SharedWithUserId,
-                SharedWithUserEmail = userSharedWith.Email,
+                SharedWithEmail = noteShare.SharedWithEmail,
                 CanEdit = noteShare.CanEdit,
                 SharedAt = noteShare.SharedAt,
                 SharedWithUser = new UserResponseDTO

@@ -24,7 +24,6 @@ import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../types/navigation';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { drawingService } from '../services/drawingService';
-import signalRService from '../services/signalR';
 
 // Bizim bileşenler
 import { DrawingHeader } from '../components/drawing/DrawingHeader';
@@ -169,12 +168,6 @@ const DrawingScreen: React.FC = () => {
 
       // Backend'e kaydet
       await drawingService.saveDrawing(route.params.noteId, drawingData);
-
-      // SignalR üzerinden diğer kullanıcılara gönder
-      const connection = signalRService.getNoteConnection();
-      if (connection) {
-        await connection.invoke('AddDrawing', route.params.noteId, drawingData);
-      }
 
       Alert.alert('Success', 'Drawing saved successfully');
     } catch (error) {

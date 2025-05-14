@@ -44,7 +44,7 @@ export const ShareProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const shareNote = useCallback(async (noteId: number, data: ShareNoteDTO) => {
     try {
       setLoading(true);
-      const newShare = await shareService.shareNote(noteId, data);
+      const newShare = await shareService.shareNote(noteId.toString(), data);
       setSharedNotes(prev => [...prev, newShare]);
       return newShare;
     } catch (err) {
@@ -59,12 +59,16 @@ export const ShareProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const getNoteShares = useCallback(async (noteId: number) => {
     try {
       setLoading(true);
-      const shares = await shareService.getNoteShares(noteId);
+      const shares = await shareService.getNoteShares(noteId.toString());
+      if (!Array.isArray(shares)) {
+        console.error('getNoteShares: API response is not an array', shares);
+        return [];
+      }
       return shares;
     } catch (err) {
       setError('Failed to get note shares');
-      console.error(err);
-      throw err;
+      console.error('getNoteShares error:', err);
+      return [];
     } finally {
       setLoading(false);
     }
@@ -73,9 +77,9 @@ export const ShareProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const updateSharePermission = useCallback(async (shareId: number, canEdit: boolean) => {
     try {
       setLoading(true);
-      const updatedShare = await shareService.updateSharePermission(shareId, canEdit);
+      const updatedShare = await shareService.updateSharePermission(shareId.toString(), canEdit);
       setSharedNotes(prev => prev.map(share => 
-        share.id === shareId ? updatedShare : share
+        share.id === shareId.toString() ? updatedShare : share
       ));
       return updatedShare;
     } catch (err) {
@@ -90,8 +94,8 @@ export const ShareProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const removeShare = useCallback(async (shareId: number) => {
     try {
       setLoading(true);
-      await shareService.removeShare(shareId);
-      setSharedNotes(prev => prev.filter(share => share.id !== shareId));
+      await shareService.removeShare(shareId.toString());
+      setSharedNotes(prev => prev.filter(share => share.id !== shareId.toString()));
     } catch (err) {
       setError('Failed to remove share');
       console.error(err);
