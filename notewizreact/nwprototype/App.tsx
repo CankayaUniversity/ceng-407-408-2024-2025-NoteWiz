@@ -10,6 +10,7 @@ import notifee from '@notifee/react-native';
 import { NoteProvider } from './src/contexts/NoteContext';
 import ApiDiagnostic from './src/components/debug/ApiDiagnostic';
 import { DocumentProvider } from './src/contexts/DocumentContext';
+import { ShareProvider } from './src/contexts/ShareContext';
 
 // Screens
 import WelcomeScreen from './src/screens/WelcomeScreen';
@@ -27,6 +28,7 @@ import DocumentUploadScreen from './src/screens/DocumentUploadScreen';
 import FriendSearchScreen from './src/screens/FriendSearchScreen';
 import FriendRequestsScreen from './src/screens/FriendRequestsScreen';
 import FriendsListScreen from './src/screens/FriendsListScreen';
+import ShareNoteScreen from './src/screens/ShareNoteScreen';
 
 // Types
 import { RootStackParamList, MainTabParamList } from './src/types/navigation';
@@ -135,122 +137,148 @@ const App = () => {
               <NoteProvider>
                 <TasksProvider>
                   <DocumentProvider>
-                    <NavigationContainer>
-                      <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
-                        <Stack.Screen name="Auth" component={AuthScreen} />
-                        <Stack.Screen name="MainApp" component={TabNavigator} />
-                        <Stack.Screen
-                          name="NoteDetail"
-                          component={NoteDetailScreen}
-                          options={{
-                            headerShown: true,
-                            presentation: 'modal',
-                            animation: 'slide_from_bottom',
-                            headerTitle: '',
-                            headerShadowVisible: false,
-                            headerStyle: {
-                              backgroundColor: COLORS.background.default,
-                            },
-                            headerTintColor: COLORS.primary.main,
-                          }}
-                        />
-                        <Stack.Screen
-                          name="DocumentUpload"
-                          component={DocumentUploadScreen}
-                          options={{
-                            headerShown: true,
-                            presentation: 'modal',
-                            animation: 'slide_from_bottom',
-                            headerTitle: 'Dosya Yükle',
-                            headerShadowVisible: false,
-                            headerStyle: {
-                              backgroundColor: COLORS.background.default,
-                            },
-                            headerTintColor: COLORS.primary.main,
-                          }}
-                        />
-                        <Stack.Screen
-                          name="Drawing"
-                          component={DrawingScreen}
-                          options={{ presentation: 'fullScreenModal', animation: 'fade_from_bottom' }}
-                        />
-                        <Stack.Screen
-                          name="TaskDetail"
-                          component={TaskDetailScreen}
-                          options={{
-                            headerShown: true,
-                            presentation: 'modal',
-                            animation: 'slide_from_bottom',
-                            headerTitle: '',
-                            headerShadowVisible: false,
-                            headerStyle: {
-                              backgroundColor: COLORS.background.default,
-                            },
-                            headerTintColor: COLORS.primary.main,
-                          }}
-                        />
-                        <Stack.Screen
-                          name="Calendar"
-                          component={CalendarScreen}
-                          options={{
-                            headerShown: true,
-                            headerTitle: 'Takvim',
-                            headerStyle: {
-                              backgroundColor: COLORS.background.default,
-                            },
-                            headerTintColor: COLORS.primary.main,
-                          }}
-                        />
-                        <Stack.Screen
-                          name="Diagnostic"
-                          component={ApiDiagnostic}
-                          options={{
-                            headerShown: true,
-                            headerTitle: 'API Tanılama',
-                            headerStyle: {
-                              backgroundColor: COLORS.background.default,
-                            },
-                            headerTintColor: COLORS.primary.main,
-                          }}
-                        />
-                        <Stack.Screen
-                          name="FriendSearch"
-                          component={FriendSearchScreen}
-                          options={{
-                            headerShown: true,
-                            headerTitle: 'Arkadaş Ekle',
-                            headerStyle: {
-                              backgroundColor: COLORS.background.default,
-                            },
-                            headerTintColor: COLORS.primary.main,
-                          }}
-                        />
-                        <Stack.Screen
-                          name="FriendRequests"
-                          component={FriendRequestsScreen}
-                          options={{
-                            headerShown: true,
-                            headerTitle: 'Gelen İstekler',
-                            headerStyle: {
-                              backgroundColor: COLORS.background.default,
-                            },
-                            headerTintColor: COLORS.primary.main,
-                          }}
-                        />
-                        <Stack.Screen
-                          name="FriendsList"
-                          component={FriendsListScreen}
-                          options={{
-                            headerShown: true,
-                            headerTitle: 'Arkadaşlarım',
-                            headerStyle: {
-                              backgroundColor: COLORS.background.default,
-                            },
-                            headerTintColor: COLORS.primary.main,
-                          }}
-                        />
-                      </Stack.Navigator>
-                    </NavigationContainer>
+                    <ShareProvider>
+                      <NavigationContainer>
+                        <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+                          <Stack.Screen name="Auth" component={AuthScreen} />
+                          <Stack.Screen name="MainApp" component={TabNavigator} />
+                          <Stack.Screen
+                            name="NoteDetail"
+                            component={NoteDetailScreen}
+                            options={{
+                              headerShown: true,
+                              presentation: 'modal',
+                              animation: 'slide_from_bottom',
+                              headerTitle: '',
+                              headerShadowVisible: false,
+                              headerStyle: {
+                                backgroundColor: COLORS.background.default,
+                              },
+                              headerTintColor: COLORS.primary.main,
+                            }}
+                          />
+                          <Stack.Screen
+                            name="DocumentUpload"
+                            component={DocumentUploadScreen}
+                            options={{
+                              headerShown: true,
+                              presentation: 'modal',
+                              animation: 'slide_from_bottom',
+                              headerTitle: 'Dosya Yükle',
+                              headerShadowVisible: false,
+                              headerStyle: {
+                                backgroundColor: COLORS.background.default,
+                              },
+                              headerTintColor: COLORS.primary.main,
+                            }}
+                          />
+                          <Stack.Screen
+                            name="Drawing"
+                            component={DrawingScreen}
+                            options={{ presentation: 'fullScreenModal', animation: 'fade_from_bottom' }}
+                          />
+                          <Stack.Screen
+                            name="TaskDetail"
+                            component={TaskDetailScreen}
+                            options={{
+                              headerShown: true,
+                              presentation: 'modal',
+                              animation: 'slide_from_bottom',
+                              headerTitle: '',
+                              headerShadowVisible: false,
+                              headerStyle: {
+                                backgroundColor: COLORS.background.default,
+                              },
+                              headerTintColor: COLORS.primary.main,
+                            }}
+                          />
+                          <Stack.Screen
+                            name="Calendar"
+                            component={CalendarScreen}
+                            options={{
+                              headerShown: true,
+                              headerTitle: 'Takvim',
+                              headerStyle: {
+                                backgroundColor: COLORS.background.default,
+                              },
+                              headerTintColor: COLORS.primary.main,
+                            }}
+                          />
+                          <Stack.Screen
+                            name="Diagnostic"
+                            component={ApiDiagnostic}
+                            options={{
+                              headerShown: true,
+                              headerTitle: 'API Tanılama',
+                              headerStyle: {
+                                backgroundColor: COLORS.background.default,
+                              },
+                              headerTintColor: COLORS.primary.main,
+                            }}
+                          />
+                          <Stack.Screen
+                            name="FriendSearch"
+                            component={FriendSearchScreen}
+                            options={{
+                              headerShown: true,
+                              headerTitle: 'Arkadaş Ekle',
+                              headerStyle: {
+                                backgroundColor: COLORS.background.default,
+                              },
+                              headerTintColor: COLORS.primary.main,
+                            }}
+                          />
+                          <Stack.Screen
+                            name="FriendRequests"
+                            component={FriendRequestsScreen}
+                            options={{
+                              headerShown: true,
+                              headerTitle: 'Gelen İstekler',
+                              headerStyle: {
+                                backgroundColor: COLORS.background.default,
+                              },
+                              headerTintColor: COLORS.primary.main,
+                            }}
+                          />
+                          <Stack.Screen
+                            name="FriendsList"
+                            component={FriendsListScreen}
+                            options={{
+                              headerShown: true,
+                              headerTitle: 'Arkadaşlarım',
+                              headerStyle: {
+                                backgroundColor: COLORS.background.default,
+                              },
+                              headerTintColor: COLORS.primary.main,
+                            }}
+                          />
+                          <Stack.Screen
+                            name="SharedNotes"
+                            component={ShareNoteScreen}
+                            options={{
+                              headerShown: true,
+                              headerTitle: 'Paylaşılan Notlar',
+                              headerStyle: {
+                                backgroundColor: COLORS.background.default,
+                              },
+                              headerTintColor: COLORS.primary.main,
+                            }}
+                          />
+                          <Stack.Screen
+                            name="ShareNote"
+                            component={ShareNoteScreen}
+                            options={{
+                              headerShown: true,
+                              headerTitle: 'Not Paylaş',
+                              headerStyle: {
+                                backgroundColor: COLORS.background.default,
+                              },
+                              headerTintColor: COLORS.primary.main,
+                            }}
+                          />
+                        </Stack.Navigator>
+                      </NavigationContainer>
+                    </ShareProvider>
                   </DocumentProvider>
                 </TasksProvider>
               </NoteProvider>

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NoteWiz.API.DTOs;
+using NoteWiz.Core.DTOs;
 using NoteWiz.Core.Entities;
 using NoteWiz.Core.Interfaces;
 using System.Security.Claims;
@@ -52,13 +53,37 @@ namespace NoteWiz.API.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<string>> Login([FromBody] LoginDTO dto)
+        public async Task<ActionResult<LoginResponseDTO>> Login([FromBody] LoginDTO dto)
         {
-            var (success, token) = await _authService.LoginAsync(dto.Email, dto.Password);
-            if (!success)
-                return Unauthorized("Invalid email or password");
+            try
+            {
+                var (success, token) = await _authService.LoginAsync(dto.Email, dto.Password);
+                if (!success)
+                    return Unauthorized(new { message = "Invalid email or password" });
 
-            return Ok(new { token });
+                var user = await _userRepository.GetByEmailAsync(dto.Email);
+                if (user == null)
+                    return Unauthorized(new { message = "User not found" });
+
+                var response = new LoginResponseDTO
+                {
+                    Token = token,
+                    User = new UserResponseDTO
+                    {
+                        Id = user.Id,
+                        Username = user.Username,
+                        Email = user.Email,
+                        FullName = user.FullName,
+                        CreatedAt = user.CreatedAt
+                    }
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred during login", error = ex.Message });
+            }
         }
 
         [Authorize]

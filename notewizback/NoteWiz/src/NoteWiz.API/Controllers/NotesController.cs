@@ -4,10 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NoteWiz.API.DTOs;
+using NoteWiz.Core.DTOs;
 using NoteWiz.Core.Entities;
 using NoteWiz.Core.Interfaces;
 using System.Security.Claims;
+using Microsoft.Extensions.Logging;
 
 namespace NoteWiz.API.Controllers
 {
@@ -19,12 +20,14 @@ namespace NoteWiz.API.Controllers
         private readonly INoteService _noteService;
         private readonly IFriendshipService _friendshipService;
         private readonly IUserService _userService;
+        private readonly ILogger<NotesController> _logger;
 
-        public NotesController(INoteService noteService, IFriendshipService friendshipService, IUserService userService)
+        public NotesController(INoteService noteService, IFriendshipService friendshipService, IUserService userService, ILogger<NotesController> logger)
         {
             _noteService = noteService;
             _friendshipService = friendshipService;
             _userService = userService;
+            _logger = logger;
         }
 
         private int GetCurrentUserId()
@@ -47,37 +50,52 @@ namespace NoteWiz.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<NoteResponseDTO>>> GetUserNotes()
         {
-            var userId = GetCurrentUserId();
-            var notes = await _noteService.GetUserNotesAsync(userId);
-            var noteDTOs = notes.Select(n => new NoteResponseDTO
+            try
             {
-                Id = n.Id,
-                Title = n.Title,
-                Content = n.Content,
-                IsPrivate = n.IsPrivate,
-                Color = n.Color ?? "#FFFFFF",
-                CreatedAt = n.CreatedAt,
-                UpdatedAt = n.UpdatedAt,
-                CoverImage = n.CoverImageUrl,
-                SharedWith = n.SharedWith?.Select(sw => new NoteShareResponseDTO
+                var userId = GetCurrentUserId();
+                var notes = await _noteService.GetUserNotesAsync(userId);
+                
+                if (notes == null)
                 {
-                    Id = sw.Id,
-                    NoteId = sw.NoteId,
-                    SharedWithUserId = sw.SharedWithUserId,
-                    SharedWithUserEmail = sw.SharedWithUser?.Email ?? string.Empty,
-                    CanEdit = sw.CanEdit,
-                    SharedAt = sw.SharedAt,
-                    SharedWithUser = sw.SharedWithUser != null ? new UserResponseDTO
+                    return Ok(new List<NoteResponseDTO>());
+                }
+
+                var noteDTOs = notes.Select(n => new NoteResponseDTO
+                {
+                    Id = n.Id,
+                    Title = n.Title ?? string.Empty,
+                    Content = n.Content ?? string.Empty,
+                    IsPrivate = n.IsPrivate,
+                    Color = n.Color ?? "#FFFFFF",
+                    CreatedAt = n.CreatedAt,
+                    UpdatedAt = n.UpdatedAt,
+                    CoverImage = n.CoverImageUrl ?? string.Empty,
+                    SharedWith = n.SharedWith?.Select(sw => new NoteShareResponseDTO
                     {
-                        Id = sw.SharedWithUser.Id,
-                        Username = sw.SharedWithUser.Username,
-                        Email = sw.SharedWithUser.Email,
-                        FullName = sw.SharedWithUser.FullName,
-                        CreatedAt = sw.SharedWithUser.CreatedAt
-                    } : null
-                }).ToList() ?? new List<NoteShareResponseDTO>()
-            });
-            return Ok(noteDTOs);
+                        Id = sw.Id,
+                        NoteId = sw.NoteId,
+                        SharedWithUserId = sw.SharedWithUserId,
+                        SharedWithEmail = sw.SharedWithUser?.Email ?? string.Empty,
+                        CanEdit = sw.CanEdit,
+                        SharedAt = sw.SharedAt,
+                        SharedWithUser = sw.SharedWithUser != null ? new UserResponseDTO
+                        {
+                            Id = sw.SharedWithUser.Id,
+                            Username = sw.SharedWithUser.Username ?? string.Empty,
+                            Email = sw.SharedWithUser.Email ?? string.Empty,
+                            FullName = sw.SharedWithUser.FullName ?? string.Empty,
+                            CreatedAt = sw.SharedWithUser.CreatedAt
+                        } : null
+                    }).ToList() ?? new List<NoteShareResponseDTO>()
+                }).ToList();
+
+                return Ok(noteDTOs);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception here
+                return StatusCode(500, new { error = "An error occurred while fetching notes", details = ex.Message });
+            }
         }
 
         [HttpGet("friends")]
@@ -88,27 +106,27 @@ namespace NoteWiz.API.Controllers
             var noteDTOs = notes.Select(n => new NoteResponseDTO
             {
                 Id = n.Id,
-                Title = n.Title,
-                Content = n.Content,
+                Title = n.Title ?? string.Empty,
+                Content = n.Content ?? string.Empty,
                 IsPrivate = n.IsPrivate,
                 Color = n.Color ?? "#FFFFFF",
                 CreatedAt = n.CreatedAt,
                 UpdatedAt = n.UpdatedAt,
-                CoverImage = n.CoverImageUrl,
+                CoverImage = n.CoverImageUrl ?? string.Empty,
                 SharedWith = n.SharedWith?.Select(sw => new NoteShareResponseDTO
                 {
                     Id = sw.Id,
                     NoteId = sw.NoteId,
                     SharedWithUserId = sw.SharedWithUserId,
-                    SharedWithUserEmail = sw.SharedWithUser?.Email ?? string.Empty,
+                    SharedWithEmail = sw.SharedWithUser?.Email ?? string.Empty,
                     CanEdit = sw.CanEdit,
                     SharedAt = sw.SharedAt,
                     SharedWithUser = sw.SharedWithUser != null ? new UserResponseDTO
                     {
                         Id = sw.SharedWithUser.Id,
-                        Username = sw.SharedWithUser.Username,
-                        Email = sw.SharedWithUser.Email,
-                        FullName = sw.SharedWithUser.FullName,
+                        Username = sw.SharedWithUser.Username ?? string.Empty,
+                        Email = sw.SharedWithUser.Email ?? string.Empty,
+                        FullName = sw.SharedWithUser.FullName ?? string.Empty,
                         CreatedAt = sw.SharedWithUser.CreatedAt
                     } : null
                 }).ToList() ?? new List<NoteShareResponseDTO>()
@@ -124,27 +142,27 @@ namespace NoteWiz.API.Controllers
             var noteDTOs = notes.Select(n => new NoteResponseDTO
             {
                 Id = n.Id,
-                Title = n.Title,
-                Content = n.Content,
+                Title = n.Title ?? string.Empty,
+                Content = n.Content ?? string.Empty,
                 IsPrivate = n.IsPrivate,
                 Color = n.Color ?? "#FFFFFF",
                 CreatedAt = n.CreatedAt,
                 UpdatedAt = n.UpdatedAt,
-                CoverImage = n.CoverImageUrl,
+                CoverImage = n.CoverImageUrl ?? string.Empty,
                 SharedWith = n.SharedWith?.Select(sw => new NoteShareResponseDTO
                 {
                     Id = sw.Id,
                     NoteId = sw.NoteId,
                     SharedWithUserId = sw.SharedWithUserId,
-                    SharedWithUserEmail = sw.SharedWithUser?.Email ?? string.Empty,
+                    SharedWithEmail = sw.SharedWithUser?.Email ?? string.Empty,
                     CanEdit = sw.CanEdit,
                     SharedAt = sw.SharedAt,
                     SharedWithUser = sw.SharedWithUser != null ? new UserResponseDTO
                     {
                         Id = sw.SharedWithUser.Id,
-                        Username = sw.SharedWithUser.Username,
-                        Email = sw.SharedWithUser.Email,
-                        FullName = sw.SharedWithUser.FullName,
+                        Username = sw.SharedWithUser.Username ?? string.Empty,
+                        Email = sw.SharedWithUser.Email ?? string.Empty,
+                        FullName = sw.SharedWithUser.FullName ?? string.Empty,
                         CreatedAt = sw.SharedWithUser.CreatedAt
                     } : null
                 }).ToList() ?? new List<NoteShareResponseDTO>()
@@ -180,27 +198,27 @@ namespace NoteWiz.API.Controllers
             return Ok(new NoteResponseDTO
             {
                 Id = note.Id,
-                Title = note.Title,
-                Content = note.Content,
+                Title = note.Title ?? string.Empty,
+                Content = note.Content ?? string.Empty,
                 IsPrivate = note.IsPrivate,
                 Color = note.Color ?? "#FFFFFF",
                 CreatedAt = note.CreatedAt,
                 UpdatedAt = note.UpdatedAt,
-                CoverImage = note.CoverImageUrl,
+                CoverImage = note.CoverImageUrl ?? string.Empty,
                 SharedWith = note.SharedWith?.Select(sw => new NoteShareResponseDTO
                 {
                     Id = sw.Id,
                     NoteId = sw.NoteId,
                     SharedWithUserId = sw.SharedWithUserId,
-                    SharedWithUserEmail = sw.SharedWithUser?.Email ?? string.Empty,
+                    SharedWithEmail = sw.SharedWithUser?.Email ?? string.Empty,
                     CanEdit = sw.CanEdit,
                     SharedAt = sw.SharedAt,
                     SharedWithUser = sw.SharedWithUser != null ? new UserResponseDTO
                     {
                         Id = sw.SharedWithUser.Id,
-                        Username = sw.SharedWithUser.Username,
-                        Email = sw.SharedWithUser.Email,
-                        FullName = sw.SharedWithUser.FullName,
+                        Username = sw.SharedWithUser.Username ?? string.Empty,
+                        Email = sw.SharedWithUser.Email ?? string.Empty,
+                        FullName = sw.SharedWithUser.FullName ?? string.Empty,
                         CreatedAt = sw.SharedWithUser.CreatedAt
                     } : null
                 }).ToList() ?? new List<NoteShareResponseDTO>(),
@@ -229,27 +247,27 @@ namespace NoteWiz.API.Controllers
             return CreatedAtAction(nameof(GetNote), new { id = note.Id }, new NoteResponseDTO
             {
                 Id = note.Id,
-                Title = note.Title,
-                Content = note.Content,
+                Title = note.Title ?? string.Empty,
+                Content = note.Content ?? string.Empty,
                 IsPrivate = note.IsPrivate,
                 Color = note.Color ?? "#FFFFFF",
                 CreatedAt = note.CreatedAt,
                 UpdatedAt = note.UpdatedAt,
-                CoverImage = note.CoverImageUrl,
+                CoverImage = note.CoverImageUrl ?? string.Empty,
                 SharedWith = note.SharedWith?.Select(sw => new NoteShareResponseDTO
                 {
                     Id = sw.Id,
                     NoteId = sw.NoteId,
                     SharedWithUserId = sw.SharedWithUserId,
-                    SharedWithUserEmail = sw.SharedWithUser?.Email ?? string.Empty,
+                    SharedWithEmail = sw.SharedWithUser?.Email ?? string.Empty,
                     CanEdit = sw.CanEdit,
                     SharedAt = sw.SharedAt,
                     SharedWithUser = sw.SharedWithUser != null ? new UserResponseDTO
                     {
                         Id = sw.SharedWithUser.Id,
-                        Username = sw.SharedWithUser.Username,
-                        Email = sw.SharedWithUser.Email,
-                        FullName = sw.SharedWithUser.FullName,
+                        Username = sw.SharedWithUser.Username ?? string.Empty,
+                        Email = sw.SharedWithUser.Email ?? string.Empty,
+                        FullName = sw.SharedWithUser.FullName ?? string.Empty,
                         CreatedAt = sw.SharedWithUser.CreatedAt
                     } : null
                 }).ToList() ?? new List<NoteShareResponseDTO>()
@@ -283,27 +301,27 @@ namespace NoteWiz.API.Controllers
             return Ok(new NoteResponseDTO
             {
                 Id = note.Id,
-                Title = note.Title,
-                Content = note.Content,
+                Title = note.Title ?? string.Empty,
+                Content = note.Content ?? string.Empty,
                 IsPrivate = note.IsPrivate,
                 Color = note.Color ?? "#FFFFFF",
                 CreatedAt = note.CreatedAt,
                 UpdatedAt = note.UpdatedAt,
-                CoverImage = note.CoverImageUrl,
+                CoverImage = note.CoverImageUrl ?? string.Empty,
                 SharedWith = note.SharedWith?.Select(sw => new NoteShareResponseDTO
                 {
                     Id = sw.Id,
                     NoteId = sw.NoteId,
                     SharedWithUserId = sw.SharedWithUserId,
-                    SharedWithUserEmail = sw.SharedWithUser?.Email ?? string.Empty,
+                    SharedWithEmail = sw.SharedWithUser?.Email ?? string.Empty,
                     CanEdit = sw.CanEdit,
                     SharedAt = sw.SharedAt,
                     SharedWithUser = sw.SharedWithUser != null ? new UserResponseDTO
                     {
                         Id = sw.SharedWithUser.Id,
-                        Username = sw.SharedWithUser.Username,
-                        Email = sw.SharedWithUser.Email,
-                        FullName = sw.SharedWithUser.FullName,
+                        Username = sw.SharedWithUser.Username ?? string.Empty,
+                        Email = sw.SharedWithUser.Email ?? string.Empty,
+                        FullName = sw.SharedWithUser.FullName ?? string.Empty,
                         CreatedAt = sw.SharedWithUser.CreatedAt
                     } : null
                 }).ToList() ?? new List<NoteShareResponseDTO>()
@@ -328,7 +346,7 @@ namespace NoteWiz.API.Controllers
         }
 
         [HttpPost("{id}/share")]
-        public async Task<ActionResult<NoteShareResponseDTO>> ShareNote(int id, NoteShareCreateDTO shareDTO)
+        public async Task<ActionResult<NoteShareResponseDTO>> ShareNote(int id, CreateNoteShareDTO shareDTO)
         {
             var userId = GetCurrentUserId();
             var note = await _noteService.GetNoteByIdAsync(id);
@@ -339,32 +357,106 @@ namespace NoteWiz.API.Controllers
             if (note.UserId != userId)
                 return Forbid();
 
-            var sharedWithUser = await _userService.GetUserByEmailAsync(shareDTO.SharedWithUserEmail);
-            if (sharedWithUser == null)
-                return BadRequest("User not found");
+            if (!string.IsNullOrEmpty(shareDTO.SharedWithEmail))
+            {
+                var sharedWithUser = await _userService.GetUserByEmailAsync(shareDTO.SharedWithEmail);
+                int? sharedWithUserId = sharedWithUser?.Id;
 
-            await _noteService.ShareNoteAsync(note, sharedWithUser.Id, shareDTO.CanEdit);
+                await _noteService.ShareNoteWithEmailAsync(note, sharedWithUserId, shareDTO.SharedWithEmail, shareDTO.CanEdit);
+            }
+            else if (shareDTO.SharedWithUserId.HasValue)
+            {
+                await _noteService.ShareNoteAsync(note, shareDTO.SharedWithUserId.Value, shareDTO.CanEdit);
+            }
+            else
+            {
+                return BadRequest("No recipient specified");
+            }
 
-            var shares = await _noteService.GetNoteSharesAsync(id, sharedWithUser.Id);
-            var share = shares.First();
+            var shares = await _noteService.GetNoteSharesAsync(id, null);
+            var share = shares.OrderByDescending(s => s.SharedAt).First();
 
             return Ok(new NoteShareResponseDTO
             {
                 Id = share.Id,
                 NoteId = share.NoteId,
                 SharedWithUserId = share.SharedWithUserId,
-                SharedWithUserEmail = sharedWithUser.Email,
+                SharedWithEmail = share.SharedWithEmail,
                 CanEdit = share.CanEdit,
                 SharedAt = share.SharedAt,
-                SharedWithUser = new UserResponseDTO
+                SharedWithUser = share.SharedWithUser != null ? new UserResponseDTO
                 {
-                    Id = sharedWithUser.Id,
-                    Username = sharedWithUser.Username,
-                    Email = sharedWithUser.Email,
-                    FullName = sharedWithUser.FullName,
-                    CreatedAt = sharedWithUser.CreatedAt
-                }
+                    Id = share.SharedWithUser.Id,
+                    Username = share.SharedWithUser.Username,
+                    Email = share.SharedWithUser.Email,
+                    FullName = share.SharedWithUser.FullName,
+                    CreatedAt = share.SharedWithUser.CreatedAt
+                } : null
             });
+        }
+
+        [HttpGet("user/{userId}")]
+        public async Task<ActionResult<IEnumerable<NoteResponseDTO>>> GetUserNotes(int userId)
+        {
+            try
+            {
+                var notes = await _noteService.GetUserNotesAsync(userId);
+                if (notes == null || !notes.Any())
+                {
+                    return Ok(new List<NoteResponseDTO>());
+                }
+
+                var noteDtos = notes.Select(n => new NoteResponseDTO
+                {
+                    Id = n.Id,
+                    Title = n.Title ?? string.Empty,
+                    Content = n.Content ?? string.Empty,
+                    UserId = n.UserId,
+                    DocumentId = n.DocumentId,
+                    Color = n.Color ?? "#FFFFFF",
+                    IsPinned = n.IsPinned,
+                    IsPrivate = n.IsPrivate,
+                    CoverImage = n.CoverImageUrl ?? string.Empty,
+                    Tags = n.Tags ?? new List<string>(),
+                    CategoryId = n.CategoryId,
+                    CreatedAt = n.CreatedAt,
+                    UpdatedAt = n.UpdatedAt,
+                    IsSynced = n.IsSynced,
+                    LastSyncedAt = n.LastSyncedAt,
+                    User = n.User != null ? new UserResponseDTO
+                    {
+                        Id = n.User.Id,
+                        Username = n.User.Username ?? string.Empty,
+                        Email = n.User.Email ?? string.Empty,
+                        FullName = n.User.FullName ?? string.Empty,
+                        CreatedAt = n.User.CreatedAt
+                    } : null,
+                    SharedWith = n.SharedWith?.Select(sw => new NoteShareResponseDTO
+                    {
+                        Id = sw.Id,
+                        NoteId = sw.NoteId,
+                        SharedWithUserId = sw.SharedWithUserId,
+                        SharedWithEmail = sw.SharedWithUser?.Email ?? string.Empty,
+                        CanEdit = sw.CanEdit,
+                        SharedAt = sw.SharedAt,
+                        SharedWithUser = sw.SharedWithUser != null ? new UserResponseDTO
+                        {
+                            Id = sw.SharedWithUser.Id,
+                            Username = sw.SharedWithUser.Username ?? string.Empty,
+                            Email = sw.SharedWithUser.Email ?? string.Empty,
+                            FullName = sw.SharedWithUser.FullName ?? string.Empty,
+                            CreatedAt = sw.SharedWithUser.CreatedAt
+                        } : null
+                    }).ToList() ?? new List<NoteShareResponseDTO>()
+                }).ToList();
+
+                return Ok(noteDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting user notes for user {UserId}", userId);
+                return StatusCode(500, "An error occurred while retrieving notes");
+            }
         }
     }
 } 
