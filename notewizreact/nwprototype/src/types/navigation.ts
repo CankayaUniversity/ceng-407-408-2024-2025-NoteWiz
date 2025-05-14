@@ -15,6 +15,7 @@ export type RootStackParamList = {
     color?: string;
     tags?: string[];
     folderId?: string | null;
+    canEdit?: boolean;
   };
   Drawing: {
     noteId: string;
@@ -31,6 +32,7 @@ export type RootStackParamList = {
   };
   ShareNote: {
     noteId: number;
+    refreshOnFocus?: boolean;
   };
   Diagnostic: undefined;
   FriendSearch: undefined;
