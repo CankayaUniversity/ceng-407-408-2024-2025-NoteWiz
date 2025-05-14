@@ -19,6 +19,8 @@ namespace NoteWiz.Infrastructure.Repositories
             return await _context.Notes
                 .Include(n => n.User)
                 .Include(n => n.SharedWith)
+                    .ThenInclude(sw => sw.SharedWithUser)
+                .Include(n => n.Document)
                 .Where(n => n.UserId == userId)
                 .ToListAsync();
         }
@@ -28,6 +30,8 @@ namespace NoteWiz.Infrastructure.Repositories
             return await _context.Notes
                 .Include(n => n.User)
                 .Include(n => n.SharedWith)
+                    .ThenInclude(sw => sw.SharedWithUser)
+                .Include(n => n.Document)
                 .Where(n => n.SharedWith.Any(s => s.SharedWithUserId == userId))
                 .ToListAsync();
         }
