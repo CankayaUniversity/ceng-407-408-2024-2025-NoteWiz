@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using NoteWiz.Core.Entities;
 using NoteWiz.Core.Interfaces;
 using NoteWiz.Infrastructure.Data;
+using Microsoft.Extensions.Logging;
 
 namespace NoteWiz.Application.Services
 {
@@ -12,11 +13,13 @@ namespace NoteWiz.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IFriendshipService _friendshipService;
+        private readonly ILogger<NoteService> _logger;
 
-        public NoteService(IUnitOfWork unitOfWork, IFriendshipService friendshipService)
+        public NoteService(IUnitOfWork unitOfWork, IFriendshipService friendshipService, ILogger<NoteService> logger)
         {
             _unitOfWork = unitOfWork;
             _friendshipService = friendshipService;
+            _logger = logger;
         }
 
         public async Task<Note> GetNoteByIdAsync(int id)
@@ -55,6 +58,8 @@ namespace NoteWiz.Application.Services
         {
             _unitOfWork.Notes.Update(note);
             await _unitOfWork.SaveChangesAsync();
+            note = await GetNoteByIdAsync(note.Id);
+            _logger.LogInformation("Returning note: {@note}", note);
             return note;
         }
 

@@ -42,12 +42,21 @@ export interface CreateNoteDTO {
   category?: string;
 }
 
-export interface UpdateNoteDTO extends Partial<CreateNoteDTO> {}
+export interface UpdateNoteDTO extends Partial<CreateNoteDTO> {
+  isPrivate?: boolean;
+  coverImage?: string;
+}
 
 export interface UpdateCoverDTO {
   coverType?: string;
   coverPosition?: string;
   color?: string;
+}
+
+export interface User {
+  id: number;
+  username: string;
+  token?: string;
 }
 
 class NoteService {
@@ -71,8 +80,26 @@ class NoteService {
   }
 
   async updateNote(id: string, note: UpdateNoteDTO): Promise<Note> {
-    const response = await apiClient.put(`/Notes/${id}`, note);
-    return this.transformApiNote(response.data);
+    console.log('[noteService.updateNote] Starting update with id:', id, 'note:', note);
+    try {
+      // Only send the fields that the backend expects
+      const noteData = {
+        title: note.title,
+        content: note.content,
+        isPrivate: note.isPrivate || false,
+        coverImage: note.coverImage
+      };
+      console.log('[noteService.updateNote] Sending to API:', noteData);
+      const response = await apiClient.put(`/Notes/${id}`, noteData);
+      console.log('[noteService.updateNote] API response:', response.data);
+      if (!response.data) {
+        throw new Error('API response is empty!');
+      }
+      return this.transformApiNote(response.data);
+    } catch (error) {
+      console.error('[noteService.updateNote] Error:', error);
+      throw error;
+    }
   }
 
   async deleteNote(id: string): Promise<void> {

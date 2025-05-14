@@ -82,5 +82,15 @@ namespace NoteWiz.Infrastructure.Repositories
                 .Where(ns => ns.NoteId == noteId)
                 .ToListAsync();
         }
+
+        public override async Task<Note> GetByIdAsync(int id)
+        {
+            return await _context.Notes
+                .Include(n => n.User)
+                .Include(n => n.SharedWith)
+                    .ThenInclude(sw => sw.SharedWithUser)
+                .Include(n => n.Document)
+                .FirstOrDefaultAsync(n => n.Id == id);
+        }
     }
 } 
