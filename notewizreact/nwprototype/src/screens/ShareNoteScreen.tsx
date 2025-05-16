@@ -22,6 +22,7 @@ import { SearchIcon, ShareIcon } from '../components/icons';
 import { friendshipService } from '../services/newApi';
 import { apiClient } from '../services/newApi';
 import * as signalR from '@microsoft/signalr';
+import { API_URL } from '../config/api';
 
 interface Friend {
   id: number;
@@ -72,7 +73,7 @@ const ShareNoteScreen = () => {
     if (!noteId) return;
 
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl('http://10.0.2.2:5263/notehub', {
+      .withUrl(`${API_URL}/notehub`, {
         accessTokenFactory: () => user?.token || '' // Eğer JWT ile korumalıysa
       })
       .withAutomaticReconnect()

@@ -37,6 +37,7 @@ import { askAI, getSummary, rewriteText } from '../services/openai';
 import PDFView from 'react-native-pdf';
 import ViewShot from 'react-native-view-shot';
 import { Image as RNImage } from 'react-native';
+import { API_URL } from '../config/api';
 
 const CATEGORIES = [
   'Work',
@@ -78,7 +79,7 @@ type NoteDetailScreenNavigationProp = NativeStackNavigationProp<RootStackParamLi
 type NoteDetailScreenRouteProp = RouteProp<RootStackParamList, 'NoteDetail'>;
 
 const NoteDetailScreen = () => {
-  const navigation = useNavigation<NoteDetailScreenNavigationProp>();
+  const navigation = useNavigation<any>();
   const route = useRoute<NoteDetailScreenRouteProp>();
   const { createNote, updateNote, deleteNote, notes } = useNotes();
   const { user } = useAuth();
@@ -131,6 +132,8 @@ const NoteDetailScreen = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [newLink, setNewLink] = useState('');
+
+  const API_BASE_URL = API_URL;
 
   useEffect(() => {
     const fetchNote = async () => {
@@ -346,7 +349,7 @@ const NoteDetailScreen = () => {
         const createdNote = await createNote(noteData);
         if (createdNote && createdNote.id) {
           setContent(createdNote.content || content);
-          navigation.replace('NoteDetail', { noteId: createdNote.id });
+          navigation.navigate('MainApp', { screen: 'Notes' });
         } else {
           Alert.alert('Hata', 'Not oluşturulamadı!');
         }
@@ -359,6 +362,7 @@ const NoteDetailScreen = () => {
         const updated = await updateNote(noteId, noteData);
         if (updated && updated.content) {
           setContent(updated.content);
+          navigation.navigate('MainApp', { screen: 'Notes' });
         }
       }
     } catch (err) {
@@ -421,17 +425,43 @@ const NoteDetailScreen = () => {
   // Not içeriğini özel kutularla render eden fonksiyon
   const renderNoteContent = (content: string) => {
     const popupRegex = /\[POPUP\]([\s\S]*?)\[\/POPUP\]/g;
+    const imageRegex = /\[IMAGE:([^\]]+)\]/g;
     const parts = [];
     let lastIndex = 0;
     let match;
     let key = 0;
+    // Önce popup'ları işle
     while ((match = popupRegex.exec(content)) !== null) {
       if (match.index > lastIndex) {
-        parts.push(
-          <Text key={key++} style={{ fontSize: 16, color: COLORS.text.primary }}>
-            {content.substring(lastIndex, match.index)}
-          </Text>
-        );
+        // Popup öncesi metni işle (içinde image varsa onları da işle)
+        const textBefore = content.substring(lastIndex, match.index);
+        let imgLast = 0;
+        let imgMatch;
+        while ((imgMatch = imageRegex.exec(textBefore)) !== null) {
+          if (imgMatch.index > imgLast) {
+            parts.push(
+              <Text key={key++} style={{ fontSize: 16, color: COLORS.text.primary }}>
+                {textBefore.substring(imgLast, imgMatch.index)}
+              </Text>
+            );
+          }
+          parts.push(
+            <Image
+              key={key++}
+              source={{ uri: imgMatch[1] }}
+              style={{ width: '100%', height: 180, borderRadius: 12, marginVertical: 8 }}
+              resizeMode="cover"
+            />
+          );
+          imgLast = imgMatch.index + imgMatch[0].length;
+        }
+        if (imgLast < textBefore.length) {
+          parts.push(
+            <Text key={key++} style={{ fontSize: 16, color: COLORS.text.primary }}>
+              {textBefore.substring(imgLast)}
+            </Text>
+          );
+        }
       }
       parts.push(
         <View key={key++} style={{ backgroundColor: '#FFF', borderRadius: 8, borderWidth: 1, borderColor: '#4C6EF5', padding: 12, marginVertical: 8 }}>
@@ -441,12 +471,36 @@ const NoteDetailScreen = () => {
       );
       lastIndex = match.index + match[0].length;
     }
+    // Son popup'tan sonra kalan metni işle (image'ları da dahil et)
     if (lastIndex < content.length) {
-      parts.push(
-        <Text key={key++} style={{ fontSize: 16, color: COLORS.text.primary }}>
-          {content.substring(lastIndex)}
-        </Text>
-      );
+      const textAfter = content.substring(lastIndex);
+      let imgLast = 0;
+      let imgMatch;
+      while ((imgMatch = imageRegex.exec(textAfter)) !== null) {
+        if (imgMatch.index > imgLast) {
+          parts.push(
+            <Text key={key++} style={{ fontSize: 16, color: COLORS.text.primary }}>
+              {textAfter.substring(imgLast, imgMatch.index)}
+            </Text>
+          );
+        }
+        parts.push(
+          <Image
+            key={key++}
+            source={{ uri: imgMatch[1] }}
+            style={{ width: '100%', height: 180, borderRadius: 12, marginVertical: 8 }}
+            resizeMode="cover"
+          />
+        );
+        imgLast = imgMatch.index + imgMatch[0].length;
+      }
+      if (imgLast < textAfter.length) {
+        parts.push(
+          <Text key={key++} style={{ fontSize: 16, color: COLORS.text.primary }}>
+            {textAfter.substring(imgLast)}
+          </Text>
+        );
+      }
     }
     return parts;
   };
@@ -460,7 +514,7 @@ const NoteDetailScreen = () => {
       } else if (response.errorCode) {
         Alert.alert('Hata', 'Resim seçilemedi: ' + response.errorMessage);
         return;
-      } else if (response.assets && response.assets[0].uri) {
+      } else if (response.assets?.[0]?.uri) {
         setContent(prev => prev + `\n[IMAGE:${response.assets[0].uri}]\n`);
         setShowAddModal(false);
       }
@@ -574,15 +628,21 @@ const NoteDetailScreen = () => {
           ))}
         </ScrollView>
 
-        {/* PDF veya not içeriği */}
-        {isPdf && pdfUrl ? (
-          <PdfViewer uri={pdfUrl} />
-        ) : (
-          <View style={{ paddingHorizontal: 16, paddingTop: 8, minHeight: 300 }}>
-            {renderNoteContent(content)}
-          </View>
-        )}
-        
+        {/* İçerik ve resimler (renderNoteContent) */}
+        <View style={{ paddingHorizontal: 16, paddingTop: 8, minHeight: 300 }}>
+          {renderNoteContent(content)}
+        </View>
+
+        {/* Content input - düzenleme için */}
+        <TextInput
+          style={styles.contentInput}
+          placeholder="İçerik yazın..."
+          value={content}
+          onChangeText={setContent}
+          multiline
+          editable={canEdit}
+        />
+
         {/* AI'ye Soru Sor Butonu */}
         <TouchableOpacity
           style={{ backgroundColor: '#4C6EF5', padding: 12, borderRadius: 8, margin: 16, alignItems: 'center' }}
@@ -852,6 +912,15 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     color: COLORS.text.primary,
   },
+  contentInput: {
+    flex: 1,
+    fontSize: 16,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    minHeight: 300,
+    color: COLORS.text.primary,
+    textAlignVertical: 'top',
+  },
   categoryContainer: {
     paddingHorizontal: 12,
     marginBottom: 16,
@@ -872,15 +941,6 @@ const styles = StyleSheet.create({
   },
   categoryTextActive: {
     color: COLORS.text.primary,
-  },
-  contentInput: {
-    flex: 1,
-    fontSize: 16,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    minHeight: 300,
-    color: COLORS.text.primary,
-    textAlignVertical: 'top',
   },
   // PDF Styles
   pdfContainer: {

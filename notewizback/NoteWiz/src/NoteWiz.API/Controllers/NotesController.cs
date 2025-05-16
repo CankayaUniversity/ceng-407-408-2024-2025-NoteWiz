@@ -468,5 +468,17 @@ namespace NoteWiz.API.Controllers
                 return StatusCode(500, "An error occurred while retrieving notes");
             }
         }
+
+        // PATCH: api/notes/{noteId}/move
+        [HttpPatch("{noteId}/move")]
+        public async Task<IActionResult> MoveNote(int noteId, [FromBody] int newCategoryId)
+        {
+            var note = await _noteService.GetNoteByIdAsync(noteId);
+            if (note == null) return NotFound();
+            note.CategoryId = newCategoryId;
+            note.UpdatedAt = DateTime.UtcNow;
+            await _noteService.UpdateNoteAsync(note);
+            return Ok(note);
+        }
     }
 } 

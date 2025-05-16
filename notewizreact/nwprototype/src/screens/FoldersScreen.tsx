@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, Modal, TextInput, ScrollView, SafeAreaView, Dimensions, Platform } from 'react-native';
 import FolderList, { Folder } from '../components/folders/FolderList';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useCategories } from '../contexts/CategoriesContext';
 
 
 const initialFolders: Folder[] = [
@@ -14,6 +15,7 @@ const initialNotes = [
 ];
 
 const FoldersScreen = () => {
+  const { addCategory } = useCategories();
   const [folders, setFolders] = useState<Folder[]>(initialFolders);
   const [notes, setNotes] = useState(initialNotes);
   const [search, setSearch] = useState('');
@@ -27,16 +29,18 @@ const FoldersScreen = () => {
   const [undoStack, setUndoStack] = useState<any[]>([]);
   const [expandedFolderId, setExpandedFolderId] = useState<string | null>(null);
   const [newNoteTitle, setNewNoteTitle] = useState('');
+  const [newNoteContent, setNewNoteContent] = useState('');
 
   const filteredFolders = folders.filter(f => f.name.toLowerCase().includes(search.toLowerCase()));
 
-  const addFolder = () => {
+  const addFolder = async () => {
     if (!newFolderName.trim()) return;
-    setFolders([
-      ...folders,
-      { id: Date.now().toString(), name: newFolderName.trim(), color: newFolderColor, icon: newFolderIcon }
-    ]);
-    setNewFolderName('');
+    try {
+      await addCategory(newFolderName, newFolderColor);
+      setNewFolderName('');
+    } catch (err) {
+      Alert.alert('Klasör eklenemedi', 'Bir hata oluştu.');
+    }
   };
 
   const deleteFolder = (id: string) => {
@@ -70,9 +74,10 @@ const FoldersScreen = () => {
   };
 
   const addNoteToFolder = (folderId: string) => {
-    if (!newNoteTitle.trim()) return;
-    setNotes([...notes, { id: Date.now().toString(), title: newNoteTitle.trim(), folderId }]);
+    if (!newNoteTitle.trim() && !newNoteContent.trim()) return;
+    setNotes([...notes, { id: Date.now().toString(), title: newNoteTitle.trim(), content: newNoteContent.trim(), folderId }]);
     setNewNoteTitle('');
+    setNewNoteContent('');
   };
 
   // Responsive ölçüler
@@ -112,7 +117,7 @@ const FoldersScreen = () => {
           ))}
           {(['folder','archive','star','document'] as const).map(icon => (
             <TouchableOpacity key={icon} onPress={() => setNewFolderIcon(icon)} style={{ marginHorizontal: 4 }}>
-              <Icon name={icon as any} size={22} color={newFolderIcon === icon ? '#222' : '#AAA'} />
+              <Icon name={typeof icon === 'string' && ["folder","description","note","insert-drive-file"].includes(icon) ? icon : 'folder'} size={22} color={newFolderIcon === icon ? '#222' : '#AAA'} />
             </TouchableOpacity>
           ))}
         </View>
@@ -121,7 +126,7 @@ const FoldersScreen = () => {
           {filteredFolders.map(folder => (
             <View key={folder.id}>
               <TouchableOpacity style={[styles.folderCard, { backgroundColor: folder.color || '#F1F3F5' }] } onPress={() => handleFolderPress(folder.id)}>
-                <Icon name={folder.icon as any} size={20} color="#fff" style={{ marginRight: 8 }} />
+                <Icon name={typeof folder.icon === 'string' && ["folder","description","note","insert-drive-file"].includes(folder.icon) ? folder.icon : 'folder'} size={20} color="#fff" style={{ marginRight: 8 }} />
                 <Text style={styles.folderName}>{folder.name}</Text>
                 <TouchableOpacity onPress={() => deleteFolder(folder.id)}>
                   <Text style={styles.deleteBtn}>Sil</Text>
@@ -148,6 +153,12 @@ const FoldersScreen = () => {
                       value={newNoteTitle}
                       onChangeText={setNewNoteTitle}
                       placeholder="Yeni not başlığı"
+                      style={styles.noteInput}
+                    />
+                    <TextInput
+                      value={newNoteContent}
+                      onChangeText={setNewNoteContent}
+                      placeholder="Yeni not içeriği"
                       style={styles.noteInput}
                     />
                     <TouchableOpacity style={styles.addNoteBtn} onPress={() => addNoteToFolder(folder.id)}>

@@ -19,6 +19,7 @@ import { useNotes } from '../contexts/NoteContext';
 import { COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '../constants/theme';
 import { PdfIcon, CloseIcon } from '../components/icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_URL } from '../config/api';
 
 type DocumentUploadScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'DocumentUpload'>;
 
@@ -81,7 +82,7 @@ const DocumentUploadScreen = () => {
       console.log('FormData hazırlandı, istek gönderiliyor...');
       
       // Android emülatör için doğru IP
-      const response = await fetch('http://10.0.2.2:5263/api/Document/upload', {
+      const response = await fetch(`${API_URL}/api/Document/upload`, {
         method: 'POST',
         body: formData,
         headers: {
