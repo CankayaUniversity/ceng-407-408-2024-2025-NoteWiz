@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, TextInput } from 'react-native';
 
 // Temel klasör tipi
-export type Folder = {
+export interface Folder {
   id: string;
   name: string;
   color: string;
@@ -10,7 +10,14 @@ export type Folder = {
   parentId?: string;
   children?: Folder[];
   isArchived?: boolean;
-};
+}
+
+export interface Note {
+  id: string;
+  title: string;
+  content?: string;
+  folderId: string;
+}
 
 const defaultIcons = ['📁', '📂', '🗂️', '⭐', '📝'];
 const defaultColors = ['#4C6EF5', '#FFD43B', '#63E6BE', '#FF8787', '#845EF7'];
