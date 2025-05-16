@@ -4,13 +4,15 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { StatusBar, Platform } from 'react-native';
+import { StatusBar, Platform, TouchableOpacity, Text } from 'react-native';
 import { COLORS, SHADOWS } from './src/constants/theme';
 import notifee from '@notifee/react-native';
 import { NoteProvider } from './src/contexts/NoteContext';
 import ApiDiagnostic from './src/components/debug/ApiDiagnostic';
 import { DocumentProvider } from './src/contexts/DocumentContext';
 import { ShareProvider } from './src/contexts/ShareContext';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 // Screens
 import WelcomeScreen from './src/screens/WelcomeScreen';
@@ -30,6 +32,10 @@ import FriendRequestsScreen from './src/screens/FriendRequestsScreen';
 import FriendsListScreen from './src/screens/FriendsListScreen';
 import ShareNoteScreen from './src/screens/ShareNoteScreen';
 import CollaboratiNotesScreen from './src/screens/CollaboratiNotesScreen';
+import AIChatScreen from './src/screens/AIChatScreen';
+import FoldersScreen from './src/screens/FoldersScreen';
+import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
+import OCRScreen from './src/screens/OCRScreen';
 
 // Types
 import { RootStackParamList, MainTabParamList } from './src/types/navigation';
@@ -72,6 +78,10 @@ const TabNavigator = () => {
               return <StarIcon size={24} color={color} />;
             case 'Settings':
               return <SettingsIcon size={24} color={color} />;
+            case 'AIChat':
+              return <HomeIcon size={24} color={color} />;
+            case 'Folders':
+              return <MaterialIcons name="folder" size={24} color={color} />;
             default:
               return <HomeIcon size={24} color={color} />;
           }
@@ -105,7 +115,9 @@ const TabNavigator = () => {
       <Tab.Screen name="Tasks" component={TasksScreen} options={{ title: 'Görevler' }} />
       <Tab.Screen name="Calendar" component={CalendarScreen} options={{ title: 'Takvim' }} />
       <Tab.Screen name="Stats" component={StatsScreen} options={{ title: 'İstatistik' }} />
+      <Tab.Screen name="AIChat" component={AIChatScreen} options={{ title: 'AI Sohbet' }} />
       <Tab.Screen name="Settings" component={SettingsScreen} options={{ title: 'Ayarlar' }} />
+      <Tab.Screen name="Folders" component={FoldersScreen} options={{ tabBarIcon: ({ color }) => <MaterialIcons name="folder" size={24} color={color} /> }} />
     </Tab.Navigator>
   );
 };
@@ -276,6 +288,16 @@ const App = () => {
                               },
                               headerTintColor: COLORS.primary.main,
                             }}
+                          />
+                          <Stack.Screen
+                            name="ForgotPassword"
+                            component={ForgotPasswordScreen}
+                            options={{ title: 'Şifremi Unuttum' }}
+                          />
+                          <Stack.Screen
+                            name="OCR"
+                            component={OCRScreen}
+                            options={{ title: 'OCR ile Not' }}
                           />
                         </Stack.Navigator>
                       </NavigationContainer>

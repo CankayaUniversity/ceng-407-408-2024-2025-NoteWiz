@@ -7,6 +7,7 @@ using NoteWiz.Core.Interfaces;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using NoteWiz.Infrastructure.Data;
+using NoteWiz.Infrastructure.Services;
 
 namespace NoteWiz.API.Controllers
 {
@@ -17,12 +18,14 @@ namespace NoteWiz.API.Controllers
         private readonly IAuthService _authService;
         private readonly IUserRepository _userRepository;
         private readonly NoteWizDbContext _context;
+        private readonly IEmailService _emailService;
 
-        public UsersController(IAuthService authService, IUserRepository userRepository, NoteWizDbContext context)
+        public UsersController(IAuthService authService, IUserRepository userRepository, NoteWizDbContext context, IEmailService emailService)
         {
             _authService = authService;
             _userRepository = userRepository;
             _context = context;
+            _emailService = emailService;
         }
 
         [HttpPost("register")]
@@ -152,6 +155,35 @@ namespace NoteWiz.API.Controllers
                 .Select(u => new { u.Id, u.Username, u.Email })
                 .ToListAsync();
             return Ok(users);
+        }
+
+        [HttpPost("forgot-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest model)
+        {
+            if (string.IsNullOrEmpty(model.Email))
+                return BadRequest("Email is required");
+
+            var user = await _userRepository.GetByEmailAsync(model.Email);
+            if (user == null)
+                return BadRequest("Email not found");
+
+            // Token üretimi (örnek, gerçek uygulamada daha güvenli ve uzun bir token üretin)
+            var token = Guid.NewGuid().ToString();
+
+            // Burada token'ı veritabanına kaydedebilir ve expire süresi ekleyebilirsiniz
+
+            // Reset linki (frontend veya ayrı bir web sayfası ile entegre edilecek)
+            var resetLink = $"https://yourfrontend.com/reset-password?token={token}&email={user.Email}";
+
+            // E-posta gönderme
+            await _emailService.SendEmailAsync(
+                user.Email,
+                "Şifre Sıfırlama",
+                $"Şifrenizi sıfırlamak için <a href='{resetLink}'>buraya tıklayın</a>."
+            );
+
+            return Ok(new { message = "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi." });
         }
     }
 } 
