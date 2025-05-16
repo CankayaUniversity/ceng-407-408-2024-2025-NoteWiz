@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import RNFS from 'react-native-fs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {launchImageLibrary} from 'react-native-image-picker';
 
 import {
   View,
@@ -34,6 +35,8 @@ import { apiClient } from '../services/newApi';
 import { UpdateNoteDto } from '../types/note';
 import { askAI, getSummary, rewriteText } from '../services/openai';
 import PDFView from 'react-native-pdf';
+import ViewShot from 'react-native-view-shot';
+import { Image as RNImage } from 'react-native';
 
 const CATEGORIES = [
   'Work',
@@ -120,37 +123,38 @@ const NoteDetailScreen = () => {
   // New state for selected cover ID
   const [selectedCoverId, setSelectedCoverId] = useState<string>('none');
 
+  const [popupImageUri, setPopupImageUri] = useState<string | null>(null);
+  const popupViewRef = React.useRef<any>(null);
+
   const canEdit = route.params?.canEdit !== false; // Varsayılan true, parametre false ise düzenleme kapalı
+
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showLinkInput, setShowLinkInput] = useState(false);
+  const [newLink, setNewLink] = useState('');
 
   useEffect(() => {
     const fetchNote = async () => {
       if (!noteId) return;
-      // Önce localde var mı bak
-      let note = notes.find(n => n.id?.toString() === noteId.toString());
-      if (!note) {
-        // API'den çek
-        try {
-          const res = await apiClient.get(`/notes/${noteId}`);
-          note = res.data;
-        } catch (err) {
-          console.error("Not API'den çekilemedi:", err);
-          return;
+      try {
+        const res = await apiClient.get(`/notes/${noteId}`);
+        const note = res.data;
+        if (note) {
+          setTitle(note.title || '');
+          setContent(note.content || '');
+          setCategory(note.category || 'Other');
+          setIsImportant(note.isImportant || false);
+          setIsPdf(note.isPdf || false);
+          setPdfUrl(note.pdfUrl || '');
+          setPdfName(note.pdfName || '');
+          setCoverImage(note.coverImage || null);
+          // ... diğer state'ler
         }
-      }
-      if (note) {
-        setTitle(note.title || '');
-        setContent(note.content || '');
-        setCategory(note.category || 'Other');
-        setIsImportant(note.isImportant || false);
-        setIsPdf(note.isPdf || false);
-        setPdfUrl(note.pdfUrl || '');
-        setPdfName(note.pdfName || '');
-        setCoverImage(note.coverImage || null);
-        // ... diğer state'ler
+      } catch (err) {
+        console.error("Not API'den çekilemedi:", err);
       }
     };
     fetchNote();
-  }, [noteId, notes]);
+  }, [noteId]);
 
   // PDF'yi cache'e kopyalayan fonksiyon
   async function copyPdfToCache(uri: string, name: string): Promise<string> {
@@ -256,6 +260,10 @@ const NoteDetailScreen = () => {
     navigation.setOptions({
       headerRight: () => (
         <View style={styles.headerButtons}>
+          {/* Ekle butonu */}
+          <TouchableOpacity style={styles.headerButton} onPress={() => setShowAddModal(true)}>
+            <Text style={styles.headerButtonText}>Ekle</Text>
+          </TouchableOpacity>
           {/* PDF button */}
           <TouchableOpacity
             style={styles.headerButton}
@@ -263,7 +271,6 @@ const NoteDetailScreen = () => {
           >
             <Text style={styles.headerButtonText}>📄 PDF</Text>
           </TouchableOpacity>
-          
           {/* Draw button */}
           <TouchableOpacity
             style={styles.headerButton}
@@ -277,7 +284,6 @@ const NoteDetailScreen = () => {
           >
             <Text style={styles.headerButtonText}>✏️ Draw</Text>
           </TouchableOpacity>
-          
           {/* More options button */}
           <TouchableOpacity
             style={styles.headerButton}
@@ -285,7 +291,6 @@ const NoteDetailScreen = () => {
           >
             <Text style={styles.headerButtonText}>•••</Text>
           </TouchableOpacity>
-          
           {/* Save button */}
           <TouchableOpacity
             style={styles.headerButton}
@@ -293,7 +298,6 @@ const NoteDetailScreen = () => {
           >
             <Text style={styles.headerButtonText}>Save</Text>
           </TouchableOpacity>
-          
           {/* Share button */}
           <TouchableOpacity
             style={styles.headerButton}
@@ -341,6 +345,7 @@ const NoteDetailScreen = () => {
         // Yeni not oluşturuluyor
         const createdNote = await createNote(noteData);
         if (createdNote && createdNote.id) {
+          setContent(createdNote.content || content);
           navigation.replace('NoteDetail', { noteId: createdNote.id });
         } else {
           Alert.alert('Hata', 'Not oluşturulamadı!');
@@ -351,7 +356,10 @@ const NoteDetailScreen = () => {
           Alert.alert('Hata', 'Not ID bulunamadı!');
           return;
         }
-        await updateNote(noteId, noteData);
+        const updated = await updateNote(noteId, noteData);
+        if (updated && updated.content) {
+          setContent(updated.content);
+        }
       }
     } catch (err) {
       Alert.alert('Error', 'Note could not be saved!');
@@ -410,6 +418,63 @@ const NoteDetailScreen = () => {
     );
   };
 
+  // Not içeriğini özel kutularla render eden fonksiyon
+  const renderNoteContent = (content: string) => {
+    const popupRegex = /\[POPUP\]([\s\S]*?)\[\/POPUP\]/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+    let key = 0;
+    while ((match = popupRegex.exec(content)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(
+          <Text key={key++} style={{ fontSize: 16, color: COLORS.text.primary }}>
+            {content.substring(lastIndex, match.index)}
+          </Text>
+        );
+      }
+      parts.push(
+        <View key={key++} style={{ backgroundColor: '#FFF', borderRadius: 8, borderWidth: 1, borderColor: '#4C6EF5', padding: 12, marginVertical: 8 }}>
+          <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 4 }}>Pop-up</Text>
+          <Text style={{ fontSize: 15 }}>{match[1]}</Text>
+        </View>
+      );
+      lastIndex = match.index + match[0].length;
+    }
+    if (lastIndex < content.length) {
+      parts.push(
+        <Text key={key++} style={{ fontSize: 16, color: COLORS.text.primary }}>
+          {content.substring(lastIndex)}
+        </Text>
+      );
+    }
+    return parts;
+  };
+
+  // Ekle modalı ve fonksiyonlar
+  const pickImage = () => {
+    launchImageLibrary({ mediaType: 'photo', quality: 1 }, (response) => {
+      if (response.didCancel) {
+        // Kullanıcı iptal etti
+        return;
+      } else if (response.errorCode) {
+        Alert.alert('Hata', 'Resim seçilemedi: ' + response.errorMessage);
+        return;
+      } else if (response.assets && response.assets[0].uri) {
+        setContent(prev => prev + `\n[IMAGE:${response.assets[0].uri}]\n`);
+        setShowAddModal(false);
+      }
+    });
+  };
+  const handleAddLink = () => {
+    if (newLink.trim()) {
+      setContent(prev => prev + `\n[LINK:${newLink.trim()}]\n`);
+      setNewLink('');
+      setShowLinkInput(false);
+      setShowAddModal(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -424,14 +489,16 @@ const NoteDetailScreen = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       {/* Permission Bar */}
-      <View style={{ height: 6, width: '100%', backgroundColor: canEdit ? '#FF69B4' : '#4CAF50' }} />
+      {/* <View style={{ height: 6, width: '100%', backgroundColor: canEdit ? '#FF69B4' : '#4CAF50' }} /> */}
       {/* Legend Box */}
+      {/*
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 6, marginBottom: 2 }}>
         <View style={{ width: 18, height: 8, backgroundColor: '#FF69B4', borderRadius: 2, marginRight: 4 }} />
         <Text style={{ fontSize: 12, color: '#888', marginRight: 12 }}>Düzenleme Yetkisi</Text>
         <View style={{ width: 18, height: 8, backgroundColor: '#4CAF50', borderRadius: 2, marginRight: 4 }} />
         <Text style={{ fontSize: 12, color: '#888' }}>Sadece Görüntüleme</Text>
       </View>
+      */}
       <ScrollView style={{ flex: 1 }}>
         {/* Cover image */}
         {coverImage && (
@@ -507,27 +574,13 @@ const NoteDetailScreen = () => {
           ))}
         </ScrollView>
 
-        {/* PDF or note content */}
+        {/* PDF veya not içeriği */}
         {isPdf && pdfUrl ? (
           <PdfViewer uri={pdfUrl} />
         ) : (
-          <TextInput
-            style={styles.contentInput}
-            placeholder="Note content..."
-            value={content}
-            onChangeText={setContent}
-            multiline
-            textAlignVertical="top"
-            onSelectionChange={e => {
-              const { start, end } = e.nativeEvent.selection;
-              if (start !== end) {
-                setSelectedText(content.substring(start, end));
-              } else {
-                setSelectedText('');
-              }
-            }}
-            editable={canEdit}
-          />
+          <View style={{ paddingHorizontal: 16, paddingTop: 8, minHeight: 300 }}>
+            {renderNoteContent(content)}
+          </View>
         )}
         
         {/* AI'ye Soru Sor Butonu */}
@@ -636,7 +689,9 @@ const NoteDetailScreen = () => {
             {aiResponse ? (
               <>
                 <Text style={{ fontWeight: 'bold', marginTop: 8 }}>Cevap:</Text>
-                <Text style={{ marginVertical: 8 }}>{aiResponse}</Text>
+                <ViewShot ref={popupViewRef} options={{ format: 'png', quality: 1.0 }} style={{ backgroundColor: '#FFF', padding: 8, borderRadius: 8 }}>
+                  <Text style={{ marginVertical: 8 }}>{aiResponse}</Text>
+                </ViewShot>
                 <TouchableOpacity
                   style={{ backgroundColor: '#4C6EF5', borderRadius: 8, padding: 10, alignItems: 'center', marginBottom: 8 }}
                   onPress={() => {
@@ -645,7 +700,17 @@ const NoteDetailScreen = () => {
                     setAiResponse('');
                   }}
                 >
-                  <Text style={{ color: '#FFF' }}>Notuma Ekle</Text>
+                  <Text style={{ color: '#FFF' }}>Notuma Yazı Olarak Ekle</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={{ backgroundColor: '#4263EB', borderRadius: 8, padding: 10, alignItems: 'center', marginBottom: 8 }}
+                  onPress={() => {
+                    setContent(content + `\n[POPUP]${aiResponse}[/POPUP]`);
+                    setAiModalVisible(false);
+                    setAiResponse('');
+                  }}
+                >
+                  <Text style={{ color: '#FFF' }}>Notuma Pop-up Olarak Ekle</Text>
                 </TouchableOpacity>
               </>
             ) : null}
@@ -678,6 +743,37 @@ const NoteDetailScreen = () => {
       >
         <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 18 }}>Kaydet</Text>
       </TouchableOpacity>
+
+      {/* Not içeriğinde popupImageUri varsa görsel olarak göster */}
+      {popupImageUri && (
+        <RNImage source={{ uri: popupImageUri }} style={{ width: 200, height: 80, margin: 8, alignSelf: 'center' }} />
+      )}
+
+      {/* Ekle modalı */}
+      <Modal visible={showAddModal} transparent animationType="fade">
+        <View style={{ flex:1, backgroundColor:'rgba(0,0,0,0.2)', justifyContent:'center', alignItems:'center' }}>
+          <View style={{ backgroundColor:'#fff', borderRadius:12, padding:24, minWidth:240 }}>
+            <Text style={{ fontWeight:'bold', fontSize:18, marginBottom:16 }}>Ne eklemek istiyorsun?</Text>
+            <TouchableOpacity onPress={pickImage} style={{ padding:12 }}><Text>Resim Ekle</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => { setShowAddModal(false); selectPdf(); }} style={{ padding:12 }}><Text>PDF Ekle</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => { setShowLinkInput(true); }} style={{ padding:12 }}><Text>Link Ekle</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => setShowAddModal(false)} style={{ padding:12, marginTop:8 }}><Text style={{ color:'#888' }}>İptal</Text></TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      {/* Link ekleme inputu */}
+      <Modal visible={showLinkInput} transparent animationType="fade">
+        <View style={{ flex:1, backgroundColor:'rgba(0,0,0,0.2)', justifyContent:'center', alignItems:'center' }}>
+          <View style={{ backgroundColor:'#fff', borderRadius:12, padding:24, minWidth:240 }}>
+            <Text style={{ fontWeight:'bold', fontSize:16, marginBottom:12 }}>Link Ekle</Text>
+            <TextInput value={newLink} onChangeText={setNewLink} placeholder="https://..." style={{ borderWidth:1, borderColor:'#eee', borderRadius:8, padding:8, marginBottom:12 }} />
+            <View style={{ flexDirection:'row', justifyContent:'flex-end' }}>
+              <TouchableOpacity onPress={() => setShowLinkInput(false)} style={{ marginRight:12 }}><Text>İptal</Text></TouchableOpacity>
+              <TouchableOpacity onPress={handleAddLink}><Text style={{ color:'#4C6EF5' }}>Ekle</Text></TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };

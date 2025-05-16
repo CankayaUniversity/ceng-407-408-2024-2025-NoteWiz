@@ -28,6 +28,7 @@ target 'nwprototype' do
 
   # Notifee için ekstra ayarlar
   pod 'RNNotifee', :path => '../node_modules/@notifee/react-native'
+  pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
 
   target 'nwprototypeTests' do
     inherit! :complete
