@@ -133,6 +133,14 @@ const FoldersScreen = () => {
                   {notes.filter(n => n.folderId === folder.id).map(note => (
                     <View key={note.id} style={styles.noteCard}>
                       <Text style={styles.noteTitle}>{note.title}</Text>
+                      <View style={{ flexDirection: 'row' }}>
+                        <TouchableOpacity onPress={() => setNotes(notes.filter(n => n.id !== note.id))}>
+                          <Text style={{ color: '#FF6B6B', marginLeft: 8 }}>Sil</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => { setMoveNoteId(note.id); setShowFolderPicker(true); }}>
+                          <Text style={{ color: '#4C6EF5', marginLeft: 8 }}>Taşı</Text>
+                        </TouchableOpacity>
+                      </View>
                     </View>
                   ))}
                   <View style={styles.addNoteRow}>
