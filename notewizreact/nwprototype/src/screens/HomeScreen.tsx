@@ -13,6 +13,7 @@ import {
   Dimensions,
   TouchableOpacity,
   TextInput,
+  Alert,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -21,7 +22,7 @@ import { useNotes } from '../contexts/NoteContext';
 import { useAuth } from '../contexts/AuthContext';
 import { FloatingActionButton } from '../components/ui/FloatingActionButton';
 import { StatCard, ImportantNoteCard, RecentNoteCard } from '../components/home';
-import { StarIcon, TimeIcon, NotesIcon, CloudIcon, SearchIcon, DocumentIcon, TaskIcon, ShareIcon } from '../components/icons';
+import { StarIcon, TimeIcon, NotesIcon, CloudIcon, SearchIcon, DocumentIcon, TaskIcon, ShareIcon, ImageIcon } from '../components/icons';
 import LinearGradient from 'react-native-linear-gradient';
 import { COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '../constants/theme';
 import { apiClient } from '../services/newApi';
@@ -291,6 +292,14 @@ const HomeScreen = () => {
           <ShareIcon size={32} color={COLORS.primary.main} />
           <Text style={styles.cardText}>Eş Zamanlı Notlar</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => navigation.navigate('OCR')}
+        >
+          <ImageIcon size={32} color={COLORS.primary.main} />
+          <Text style={styles.cardText}>Görselden Not</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -408,14 +417,17 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    justifyContent: 'flex-start',
+    paddingHorizontal: 10,
     paddingBottom: 20,
     gap: SPACING.lg,
   },
   card: {
-    width: '48%',
-    aspectRatio: 1,
+    width: '30%',
+    aspectRatio: 0.9,
+    minHeight: 90,
+    maxHeight: 120,
+    marginBottom: 12,
     backgroundColor: COLORS.background.surface,
     borderRadius: 16,
     justifyContent: 'center',

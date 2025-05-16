@@ -38,6 +38,8 @@ export type RootStackParamList = {
   FriendSearch: undefined;
   FriendRequests: undefined;
   FriendsList: undefined;
+  ForgotPassword: undefined;
+  OCR: undefined;
 };
 
 export type RootStackScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<
@@ -68,4 +70,6 @@ export type MainTabParamList = {
   Calendar: undefined;
   Stats: undefined;
   Settings: undefined;
+  AIChat: undefined;
+  Folders: undefined;
 };
