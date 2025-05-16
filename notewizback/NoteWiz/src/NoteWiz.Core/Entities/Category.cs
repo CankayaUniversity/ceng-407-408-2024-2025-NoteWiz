@@ -16,11 +16,13 @@ namespace NoteWiz.Core.Entities
 
         public string Description { get; set; }
 
+        public string Color { get; set; }
+
         [Required]
         public int UserId { get; set; }
 
         [ForeignKey("UserId")]
-        public User User { get; set; }
+        public virtual User User { get; set; }
 
         public DateTime CreatedAt { get; set; }
 
