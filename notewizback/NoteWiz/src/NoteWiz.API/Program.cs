@@ -162,6 +162,7 @@ builder.Services.AddScoped<NoteShareService>(sp =>
     return new NoteShareService(noteShareRepository, noteRepository, userRepository, baseUrl);
 });
 builder.Services.AddHttpClient<IAIService, DeepSeekAIService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Add memory cache for rate limiting
 builder.Services.AddMemoryCache();

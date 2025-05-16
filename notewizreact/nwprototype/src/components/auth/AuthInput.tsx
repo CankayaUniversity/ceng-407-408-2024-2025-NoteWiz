@@ -1,7 +1,7 @@
 // src/components/auth/AuthInput.tsx
 import React from 'react';
 import { View, TextInput, StyleSheet, TextInputProps } from 'react-native';
-import Icon from 'react-native-vector-icons/Feather';
+import Icon from 'react-native-vector-icons/AntDesign';
 
 interface AuthInputProps extends TextInputProps {
   icon: string;

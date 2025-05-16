@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -20,7 +19,7 @@ namespace NoteWiz.Infrastructure.Services
         private readonly IConfiguration _configuration;
         private readonly IUnitOfWork _unitOfWork;
         private readonly string _apiKey;
-        private readonly string _apiEndpoint;
+        private readonly string _model;
 
         public DeepSeekAIService(
             HttpClient httpClient,
@@ -33,11 +32,9 @@ namespace NoteWiz.Infrastructure.Services
             _configuration = configuration;
             _unitOfWork = unitOfWork;
             
-            // API anahtarını environment variable veya appsettings.json'dan oku
-            _apiKey = _configuration["HuggingFace:ApiKey"] ?? Environment.GetEnvironmentVariable("HUGGINGFACE_API_KEY");
-            _apiEndpoint = "https://api-inference.huggingface.co/models/google-bert/bert-large-uncased-whole-word-masking-finetuned-squad";
+            _apiKey = _configuration["AI:ApiKey"];
+            _model = _configuration["AI:Model"] ?? "gpt-4";
             
-            // HTTP istemcisini yapılandır
             _httpClient.DefaultRequestHeaders.Accept.Clear();
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
@@ -50,46 +47,46 @@ namespace NoteWiz.Infrastructure.Services
             
             try
             {
-                // Hugging Face question-answering modeli için uygun format
-                var question = request.Prompt;
-                var context = request.Context ?? request.Prompt; // Eğer context yoksa prompt'u kullan
                 var requestBody = new
                 {
-                    inputs = new {
-                        question = question,
-                        context = context
-                    }
+                    model = _model,
+                    messages = new[]
+                    {
+                        new { role = "user", content = request.Prompt }
+                    },
+                    max_tokens = request.MaxTokens ?? 1024,
+                    temperature = request.Temperature ?? 0.7f
                 };
+
                 var jsonRequest = JsonConvert.SerializeObject(requestBody);
                 var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
                 
-                // Hugging Face API'sine istek gönder
-                var httpResponse = await _httpClient.PostAsync(_apiEndpoint, content);
+                var httpResponse = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", content);
                 
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var jsonResponse = await httpResponse.Content.ReadAsStringAsync();
                     dynamic responseData = JsonConvert.DeserializeObject(jsonResponse);
+                    
                     response.IsSuccess = true;
-                    response.ResponseText = responseData.answer ?? string.Empty;
+                    response.ResponseText = responseData.choices[0].message.content.ToString();
+                    response.TokensUsed = responseData.usage.total_tokens;
                 }
                 else
                 {
                     var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    _logger.LogError($"Hugging Face API Error: {httpResponse.StatusCode}, {errorContent}");
+                    _logger.LogError($"OpenAI API Error: {httpResponse.StatusCode}, {errorContent}");
                     response.ErrorMessage = $"API Error: {httpResponse.StatusCode}, {errorContent}";
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error calling Hugging Face API");
+                _logger.LogError(ex, "Error calling OpenAI API");
                 response.ErrorMessage = $"Exception: {ex.Message}";
             }
             
-            // İşlem süresini hesapla
-            var endTime = DateTime.UtcNow;
-            response.ProcessingTime = (endTime - startTime).TotalMilliseconds;
-            response.Timestamp = endTime;
+            response.ProcessingTime = (DateTime.UtcNow - startTime).TotalMilliseconds;
+            response.Timestamp = DateTime.UtcNow;
             
             return response;
         }
@@ -98,7 +95,6 @@ namespace NoteWiz.Infrastructure.Services
         {
             try
             {
-                // AI etkileşimini logla
                 var aiLog = new AIInteractionLog
                 {
                     UserId = userId,
@@ -107,9 +103,9 @@ namespace NoteWiz.Infrastructure.Services
                     TokensUsed = response.TokensUsed,
                     ProcessingTime = (int)response.ProcessingTime,
                     CreatedAt = response.Timestamp,
-                    ModelUsed = "deepseek-chat",
+                    ModelUsed = _model,
                     InteractionType = "text-prompt",
-                    Cost = CalculateCost(response.TokensUsed) // Basit maliyet hesaplama
+                    Cost = CalculateCost(response.TokensUsed)
                 };
                 
                 await _unitOfWork.AIInteractionLogs.AddAsync(aiLog);
@@ -123,11 +119,10 @@ namespace NoteWiz.Infrastructure.Services
             }
         }
         
-        // Basit bir maliyet hesaplama yöntemi (token başına maliyet)
         private decimal CalculateCost(int tokens)
         {
-            // İstek başına maliyet (1000 token başına yaklaşık $0.002)
-            return tokens * 0.000002m;
+            // GPT-4 için yaklaşık maliyet (1000 token başına $0.03)
+            return tokens * 0.00003m;
         }
 
         public async Task<string> AskQuestionAsync(string question)

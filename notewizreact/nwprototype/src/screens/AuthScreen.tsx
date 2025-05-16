@@ -18,6 +18,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import LinearGradient from 'react-native-linear-gradient';
+import Icon from 'react-native-vector-icons/AntDesign';
 import Animated, {
   FadeInDown,
   FadeInUp,
@@ -210,8 +211,8 @@ const AuthScreen: React.FC = () => {
                   <Text style={styles.rememberText}>Remember me</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity onPress={() => {}}>
-                  <Text style={styles.forgotText}>Forgot Password?</Text>
+                <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword" as never)}>
+                  <Text style={{ color: '#4C6EF5', textAlign: 'right', marginTop: 12 }}>Şifremi Unuttum?</Text>
                 </TouchableOpacity>
               </View>
             )}

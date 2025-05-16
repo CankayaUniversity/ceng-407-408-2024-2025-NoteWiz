@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { apiClient } from '../services/newApi';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -8,6 +8,8 @@ interface Friend {
   username: string;
   fullName?: string;
   email?: string;
+  isFavorite: boolean;
+  notificationsOn?: boolean;
 }
 
 const FriendsListScreen = () => {
@@ -38,6 +40,21 @@ const FriendsListScreen = () => {
     fetchFriends();
   }, []);
 
+  // Bildirim aç/kapat
+  const toggleNotification = (id: number) => {
+    setFriends(friends => friends.map(f => f.id === id ? { ...f, notificationsOn: !f.notificationsOn } : f));
+  };
+
+  // Arşivle
+  const archiveFolder = (id: number) => {
+    setFriends(friends => friends.filter(f => f.id !== id)); // Basitçe listeden çıkar
+  };
+
+  // Favori
+  const toggleFavorite = (id: number) => {
+    setFriends(friends => friends.map(f => f.id === id ? { ...f, isFavorite: !f.isFavorite } : f));
+  };
+
   if (loading) return <ActivityIndicator style={{ marginTop: 40 }} />;
 
   return (
@@ -50,6 +67,15 @@ const FriendsListScreen = () => {
           <View style={styles.friendItem}>
             <Text style={styles.friendName}>{item.fullName || item.username}</Text>
             <Text style={styles.friendUsername}>@{item.username}</Text>
+            <TouchableOpacity onPress={() => toggleNotification(item.id)}>
+              <Text>{item.notificationsOn ? 'Bildirim Kapalı' : 'Bildirim Açık'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => archiveFolder(item.id)}>
+              <Text>Arşivle</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => toggleFavorite(item.id)}>
+              <Text>{item.isFavorite ? '★' : '☆'}</Text>
+            </TouchableOpacity>
           </View>
         )}
         ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 40 }}>Hiç arkadaşın yok.</Text>}
