@@ -4,15 +4,16 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { StatusBar, Platform, TouchableOpacity, Text } from 'react-native';
+import { StatusBar, Platform, TouchableOpacity, Text, ActivityIndicator, View } from 'react-native';
 import { COLORS, SHADOWS } from './src/constants/theme';
 import notifee from '@notifee/react-native';
-import { NoteProvider } from './src/contexts/NoteContext';
+import { NoteProvider, useNotes } from './src/contexts/NoteContext';
 import ApiDiagnostic from './src/components/debug/ApiDiagnostic';
 import { DocumentProvider } from './src/contexts/DocumentContext';
 import { ShareProvider } from './src/contexts/ShareContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useNetworkSync } from './src/hooks/useNetworkSync';
 
 // Screens
 import WelcomeScreen from './src/screens/WelcomeScreen';
@@ -52,7 +53,7 @@ import {
 
 // Contexts
 import { ThemeProvider } from './src/contexts/ThemeContext';
-import { AuthProvider } from './src/contexts/AuthContext';
+import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { CategoriesProvider } from './src/contexts/CategoriesContext';
 import { TasksProvider } from './src/contexts/TasksContext';
 import { NotificationProvider } from './src/contexts/NotificationContext';
@@ -123,191 +124,269 @@ const TabNavigator = () => {
 };
 
 const App = () => {
-  const [isLoading, setIsLoading] = useState(true);
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+};
+
+const AppContent = () => {
+  const [isLoadingNotes, setIsLoadingNotes] = useState(true);
+  const { notes, loadNotes } = useNotes();
+  useNetworkSync();
+  const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
+    console.log('[App] useEffect: App started');
     const checkNotificationPermission = async () => {
       const settings = await notifee.requestPermission();
 
       if (settings.authorizationStatus) {
-        console.log('Bildirim izinleri alındı');
+        console.log('[App] Bildirim izinleri alındı');
       } else {
-        console.log('Bildirim izinleri reddedildi');
+        console.log('[App] Bildirim izinleri reddedildi');
       }
     };
 
     checkNotificationPermission();
-    setIsLoading(false);
-  }, []);
+
+    // Network değişiminde sync sonrası context güncelle
+    const syncAndUpdate = async () => {
+      const { noteService } = await import('./src/services/noteService');
+      await noteService.syncOfflineData((syncedNotes) => {
+        loadNotes(); // Notları tekrar yükle ve context'i güncelle
+        console.log('[App] Notlar sync sonrası güncellendi');
+      });
+    };
+    // NetInfo ile network değişimini dinle
+    const NetInfo = require('@react-native-community/netinfo').default;
+    const unsubscribe = NetInfo.addEventListener(state => {
+      if (state.isConnected) {
+        console.log('[App] Network online, sync başlatılıyor');
+        syncAndUpdate();
+      }
+    });
+    return () => {
+      console.log('[App] useEffect cleanup');
+      unsubscribe();
+    };
+  }, [loadNotes]);
+
+  useEffect(() => {
+    console.log('[App] State değişimi:', {
+      isLoading,
+      isAuthenticated,
+      timestamp: new Date().toISOString()
+    });
+  }, [isLoading, isAuthenticated]);
+
+  useEffect(() => {
+    console.log('[App] Auth durumu değişti:', {
+      isAuthenticated,
+      timestamp: new Date().toISOString()
+    });
+  }, [isAuthenticated]);
+
+  if (isLoading) {
+    console.log('[App] Loading spinner gösteriliyor');
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
+        <ActivityIndicator size="large" color={COLORS.primary.main} />
+      </View>
+    );
+  }
+
+  console.log('[App] Render edilen ekran:', isAuthenticated ? 'MainApp' : 'AuthScreen');
 
   return (
     <SafeAreaProvider>
-      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
       <ThemeProvider>
-        <AuthProvider>
-          <NotificationProvider>
-            <CategoriesProvider>
-              <NoteProvider>
-                <TasksProvider>
-                  <DocumentProvider>
-                    <ShareProvider>
-                      <NavigationContainer>
-                        <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
-                          <Stack.Screen name="Auth" component={AuthScreen} />
-                          <Stack.Screen name="MainApp" component={TabNavigator} />
-                          <Stack.Screen
-                            name="NoteDetail"
-                            component={NoteDetailScreen}
-                            options={{
-                              headerShown: true,
-                              presentation: 'modal',
-                              animation: 'slide_from_bottom',
-                              headerTitle: '',
-                              headerShadowVisible: false,
-                              headerStyle: {
-                                backgroundColor: COLORS.background.default,
-                              },
-                              headerTintColor: COLORS.primary.main,
+        <NotificationProvider>
+          <CategoriesProvider>
+            <NoteProvider>
+              <TasksProvider>
+                <DocumentProvider>
+                  <ShareProvider>
+                    <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+                    <NavigationContainer>
+                      <Stack.Navigator 
+                        key={isAuthenticated ? 'auth-true' : 'auth-false'}
+                        screenOptions={{ headerShown: false, animation: 'slide_from_right' }}
+                      >
+                        {isAuthenticated ? (
+                          <Stack.Screen 
+                            name="Tabs" 
+                            component={TabNavigator}
+                            listeners={{
+                              focus: () => {
+                                console.log('[App] TabNavigator focused');
+                              }
                             }}
                           />
-                          <Stack.Screen
-                            name="DocumentUpload"
-                            component={DocumentUploadScreen}
-                            options={{
-                              headerShown: true,
-                              presentation: 'modal',
-                              animation: 'slide_from_bottom',
-                              headerTitle: 'Dosya Yükle',
-                              headerShadowVisible: false,
-                              headerStyle: {
-                                backgroundColor: COLORS.background.default,
-                              },
-                              headerTintColor: COLORS.primary.main,
+                        ) : (
+                          <Stack.Screen 
+                            name="Auth" 
+                            component={AuthScreen}
+                            listeners={{
+                              focus: () => {
+                                console.log('[App] AuthScreen focused');
+                              }
                             }}
                           />
-                          <Stack.Screen
-                            name="Drawing"
-                            component={DrawingScreen}
-                            options={{ presentation: 'fullScreenModal', animation: 'fade_from_bottom' }}
-                          />
-                          <Stack.Screen
-                            name="TaskDetail"
-                            component={TaskDetailScreen}
-                            options={{
-                              headerShown: true,
-                              presentation: 'modal',
-                              animation: 'slide_from_bottom',
-                              headerTitle: '',
-                              headerShadowVisible: false,
-                              headerStyle: {
-                                backgroundColor: COLORS.background.default,
-                              },
-                              headerTintColor: COLORS.primary.main,
-                            }}
-                          />
-                          <Stack.Screen
-                            name="Calendar"
-                            component={CalendarScreen}
-                            options={{
-                              headerShown: true,
-                              headerTitle: 'Takvim',
-                              headerStyle: {
-                                backgroundColor: COLORS.background.default,
-                              },
-                              headerTintColor: COLORS.primary.main,
-                            }}
-                          />
-                          <Stack.Screen
-                            name="Diagnostic"
-                            component={ApiDiagnostic}
-                            options={{
-                              headerShown: true,
-                              headerTitle: 'API Tanılama',
-                              headerStyle: {
-                                backgroundColor: COLORS.background.default,
-                              },
-                              headerTintColor: COLORS.primary.main,
-                            }}
-                          />
-                          <Stack.Screen
-                            name="FriendSearch"
-                            component={FriendSearchScreen}
-                            options={{
-                              headerShown: true,
-                              headerTitle: 'Arkadaş Ekle',
-                              headerStyle: {
-                                backgroundColor: COLORS.background.default,
-                              },
-                              headerTintColor: COLORS.primary.main,
-                            }}
-                          />
-                          <Stack.Screen
-                            name="FriendRequests"
-                            component={FriendRequestsScreen}
-                            options={{
-                              headerShown: true,
-                              headerTitle: 'Gelen İstekler',
-                              headerStyle: {
-                                backgroundColor: COLORS.background.default,
-                              },
-                              headerTintColor: COLORS.primary.main,
-                            }}
-                          />
-                          <Stack.Screen
-                            name="FriendsList"
-                            component={FriendsListScreen}
-                            options={{
-                              headerShown: true,
-                              headerTitle: 'Arkadaşlarım',
-                              headerStyle: {
-                                backgroundColor: COLORS.background.default,
-                              },
-                              headerTintColor: COLORS.primary.main,
-                            }}
-                          />
-                          <Stack.Screen
-                            name="SharedNotes"
-                            component={CollaboratiNotesScreen}
-                            options={{
-                              headerShown: true,
-                              headerTitle: 'Eş Zamanlı Notlar',
-                              headerStyle: {
-                                backgroundColor: COLORS.background.default,
-                              },
-                              headerTintColor: COLORS.primary.main,
-                            }}
-                          />
-                          <Stack.Screen
-                            name="ShareNote"
-                            component={ShareNoteScreen}
-                            options={{
-                              headerShown: true,
-                              headerTitle: 'Not Paylaş',
-                              headerStyle: {
-                                backgroundColor: COLORS.background.default,
-                              },
-                              headerTintColor: COLORS.primary.main,
-                            }}
-                          />
-                          <Stack.Screen
-                            name="ForgotPassword"
-                            component={ForgotPasswordScreen}
-                            options={{ title: 'Şifremi Unuttum' }}
-                          />
-                          <Stack.Screen
-                            name="OCR"
-                            component={OCRScreen}
-                            options={{ title: 'OCR ile Not' }}
-                          />
-                        </Stack.Navigator>
-                      </NavigationContainer>
-                    </ShareProvider>
-                  </DocumentProvider>
-                </TasksProvider>
-              </NoteProvider>
-            </CategoriesProvider>
-          </NotificationProvider>
-        </AuthProvider>
+                        )}
+                        <Stack.Screen
+                          name="NoteDetail"
+                          component={NoteDetailScreen}
+                          options={{
+                            headerShown: true,
+                            presentation: 'modal',
+                            animation: 'slide_from_bottom',
+                            headerTitle: '',
+                            headerShadowVisible: false,
+                            headerStyle: {
+                              backgroundColor: COLORS.background.default,
+                            },
+                            headerTintColor: COLORS.primary.main,
+                          }}
+                        />
+                        <Stack.Screen
+                          name="DocumentUpload"
+                          component={DocumentUploadScreen}
+                          options={{
+                            headerShown: true,
+                            presentation: 'modal',
+                            animation: 'slide_from_bottom',
+                            headerTitle: 'Dosya Yükle',
+                            headerShadowVisible: false,
+                            headerStyle: {
+                              backgroundColor: COLORS.background.default,
+                            },
+                            headerTintColor: COLORS.primary.main,
+                          }}
+                        />
+                        <Stack.Screen
+                          name="Drawing"
+                          component={DrawingScreen}
+                          options={{ presentation: 'fullScreenModal', animation: 'fade_from_bottom' }}
+                        />
+                        <Stack.Screen
+                          name="TaskDetail"
+                          component={TaskDetailScreen}
+                          options={{
+                            headerShown: true,
+                            presentation: 'modal',
+                            animation: 'slide_from_bottom',
+                            headerTitle: '',
+                            headerShadowVisible: false,
+                            headerStyle: {
+                              backgroundColor: COLORS.background.default,
+                            },
+                            headerTintColor: COLORS.primary.main,
+                          }}
+                        />
+                        <Stack.Screen
+                          name="Calendar"
+                          component={CalendarScreen}
+                          options={{
+                            headerShown: true,
+                            headerTitle: 'Takvim',
+                            headerStyle: {
+                              backgroundColor: COLORS.background.default,
+                            },
+                            headerTintColor: COLORS.primary.main,
+                          }}
+                        />
+                        <Stack.Screen
+                          name="Diagnostic"
+                          component={ApiDiagnostic}
+                          options={{
+                            headerShown: true,
+                            headerTitle: 'API Tanılama',
+                            headerStyle: {
+                              backgroundColor: COLORS.background.default,
+                            },
+                            headerTintColor: COLORS.primary.main,
+                          }}
+                        />
+                        <Stack.Screen
+                          name="FriendSearch"
+                          component={FriendSearchScreen}
+                          options={{
+                            headerShown: true,
+                            headerTitle: 'Arkadaş Ekle',
+                            headerStyle: {
+                              backgroundColor: COLORS.background.default,
+                            },
+                            headerTintColor: COLORS.primary.main,
+                          }}
+                        />
+                        <Stack.Screen
+                          name="FriendRequests"
+                          component={FriendRequestsScreen}
+                          options={{
+                            headerShown: true,
+                            headerTitle: 'Gelen İstekler',
+                            headerStyle: {
+                              backgroundColor: COLORS.background.default,
+                            },
+                            headerTintColor: COLORS.primary.main,
+                          }}
+                        />
+                        <Stack.Screen
+                          name="FriendsList"
+                          component={FriendsListScreen}
+                          options={{
+                            headerShown: true,
+                            headerTitle: 'Arkadaşlarım',
+                            headerStyle: {
+                              backgroundColor: COLORS.background.default,
+                            },
+                            headerTintColor: COLORS.primary.main,
+                          }}
+                        />
+                        <Stack.Screen
+                          name="SharedNotes"
+                          component={CollaboratiNotesScreen}
+                          options={{
+                            headerShown: true,
+                            headerTitle: 'Eş Zamanlı Notlar',
+                            headerStyle: {
+                              backgroundColor: COLORS.background.default,
+                            },
+                            headerTintColor: COLORS.primary.main,
+                          }}
+                        />
+                        <Stack.Screen
+                          name="ShareNote"
+                          component={ShareNoteScreen}
+                          options={{
+                            headerShown: true,
+                            headerTitle: 'Not Paylaş',
+                            headerStyle: {
+                              backgroundColor: COLORS.background.default,
+                            },
+                            headerTintColor: COLORS.primary.main,
+                          }}
+                        />
+                        <Stack.Screen
+                          name="ForgotPassword"
+                          component={ForgotPasswordScreen}
+                          options={{ title: 'Şifremi Unuttum' }}
+                        />
+                        <Stack.Screen
+                          name="OCR"
+                          component={OCRScreen}
+                          options={{ title: 'OCR ile Not' }}
+                        />
+                      </Stack.Navigator>
+                    </NavigationContainer>
+                  </ShareProvider>
+                </DocumentProvider>
+              </TasksProvider>
+            </NoteProvider>
+          </CategoriesProvider>
+        </NotificationProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

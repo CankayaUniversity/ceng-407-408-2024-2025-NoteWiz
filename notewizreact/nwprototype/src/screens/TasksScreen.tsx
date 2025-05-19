@@ -191,7 +191,18 @@ const TasksScreen = () => {
             styles.checkbox,
             task.isCompleted && styles.checkedBox
           ]}
-          onPress={() => updateTask(task.id, { isCompleted: !task.isCompleted })}
+          onPress={() => updateTask(
+            String(task.id),
+            {
+              title: task.title,
+              description: task.description,
+              dueDate: task.dueDate,
+              priority: task.priority,
+              categoryId: task.categoryId,
+              isCompleted: !task.isCompleted,
+              reminder: task.reminder,
+            }
+          )}
         >
           {task.isCompleted && <View style={styles.checkmark} />}
         </TouchableOpacity>

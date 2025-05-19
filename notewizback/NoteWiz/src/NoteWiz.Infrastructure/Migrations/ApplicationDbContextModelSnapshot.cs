@@ -302,8 +302,16 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("DeviceId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("DocumentId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsOffline")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("IsPinned")
                         .ValueGeneratedOnAdd()
@@ -318,8 +326,18 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.Property<bool>("IsSynced")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
                     b.Property<DateTime?>("LastSyncedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("SyncStatus")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("synced");
 
                     b.Property<string>("Tags")
                         .IsRequired()

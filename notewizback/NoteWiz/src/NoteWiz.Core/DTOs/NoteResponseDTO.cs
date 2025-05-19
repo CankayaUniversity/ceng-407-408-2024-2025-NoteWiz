@@ -24,5 +24,8 @@ namespace NoteWiz.Core.DTOs
         public int? CategoryId { get; set; }
         public bool IsSynced { get; set; }
         public DateTime? LastSyncedAt { get; set; }
+        public bool IsOffline { get; set; }
+        public string? SyncStatus { get; set; }
+        public DateTime? LastModifiedAt { get; set; }
     }
 } 

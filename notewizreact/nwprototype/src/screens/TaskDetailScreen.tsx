@@ -75,6 +75,16 @@ const TaskDetailScreen = () => {
     });
   }, [navigation, taskId]);
 
+  useEffect(() => {
+    if (editingTask) {
+      setTitle(editingTask.title);
+      setDescription(editingTask.description);
+      setDueDate(editingTask.dueDate ? new Date(editingTask.dueDate) : undefined);
+      setIsCompleted(editingTask.isCompleted);
+      // Diğer state'ler gerekiyorsa ekle
+    }
+  }, [editingTask]);
+
   // Tarih seçimi işleyicisi
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
@@ -125,16 +135,16 @@ const TaskDetailScreen = () => {
       };
 
       if (taskId) {
-        const updatedTask = await updateTask(Number(taskId), taskData);
+        const updatedTask = await updateTask(String(taskId), taskData);
         console.log('Task updated successfully');
-        
+        if (!updatedTask) return;
         if (hasReminder && reminderDate) {
           await NotificationService.scheduleTaskReminder({
             ...updatedTask,
             id: String(updatedTask.id),
             reminder: reminderDate.toISOString(),
             priority: 'medium',
-            completed: updatedTask.isCompleted,
+            isCompleted: updatedTask.isCompleted,
           });
         } else {
           await NotificationService.cancelNotification(`task-${updatedTask.id}`);
@@ -143,14 +153,14 @@ const TaskDetailScreen = () => {
         // Yeni görev ekle
         const newTask = await addTask(taskData);
         console.log('Task added successfully with ID:', newTask.id);
-        
+        if (!newTask) return;
         if (hasReminder && reminderDate) {
           await NotificationService.scheduleTaskReminder({
             ...newTask,
             id: String(newTask.id),
             reminder: reminderDate.toISOString(),
             priority: 'medium',
-            completed: newTask.isCompleted,
+            isCompleted: newTask.isCompleted,
           });
         }
       }

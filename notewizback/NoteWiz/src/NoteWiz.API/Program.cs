@@ -13,7 +13,7 @@ using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using NoteWiz.Core.Entities;
 using NoteWiz.API.Middleware;
-using Microsoft.Extensions.Configuration;
+using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -153,6 +153,7 @@ builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IAIService, DeepSeekAIService>();
 builder.Services.AddScoped<IDrawingService, DrawingService>();
+builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddScoped<NoteShareService>(sp => 
 {
     var noteShareRepository = sp.GetRequiredService<INoteShareRepository>();

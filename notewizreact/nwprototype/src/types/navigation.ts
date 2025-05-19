@@ -5,7 +5,7 @@ export type RootStackParamList = {
   Welcome: undefined;
   Home: undefined;
   Auth: undefined;
-  MainApp: undefined;
+  Tabs: undefined;
   NoteDetail: {
     noteId?: string | number;
     title?: string;

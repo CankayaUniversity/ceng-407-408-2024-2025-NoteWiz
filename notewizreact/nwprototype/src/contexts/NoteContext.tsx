@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { Note, noteService, CreateNoteDTO, UpdateNoteDTO, UpdateCoverDTO } from '../services/noteService';
 import { useAuth } from './AuthContext';
+import { drawingService } from '../services/drawingService';
 
 // Note tipini yeniden export et
 export type { Note };
@@ -30,6 +31,7 @@ interface NoteContextData {
   clearError: () => void;
   addFolder: (folder: FolderData) => Promise<void>;
   moveNoteToFolder: (noteId: number | string, folderId: number | string | null) => Promise<void>;
+  updateNoteDrawings: (noteId: string, drawings: any[]) => void;
 }
 
 const NoteContext = createContext<NoteContextData>({} as NoteContextData);
@@ -52,8 +54,10 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loadNotes = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await noteService.getNotes();
-      setNotes(response);
+      const loadedNotes = await noteService.getNotes();
+      setNotes(loadedNotes);
+      // Çizimleri cache'e yükle
+      await drawingService.initializeDrawingsCache(loadedNotes);
     } catch (err) {
       setError('Failed to load notes');
       console.error(err);
@@ -108,20 +112,21 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const updateNote = useCallback(async (id: number | string, noteData: UpdateNoteDTO) => {
+  const updateNote = useCallback(async (id: number | string, noteData: UpdateNoteDTO): Promise<Note> => {
     try {
       setLoading(true);
       const apiNoteData = {
         ...noteData,
         isPinned: noteData.isImportant,
       };
-      console.log('[updateNote] id:', id, 'type:', typeof id, 'noteData:', apiNoteData);
-      if (id === undefined || id === null) {
+      const idStr = id.toString();
+      if (!idStr) {
         throw new Error('updateNote: id is undefined or null');
       }
-      const updatedNote = await noteService.updateNote(id.toString(), apiNoteData);
+      const updatedNote = await noteService.updateNote(idStr, apiNoteData);
+      if (!updatedNote) throw new Error('updateNote: updatedNote is undefined');
       setNotes(prev => prev.map(note => 
-        note.id === id 
+        note.id === idStr 
           ? { ...updatedNote, isImportant: updatedNote.isPinned } 
           : note
       ));
@@ -138,8 +143,9 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const deleteNote = useCallback(async (id: number | string) => {
     try {
       setLoading(true);
-      await noteService.deleteNote(id);
-      setNotes(prev => prev.filter(note => note.id !== id));
+      const idStr = id.toString();
+      await noteService.deleteNote(idStr);
+      setNotes(prev => prev.filter(note => note.id !== idStr));
     } catch (err) {
       setError('Failed to delete note');
       console.error(err);
@@ -152,8 +158,9 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateNoteCover = useCallback(async (id: number | string, coverData: UpdateCoverDTO) => {
     try {
       setLoading(true);
-      const updatedNote = await noteService.updateCover(id, coverData);
-      setNotes(prev => prev.map(note => note.id === id ? updatedNote : note));
+      const idStr = id.toString();
+      const updatedNote = await noteService.updateCover(idStr, coverData);
+      setNotes(prev => prev.map(note => note.id === idStr ? updatedNote : note));
       return updatedNote;
     } catch (err) {
       setError('Failed to update note cover');
@@ -167,7 +174,9 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const shareNote = useCallback(async (id: number | string, userId: number | string, canEdit: boolean) => {
     try {
       setLoading(true);
-      await noteService.shareNote(id, userId, canEdit);
+      const idStr = id.toString();
+      const userIdStr = userId.toString();
+      await noteService.shareNote(idStr, userIdStr, canEdit);
     } catch (err) {
       setError('Failed to share note');
       console.error(err);
@@ -180,7 +189,6 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Folder operations
   const addFolder = useCallback(async (folder: FolderData) => {
     if (!isAuthenticated) return;
-    
     try {
       setLoading(true);
       const folderNote: CreateNoteDTO = {
@@ -190,9 +198,8 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
         color: "#EFEFEF",
         isPinned: false,
         isFolder: true,
-        folderId: folder.parentFolderId
+        folderId: folder.parentFolderId !== null && folder.parentFolderId !== undefined ? folder.parentFolderId.toString() : null
       };
-      
       const createdFolder = await noteService.createNote(folderNote);
       setNotes(prev => [...prev, createdFolder]);
     } catch (err) {
@@ -205,16 +212,15 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const moveNoteToFolder = useCallback(async (noteId: number | string, folderId: number | string | null) => {
     if (!isAuthenticated) return;
-    
     try {
       setLoading(true);
       const noteData: UpdateNoteDTO = {
-        folderId: folderId
+        folderId: folderId !== null && folderId !== undefined ? folderId.toString() : null
       };
-      
-      const updatedNote = await noteService.updateNote(noteId, noteData);
+      const noteIdStr = noteId.toString();
+      const updatedNote = await noteService.updateNote(noteIdStr, noteData);
       setNotes(prev => prev.map(note => 
-        note.id === noteId ? { ...note, folderId } : note
+        note.id === noteIdStr ? { ...note, folderId: noteData.folderId as string | null } : note
       ));
     } catch (err) {
       setError('Failed to move note');
@@ -226,6 +232,11 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const clearError = useCallback(() => {
     setError(null);
+  }, []);
+
+  // Notun çizimlerini güncelleyen fonksiyon
+  const updateNoteDrawings = useCallback((noteId: string, drawings: any[]) => {
+    setNotes(prev => prev.map(note => note.id === noteId ? { ...note, drawings } : note));
   }, []);
 
   return (
@@ -245,6 +256,7 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
         clearError,
         addFolder,
         moveNoteToFolder,
+        updateNoteDrawings,
       }}
     >
       {children}

@@ -58,6 +58,11 @@ namespace NoteWiz.Infrastructure.Data
                         v => string.Join(',', v),
                         v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList()
                     );
+
+                // Offline desteği için gerekli alanlar
+                entity.Property(n => n.IsOffline).HasDefaultValue(false);
+                entity.Property(n => n.SyncStatus).HasDefaultValue("synced");
+                entity.Property(n => n.LastModifiedAt).HasDefaultValueSql("GETUTCDATE()");
             });
 
             // Configure relationship between Note and NoteDrawing

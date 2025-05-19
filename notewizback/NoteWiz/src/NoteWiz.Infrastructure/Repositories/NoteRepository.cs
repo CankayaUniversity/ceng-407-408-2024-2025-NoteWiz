@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -38,6 +39,8 @@ namespace NoteWiz.Infrastructure.Repositories
 
         public async Task<Note> AddAsync(Note note)
         {
+            note.LastModifiedAt = DateTime.UtcNow;
+            note.SyncStatus = note.IsOffline ? "pending" : "synced";
             await _context.Notes.AddAsync(note);
             await _context.SaveChangesAsync();
             return note;
@@ -45,6 +48,8 @@ namespace NoteWiz.Infrastructure.Repositories
 
         public async Task<Note> UpdateAsync(Note note)
         {
+            note.LastModifiedAt = DateTime.UtcNow;
+            note.SyncStatus = note.IsOffline ? "pending" : "synced";
             _context.Notes.Update(note);
             await _context.SaveChangesAsync();
             return note;
@@ -91,6 +96,21 @@ namespace NoteWiz.Infrastructure.Repositories
                     .ThenInclude(sw => sw.SharedWithUser)
                 .Include(n => n.Document)
                 .FirstOrDefaultAsync(n => n.Id == id);
+        }
+
+        public async Task<List<Note>> GetUserNotesOrderedByLastModifiedAsync(int userId)
+        {
+            return await _context.Notes
+                .Where(n => n.UserId == userId)
+                .OrderByDescending(n => n.LastModifiedAt)
+                .ToListAsync();
+        }
+
+        public async Task<List<Note>> GetPendingSyncNotesAsync(int userId)
+        {
+            return await _context.Notes
+                .Where(n => n.UserId == userId && n.SyncStatus == "pending")
+                .ToListAsync();
         }
     }
 } 

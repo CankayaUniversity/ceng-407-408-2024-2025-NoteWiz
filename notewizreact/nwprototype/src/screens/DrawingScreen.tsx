@@ -24,6 +24,7 @@ import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../types/navigation';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { drawingService } from '../services/drawingService';
+import { useNotes } from '../contexts/NoteContext';
 
 // Bizim bileşenler
 import { DrawingHeader } from '../components/drawing/DrawingHeader';
@@ -61,6 +62,7 @@ type DrawingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList,
 const DrawingScreen: React.FC = () => {
   const route = useRoute<DrawingScreenRouteProp>();
   const navigation = useNavigation<DrawingScreenNavigationProp>();
+  const { updateNoteDrawings } = useNotes();
 
   // Çizim ile ilgili state
   const [strokes, setStrokes] = useState<Stroke[]>([]);
@@ -158,17 +160,17 @@ const DrawingScreen: React.FC = () => {
       if (!route.params?.noteId) {
         throw new Error('Note ID is required');
       }
-
       // Çizim verilerini JSON formatına dönüştür
       const drawingData = JSON.stringify({
         strokes,
         canvasWidth: width,
         canvasHeight: height
       });
-
       // Backend'e kaydet
-      await drawingService.saveDrawing(route.params.noteId, drawingData);
-
+      const savedDrawing = await drawingService.saveDrawing(route.params.noteId, drawingData);
+      // Context'teki notun drawings alanını güncelle
+      const drawings = await drawingService.getDrawings(route.params.noteId);
+      updateNoteDrawings(route.params.noteId, drawings);
       Alert.alert('Success', 'Drawing saved successfully');
     } catch (error) {
       console.error('Error saving drawing:', error);
@@ -182,12 +184,13 @@ const DrawingScreen: React.FC = () => {
       if (!route.params?.noteId) {
         throw new Error('Note ID is required');
       }
-
       const drawings = await drawingService.getDrawings(route.params.noteId);
       if (drawings.length > 0) {
         const lastDrawing = drawings[drawings.length - 1];
         const drawingData = JSON.parse(lastDrawing.drawingData);
         setStrokes(drawingData.strokes);
+        // Context'teki notun drawings alanını güncelle
+        updateNoteDrawings(route.params.noteId, drawings);
       }
     } catch (error) {
       console.error('Error loading drawing:', error);

@@ -349,7 +349,7 @@ const NoteDetailScreen = () => {
         const createdNote = await createNote(noteData);
         if (createdNote && createdNote.id) {
           setContent(createdNote.content || content);
-          navigation.navigate('MainApp', { screen: 'Notes' });
+          navigation.navigate('Tabs', { screen: 'Notes' });
         } else {
           Alert.alert('Hata', 'Not oluşturulamadı!');
         }
@@ -362,7 +362,7 @@ const NoteDetailScreen = () => {
         const updated = await updateNote(noteId, noteData);
         if (updated && updated.content) {
           setContent(updated.content);
-          navigation.navigate('MainApp', { screen: 'Notes' });
+          navigation.navigate('Tabs', { screen: 'Notes' });
         }
       }
     } catch (err) {
@@ -515,7 +515,7 @@ const NoteDetailScreen = () => {
         Alert.alert('Hata', 'Resim seçilemedi: ' + response.errorMessage);
         return;
       } else if (response.assets?.[0]?.uri) {
-        setContent(prev => prev + `\n[IMAGE:${response.assets[0].uri}]\n`);
+        setContent(prev => prev + `\n[IMAGE:${response.assets?.[0]?.uri}]\n`);
         setShowAddModal(false);
       }
     });

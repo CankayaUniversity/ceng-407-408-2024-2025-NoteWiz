@@ -52,6 +52,11 @@ namespace NoteWiz.Core.Entities
         public bool IsSynced { get; set; } // For mobile sync status
         public DateTime? LastSyncedAt { get; set; }
 
+        public bool IsOffline { get; set; }
+        public DateTime? LastModifiedAt { get; set; }
+        public string? DeviceId { get; set; }
+        public string? SyncStatus { get; set; } // "synced", "pending", "conflict"
+
         // Navigation properties
         [ForeignKey("UserId")]
         public virtual User User { get; set; }
@@ -70,6 +75,9 @@ namespace NoteWiz.Core.Entities
             NoteDrawings = new HashSet<NoteDrawing>();
             NoteImages = new HashSet<NoteImage>();
             CreatedAt = DateTime.UtcNow;
+            LastModifiedAt = DateTime.UtcNow;
+            SyncStatus = "synced";
+            IsOffline = false;
             IsPrivate = true; // Default to private
         }
     }

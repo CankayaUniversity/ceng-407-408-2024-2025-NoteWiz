@@ -79,7 +79,7 @@ const AuthScreen: React.FC = () => {
       if (isLogin) {
         const success = await login(email, password, rememberMe);
         if (success) {
-          navigation.replace('MainApp');
+          // navigation.replace('MainApp'); // KALDIRILDI, App.tsx yönetecek
         }
       } else {
         const success = await signup(email, password, fullName);
@@ -87,8 +87,9 @@ const AuthScreen: React.FC = () => {
           Alert.alert(
             'Başarılı',
             'Hesabınız başarıyla oluşturuldu!',
-            [{ text: 'Tamam', onPress: () => navigation.replace('MainApp') }]
+            [{ text: 'Tamam' }]
           );
+          // navigation.replace('MainApp'); // KALDIRILDI, App.tsx yönetecek
         }
       }
     } catch (error: any) {

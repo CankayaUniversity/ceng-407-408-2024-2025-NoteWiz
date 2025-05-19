@@ -40,24 +40,46 @@ apiClient.interceptors.request.use(
   async (config) => {
     const token = await AsyncStorage.getItem('userToken');
     if (token) {
+      console.log('[API] Adding token to request:', token.substring(0, 20) + '...');
       config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      console.log('[API] No token found for request');
     }
     return config;
   },
   (error) => {
-    console.error('Request error:', error);
+    console.error('[API] Request error:', error);
     return Promise.reject(error);
   }
 );
 
 // Response interceptor for handling errors
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('[API] Response success:', response.config.url);
+    return response;
+  },
   async (error) => {
-    console.error('Response error:', error);
-    if (error.response?.status === 401) {
-      await AsyncStorage.removeItem('userToken');
-      EventEmitter.emit('unauthorized');
+    console.error('[API] Response error:', {
+      url: error.config?.url,
+      status: error.response?.status,
+      data: error.response?.data
+    });
+
+    // Sadece login ve register endpointleri hariç 401'de logout
+    const url = error.config?.url || '';
+    if (
+      error.response?.status === 401 &&
+      !url.includes('/Users/login') &&
+      !url.includes('/Users/register')
+    ) {
+      console.log('[API] 401 Unauthorized, checking token...');
+      const token = await AsyncStorage.getItem('userToken');
+      if (token) {
+        console.log('[API] Token exists but request failed, removing token');
+        await AsyncStorage.removeItem('userToken');
+        EventEmitter.emit('unauthorized');
+      }
     }
     return Promise.reject(error);
   }
