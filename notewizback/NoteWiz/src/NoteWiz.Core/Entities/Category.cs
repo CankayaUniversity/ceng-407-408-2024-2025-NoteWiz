@@ -14,22 +14,14 @@ namespace NoteWiz.Core.Entities
         [Required]
         public string Name { get; set; }
 
-        public string Description { get; set; }
-
-        public string Color { get; set; }
-
         [Required]
         public int UserId { get; set; }
 
         [ForeignKey("UserId")]
-        public virtual User User { get; set; }
-
-        public DateTime CreatedAt { get; set; }
-
-        public DateTime? UpdatedAt { get; set; }
+        public virtual User? User { get; set; }
 
         // Navigation properties
-        public ICollection<Document> Documents { get; set; }
-        public ICollection<Note> Notes { get; set; }
+        public virtual ICollection<Note> Notes { get; set; } = new List<Note>();
+
     }
 } 

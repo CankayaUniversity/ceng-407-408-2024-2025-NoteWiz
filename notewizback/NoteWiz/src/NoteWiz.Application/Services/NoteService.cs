@@ -110,5 +110,15 @@ namespace NoteWiz.Application.Services
             await _unitOfWork.NoteShares.AddAsync(share);
             await _unitOfWork.SaveChangesAsync();
         }
+
+        public async Task<Note> UpdateNoteSummaryAsync(int noteId, string summary)
+        {
+            var note = await _unitOfWork.Notes.GetByIdAsync(noteId);
+            if (note == null) throw new Exception("Note not found");
+            note.Summary = summary;
+            _unitOfWork.Notes.Update(note);
+            await _unitOfWork.SaveChangesAsync();
+            return note;
+        }
     }
 } 

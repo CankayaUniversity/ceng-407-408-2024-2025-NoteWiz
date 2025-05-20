@@ -60,7 +60,7 @@ class DocumentService {
 
   async getDocuments(): Promise<Document[]> {
     const response = await apiClient.get(ENDPOINTS.DOCUMENTS);
-    return response.data.map(this.transformApiDocument);
+    return Array.isArray(response.data) ? response.data.map(this.transformApiDocument) : [];
   }
 
   async getDocument(id: string): Promise<Document> {

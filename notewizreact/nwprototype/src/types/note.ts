@@ -28,6 +28,7 @@ export interface CreateNoteDto {
     coverId?: string;
     coverColor?: string;
     isArchived?: boolean;
+    pageType?: string; // lined, grid, plain
 }
 
 export interface UpdateNoteDto {
@@ -36,13 +37,13 @@ export interface UpdateNoteDto {
     coverId?: string;
     coverColor?: string;
     isArchived?: boolean;
+    pageType?: string; // lined, grid, plain
 }
 
 export interface NoteData {
     title: string;
     content: string;
     tags?: string[];
-    color?: string;
     isImportant?: boolean;
     categoryId?: string;
     folderId?: string | null;

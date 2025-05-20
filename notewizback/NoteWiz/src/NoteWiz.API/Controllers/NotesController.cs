@@ -231,7 +231,9 @@ namespace NoteWiz.API.Controllers
         [HttpPost]
         public async Task<ActionResult<NoteResponseDTO>> CreateNote(NoteCreateDTO noteDTO)
         {
+            _logger.LogInformation("Gelen noteDTO: {@noteDTO}", noteDTO);
             var userId = GetCurrentUserId();
+            var tagsValue = string.IsNullOrEmpty(noteDTO.Tags) ? "" : noteDTO.Tags;
             var note = new Note
             {
                 Title = noteDTO.Title,
@@ -239,7 +241,9 @@ namespace NoteWiz.API.Controllers
                 IsPrivate = noteDTO.IsPrivate,
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow,
-                CoverImageUrl = noteDTO.CoverImage
+                CoverImageUrl = noteDTO.CoverImage == "undefined" ? null : noteDTO.CoverImage,
+                CategoryId = noteDTO.CategoryId,
+                Tags = tagsValue
             };
 
             note = await _noteService.CreateNoteAsync(note);
@@ -294,7 +298,8 @@ namespace NoteWiz.API.Controllers
             note.Content = noteDTO.Content;
             note.IsPrivate = noteDTO.IsPrivate;
             note.UpdatedAt = DateTime.UtcNow;
-            note.CoverImageUrl = noteDTO.CoverImage;
+            note.CoverImageUrl = noteDTO.CoverImage == "undefined" ? null : noteDTO.CoverImage;
+            note.CategoryId = noteDTO.CategoryId;
 
             _logger.LogInformation("UpdateNote called for id: {id}", id);
             _logger.LogInformation("Updated note: {@note}", note);
@@ -427,7 +432,7 @@ namespace NoteWiz.API.Controllers
                     IsPinned = n.IsPinned,
                     IsPrivate = n.IsPrivate,
                     CoverImage = n.CoverImageUrl ?? string.Empty,
-                    Tags = n.Tags ?? new List<string>(),
+                    Tags = n.Tags ?? string.Empty,
                     CategoryId = n.CategoryId,
                     CreatedAt = n.CreatedAt,
                     UpdatedAt = n.UpdatedAt,
@@ -479,6 +484,25 @@ namespace NoteWiz.API.Controllers
             note.UpdatedAt = DateTime.UtcNow;
             await _noteService.UpdateNoteAsync(note);
             return Ok(note);
+        }
+
+        [HttpPatch("{id}/summary")]
+        public async Task<IActionResult> UpdateNoteSummary(int id, [FromBody] string summary)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var note = await _noteService.GetNoteByIdAsync(id);
+                if (note == null) return NotFound();
+                if (note.UserId != userId) return Forbid();
+                var updatedNote = await _noteService.UpdateNoteSummaryAsync(id, summary);
+                return Ok(new { updatedNote.Id, updatedNote.Summary });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating note summary");
+                return StatusCode(500, new { error = "An error occurred while updating summary", details = ex.Message });
+            }
         }
     }
 } 

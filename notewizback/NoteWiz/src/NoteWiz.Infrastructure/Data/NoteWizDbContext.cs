@@ -29,6 +29,7 @@ namespace NoteWiz.Infrastructure.Data
         public DbSet<Friendship> Friendships { get; set; }
         public DbSet<FriendshipRequest> FriendshipRequests { get; set; }
         public DbSet<Document> Documents { get; set; }
+        public DbSet<Folder> Folders { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -53,11 +54,7 @@ namespace NoteWiz.Infrastructure.Data
                 entity.Property(n => n.CoverImage)
                     .IsRequired(false);
 
-                entity.Property(n => n.Tags)
-                    .HasConversion(
-                        v => string.Join(',', v),
-                        v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList()
-                    );
+                entity.Property(n => n.Tags);
             });
 
             modelBuilder.Entity<TaskItem>()
@@ -115,6 +112,12 @@ namespace NoteWiz.Infrastructure.Data
                 .WithMany(d => d.Notes)
                 .HasForeignKey(n => n.DocumentId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Folder>()
+                .HasMany(f => f.Notes)
+                .WithOne(n => n.Folder)
+                .HasForeignKey(n => n.FolderId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 } 

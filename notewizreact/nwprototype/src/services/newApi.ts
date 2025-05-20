@@ -161,6 +161,15 @@ export const notesService = {
     }
   },
 
+  getFolders: async () => {
+    try {
+      const response = await apiClient.get('/Notes?isFolder=true');
+      return response.data;
+    } catch (error) {
+      handleApiError(error);
+    }
+  },
+
   getNote: async (id: number) => {
     try {
       const response = await apiClient.get(`/Notes/${id}`);
@@ -170,7 +179,7 @@ export const notesService = {
     }
   },
 
-  createNote: async (note: { title: string; content: string }) => {
+  createNote: async (note: { title: string; content: string; categoryId?: number }) => {
     try {
       const response = await apiClient.post('/Notes', note);
       return response.data;
@@ -179,7 +188,19 @@ export const notesService = {
     }
   },
 
-  updateNote: async (id: number, note: { title: string; content: string }) => {
+  updateNote: async (
+    id: number,
+    note: {
+      title: string;
+      content: string;
+      color?: string;
+      isPinned?: boolean;
+      folderId?: number | null;
+      tags?: string[];
+      isPrivate?: boolean;
+      categoryId?: number;
+    }
+  ) => {
     try {
       console.log('[apiClient.put] Making request to:', `/Notes/${id}`, 'with data:', note);
       const response = await apiClient.put(`/Notes/${id}`, note);
@@ -212,6 +233,15 @@ export const notesService = {
   getSharedNotes: async () => {
     try {
       const response = await apiClient.get('/Notes/shared');
+      return response.data;
+    } catch (error) {
+      handleApiError(error);
+    }
+  },
+
+  getFolderNotes: async (folderId: number) => {
+    try {
+      const response = await apiClient.get(`/Notes?folderId=${folderId}`);
       return response.data;
     } catch (error) {
       handleApiError(error);

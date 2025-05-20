@@ -1,5 +1,6 @@
 // src/types/navigation.ts
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import FolderDetailScreen from '../screens/FolderDetailScreen';
 
 export type RootStackParamList = {
   Welcome: undefined;
@@ -40,6 +41,7 @@ export type RootStackParamList = {
   FriendsList: undefined;
   ForgotPassword: undefined;
   OCR: undefined;
+  FolderDetail: { folderId: string };
 };
 
 export type RootStackScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "FSqhsBh7mb4=",
+  "dgSpecHash": "H37XRcRPxmg=",
   "success": true,
-  "projectFilePath": "C:\\Users\\d-disal\\nw\\notewizback\\NoteWiz\\src\\NoteWiz.API\\NoteWiz.API.csproj",
+  "projectFilePath": "C:\\Users\\d-disal\\nw2\\notewizback\\NoteWiz\\src\\NoteWiz.API\\NoteWiz.API.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Zeynep\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\Zeynep\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
@@ -91,9 +91,9 @@
       "code": "NU1510",
       "level": "Warning",
       "message": "PackageReference Microsoft.AspNetCore.SignalR ayıklandırılacak. Büyük olasılıkla gereksiz olduğundan bu paketi bağımlılıklardan kaldırmayı düşünün.",
-      "projectPath": "C:\\Users\\d-disal\\nw\\notewizback\\NoteWiz\\src\\NoteWiz.API\\NoteWiz.API.csproj",
+      "projectPath": "C:\\Users\\d-disal\\nw2\\notewizback\\NoteWiz\\src\\NoteWiz.API\\NoteWiz.API.csproj",
       "warningLevel": 1,
-      "filePath": "C:\\Users\\d-disal\\nw\\notewizback\\NoteWiz\\src\\NoteWiz.API\\NoteWiz.API.csproj",
+      "filePath": "C:\\Users\\d-disal\\nw2\\notewizback\\NoteWiz\\src\\NoteWiz.API\\NoteWiz.API.csproj",
       "targetGraphs": []
     }
   ]

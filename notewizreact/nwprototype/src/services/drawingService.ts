@@ -28,11 +28,11 @@ class DrawingService {
   async getDrawings(noteId: string): Promise<DrawingData[]> {
     try {
       const response = await apiClient.get(`/Drawings/${noteId}`);
-      return response.data.map((drawing: any) => ({
+      return Array.isArray(response.data) ? response.data.map((drawing: any) => ({
         ...drawing,
         id: drawing?.id?.toString?.() ?? '',
         noteId: drawing?.noteId?.toString?.() ?? ''
-      }));
+      })) : [];
     } catch (error) {
       console.error('Error getting drawings:', error);
       throw error;

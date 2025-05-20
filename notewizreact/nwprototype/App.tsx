@@ -33,9 +33,9 @@ import FriendsListScreen from './src/screens/FriendsListScreen';
 import ShareNoteScreen from './src/screens/ShareNoteScreen';
 import CollaboratiNotesScreen from './src/screens/CollaboratiNotesScreen';
 import AIChatScreen from './src/screens/AIChatScreen';
-import FoldersScreen from './src/screens/FoldersScreen';
 import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
 import OCRScreen from './src/screens/OCRScreen';
+import FolderDetailScreen from './src/screens/FolderDetailScreen';
 
 // Types
 import { RootStackParamList, MainTabParamList } from './src/types/navigation';
@@ -117,7 +117,6 @@ const TabNavigator = () => {
       <Tab.Screen name="Stats" component={StatsScreen} options={{ title: 'İstatistik' }} />
       <Tab.Screen name="AIChat" component={AIChatScreen} options={{ title: 'AI Sohbet' }} />
       <Tab.Screen name="Settings" component={SettingsScreen} options={{ title: 'Ayarlar' }} />
-      <Tab.Screen name="Folders" component={FoldersScreen} options={{ tabBarIcon: ({ color }) => <MaterialIcons name="folder" size={24} color={color} /> }} />
     </Tab.Navigator>
   );
 };
@@ -162,6 +161,19 @@ const App = () => {
                               headerShown: true,
                               presentation: 'modal',
                               animation: 'slide_from_bottom',
+                              headerTitle: '',
+                              headerShadowVisible: false,
+                              headerStyle: {
+                                backgroundColor: COLORS.background.default,
+                              },
+                              headerTintColor: COLORS.primary.main,
+                            }}
+                          />
+                          <Stack.Screen
+                            name="FolderDetail"
+                            component={FolderDetailScreen}
+                            options={{
+                              headerShown: true,
                               headerTitle: '',
                               headerShadowVisible: false,
                               headerStyle: {

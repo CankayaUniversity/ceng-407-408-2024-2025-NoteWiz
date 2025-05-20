@@ -212,7 +212,7 @@ const HomeScreen = () => {
             >
               {importantNotes.map((note, index) => (
                 <ImportantNoteCard
-                  key={note.id}
+                  key={`${note.id}_${index}`}
                   note={{
                     id: note.id.toString(),
                     title: note.title,
@@ -233,7 +233,7 @@ const HomeScreen = () => {
           <View style={styles.recentNotesGrid}>
             {recentNotes.map((note, index) => (
               <RecentNoteCard
-                key={note.id}
+                key={`${note.id}_${index}`}
                 note={note}
                 index={index}
                 onPress={() => navigation.navigate('NoteDetail', { noteId: note.id })}
