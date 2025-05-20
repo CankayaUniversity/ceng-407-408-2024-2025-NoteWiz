@@ -29,6 +29,8 @@ namespace NoteWiz.Infrastructure.Data
         public DbSet<AIInteractionLog> AIInteractionLogs { get; set; }
         public DbSet<FriendshipRequest> FriendshipRequests { get; set; }
         public DbSet<Category> Categories { get; set; }
+        public DbSet<Folder> Folders { get; set; }
+        public DbSet<FolderNote> FolderNotes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -41,7 +43,7 @@ namespace NoteWiz.Infrastructure.Data
                 entity.HasOne(n => n.User)
                     .WithMany(u => u.Notes)
                     .HasForeignKey(n => n.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .OnDelete(DeleteBehavior.NoAction);
 
                 entity.Property(n => n.Color)
                     .HasColumnType("nvarchar(7)")
@@ -53,11 +55,7 @@ namespace NoteWiz.Infrastructure.Data
                 entity.Property(n => n.IsPrivate)
                     .HasDefaultValue(true);
 
-                entity.Property(n => n.Tags)
-                    .HasConversion(
-                        v => string.Join(',', v),
-                        v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList()
-                    );
+                entity.Property(n => n.Tags);
             });
 
             // Configure relationship between Note and NoteDrawing
@@ -65,113 +63,142 @@ namespace NoteWiz.Infrastructure.Data
                 .HasOne(nd => nd.Note)
                 .WithMany(n => n.NoteDrawings)
                 .HasForeignKey(nd => nd.NoteId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Configure relationship between Note and NoteImage
             modelBuilder.Entity<NoteImage>()
                 .HasOne(ni => ni.Note)
                 .WithMany(n => n.NoteImages)
                 .HasForeignKey(ni => ni.NoteId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Configure relationship between Note and NoteShare
             modelBuilder.Entity<NoteShare>()
                 .HasOne(ns => ns.Note)
                 .WithMany(n => n.SharedWith)
                 .HasForeignKey(ns => ns.NoteId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Configure relationship between User and NoteShare
             modelBuilder.Entity<NoteShare>()
                 .HasOne(ns => ns.SharedWithUser)
                 .WithMany(u => u.SharedWithMe)
                 .HasForeignKey(ns => ns.SharedWithUserId)
-                .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete conflicts
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Configure relationship between User and TaskItem
             modelBuilder.Entity<TaskItem>()
                 .HasOne(t => t.User)
                 .WithMany(u => u.Tasks)
                 .HasForeignKey(t => t.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Configure relationships for Friendship entity
             modelBuilder.Entity<Friendship>()
                 .HasOne(f => f.User)
                 .WithMany(u => u.FriendshipsInitiated)
                 .HasForeignKey(f => f.UserId)
-                .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete conflicts
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Friendship>()
                 .HasOne(f => f.Friend)
                 .WithMany(u => u.FriendshipsReceived)
                 .HasForeignKey(f => f.FriendId)
-                .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete conflicts
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Configure relationship between User and AuthToken
             modelBuilder.Entity<AuthToken>()
                 .HasOne(at => at.User)
                 .WithMany(u => u.AuthTokens)
                 .HasForeignKey(at => at.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Configure relationship between User and UserDevice
             modelBuilder.Entity<UserDevice>()
                 .HasOne(ud => ud.User)
                 .WithMany(u => u.Devices)
                 .HasForeignKey(ud => ud.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Configure relationship between User and Notification
             modelBuilder.Entity<Notification>()
                 .HasOne(n => n.User)
                 .WithMany(u => u.Notifications)
                 .HasForeignKey(n => n.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             // User entity configuration
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Notes)
                 .WithOne(n => n.User)
                 .HasForeignKey(n => n.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Documents)
                 .WithOne(d => d.User)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Document entity configuration
             modelBuilder.Entity<Document>()
                 .HasOne(d => d.User)
                 .WithMany(u => u.Documents)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Document>()
                 .HasMany(d => d.Notes)
                 .WithOne(n => n.Document)
                 .HasForeignKey(n => n.DocumentId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Category entity configuration
             modelBuilder.Entity<Category>()
                 .HasOne(c => c.User)
-                .WithMany()
+                .WithMany(u => u.Categories)
                 .HasForeignKey(c => c.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Category>()
-                .HasMany(c => c.Documents)
-                .WithOne(d => d.Category)
-                .HasForeignKey(d => d.CategoryId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Category>()
                 .HasMany(c => c.Notes)
                 .WithOne(n => n.Category)
                 .HasForeignKey(n => n.CategoryId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Folder>()
+                .HasMany(f => f.Notes)
+                .WithOne(n => n.Folder)
+                .HasForeignKey(n => n.FolderId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Many-to-many: Folder <-> Note via FolderNote
+            modelBuilder.Entity<FolderNote>()
+                .HasKey(fn => new { fn.FolderId, fn.NoteId });
+
+            modelBuilder.Entity<FolderNote>()
+                .HasOne(fn => fn.Folder)
+                .WithMany(f => f.FolderNotes)
+                .HasForeignKey(fn => fn.FolderId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<FolderNote>()
+                .HasOne(fn => fn.Note)
+                .WithMany(n => n.FolderNotes)
+                .HasForeignKey(fn => fn.NoteId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Configure FriendshipRequest relationships
+            modelBuilder.Entity<FriendshipRequest>()
+                .HasOne(f => f.Sender)
+                .WithMany(u => u.FriendshipRequestsSent)
+                .HasForeignKey(f => f.SenderId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<FriendshipRequest>()
+                .HasOne(f => f.Receiver)
+                .WithMany(u => u.FriendshipRequestsReceived)
+                .HasForeignKey(f => f.ReceiverId)
                 .OnDelete(DeleteBehavior.NoAction);
         }
     }

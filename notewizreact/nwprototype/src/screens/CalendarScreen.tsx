@@ -43,11 +43,11 @@ const CalendarScreen: React.FC = () => {
     newMarkedDates[today] = { selected: today === selectedDate, marked: false, dotColor: COLORS.primary.main };
 
     // Görevleri tarihlere göre grupla
+    if (Array.isArray(tasks)) {
     tasks.forEach(task => {
       if (task.dueDate) {
         const dateStr = task.dueDate.substring(0, 10);
         console.log('Task:', task.title, 'dueDate:', task.dueDate, 'dateStr:', dateStr);
-        
         // İşaretli tarihler için ayarlar
         newMarkedDates[dateStr] = {
           ...newMarkedDates[dateStr],
@@ -55,7 +55,6 @@ const CalendarScreen: React.FC = () => {
           dotColor: task.isCompleted ? COLORS.success.main : COLORS.primary.main,
           selected: dateStr === selectedDate
         };
-
         // Gün görevleri için
         if (!newDayTasks[dateStr]) {
           newDayTasks[dateStr] = [];
@@ -63,7 +62,9 @@ const CalendarScreen: React.FC = () => {
         newDayTasks[dateStr].push(task);
       }
     });
-    console.log('Selected date:', selectedDate);
+    } else {
+      console.warn('tasks is not an array:', tasks);
+    }
 
     // Seçili gün için işaretleme
     if (newMarkedDates[selectedDate]) {

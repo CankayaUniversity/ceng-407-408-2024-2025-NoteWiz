@@ -39,6 +39,9 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       setError(null);
       const newTask = await taskService.createTask(taskData);
+      if (!newTask.id) {
+        throw new Error('Görev oluşturulamadı, id alanı yok!');
+      }
       setTasks(prevTasks => [...prevTasks, newTask]);
       return newTask;
     } catch (err) {

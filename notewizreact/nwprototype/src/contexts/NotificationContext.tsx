@@ -5,6 +5,7 @@ import EventEmitter from '../utils/EventEmitter';
 import notifee from '@notifee/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { useAuth } from './AuthContext';
 
 interface Notification {
   id: number;
@@ -39,6 +40,7 @@ export const useNotifications = () => {
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const { isAuthenticated } = useAuth();
 
   const loadNotifications = async () => {
     try {
@@ -46,6 +48,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       const token = await AsyncStorage.getItem('userToken');
       if (!token) {
         console.log('No token found, skipping notification load');
+        setNotifications([]);
+        setUnreadCount(0);
         return;
       }
 
@@ -91,9 +95,15 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   };
 
   useEffect(() => {
-    // Sadece loadNotifications çağrısı kalsın
-    loadNotifications();
-  }, []);
+    // Sadece kullanıcı giriş yapmışsa bildirimleri yükle
+    if (isAuthenticated) {
+      loadNotifications();
+    } else {
+      // Kullanıcı giriş yapmamışsa bildirimleri temizle
+      setNotifications([]);
+      setUnreadCount(0);
+    }
+  }, [isAuthenticated]); // isAuthenticated değiştiğinde çalışacak
 
   const markAsRead = async (notificationId: number) => {
     try {

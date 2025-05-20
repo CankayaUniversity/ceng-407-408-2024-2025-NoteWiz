@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "L9Ag8Q2Wz8E=",
+  "dgSpecHash": "PXLqk6A/lHg=",
   "success": true,
-  "projectFilePath": "C:\\Users\\d-disal\\nw\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj",
+  "projectFilePath": "C:\\Users\\d-disal\\nw2\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Zeynep\\.nuget\\packages\\microsoft.netcore.app.ref\\9.0.3\\microsoft.netcore.app.ref.9.0.3.nupkg.sha512",
     "C:\\Users\\Zeynep\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\9.0.3\\microsoft.windowsdesktop.app.ref.9.0.3.nupkg.sha512",

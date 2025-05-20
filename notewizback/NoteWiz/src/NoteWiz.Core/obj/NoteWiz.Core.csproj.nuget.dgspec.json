@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\d-disal\\nw\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj": {}
+    "C:\\Users\\d-disal\\nw2\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj": {}
   },
   "projects": {
-    "C:\\Users\\d-disal\\nw\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj": {
+    "C:\\Users\\d-disal\\nw2\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\d-disal\\nw\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj",
+        "projectUniqueName": "C:\\Users\\d-disal\\nw2\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj",
         "projectName": "NoteWiz.Core",
-        "projectPath": "C:\\Users\\d-disal\\nw\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj",
+        "projectPath": "C:\\Users\\d-disal\\nw2\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj",
         "packagesPath": "C:\\Users\\Zeynep\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\d-disal\\nw\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\obj\\",
+        "outputPath": "C:\\Users\\d-disal\\nw2\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Zeynep\\AppData\\Roaming\\NuGet\\NuGet.Config"
