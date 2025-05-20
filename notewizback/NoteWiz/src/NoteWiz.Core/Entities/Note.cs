@@ -31,7 +31,7 @@ namespace NoteWiz.Core.Entities
 
         public bool IsPinned { get; set; }
 
-        public bool IsPrivate { get; set; } = true;
+        public bool IsPrivate { get; set; } = true; // Default to private
 
         [NotMapped]
         public string? CoverImage
@@ -41,7 +41,7 @@ namespace NoteWiz.Core.Entities
         }
         public string? CoverImageUrl { get; set; }
 
-        public string? Tags { get; set; }
+        public List<string> Tags { get; set; } = new();
 
         public int? CategoryId { get; set; }
 
@@ -63,6 +63,11 @@ namespace NoteWiz.Core.Entities
         public virtual Folder Folder { get; set; }
         public virtual ICollection<FolderNote> FolderNotes { get; set; } = new List<FolderNote>(); // Many-to-many
 
+        public bool IsOffline { get; set; }
+        public DateTime? LastModifiedAt { get; set; }
+        public string? DeviceId { get; set; }
+        public string? SyncStatus { get; set; } // "synced", "pending", "conflict"
+
         // Navigation properties
         [ForeignKey("UserId")]
         public virtual User User { get; set; }
@@ -76,10 +81,14 @@ namespace NoteWiz.Core.Entities
 
         public Note()
         {
+            Tags = new List<string>();
             SharedWith = new HashSet<NoteShare>();
             NoteDrawings = new HashSet<NoteDrawing>();
             NoteImages = new HashSet<NoteImage>();
             CreatedAt = DateTime.UtcNow;
+            LastModifiedAt = DateTime.UtcNow;
+            SyncStatus = "synced";
+            IsOffline = false;
             IsPrivate = true; // Default to private
         }
     }

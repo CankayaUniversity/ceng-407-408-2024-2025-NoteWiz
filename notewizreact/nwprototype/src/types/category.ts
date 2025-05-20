@@ -1,7 +1,14 @@
 export interface Category {
     id: string;
     name: string;
+<<<<<<< HEAD
     userId: string;
+=======
+    color: string;
+    userId: string;
+    createdAt: Date;
+    updatedAt: Date;
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 }
 
 // Yeni kategori oluştururken kullanılacak interface

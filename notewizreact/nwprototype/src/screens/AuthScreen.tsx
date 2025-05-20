@@ -79,7 +79,11 @@ const AuthScreen: React.FC = () => {
       if (isLogin) {
         const success = await login(email, password, rememberMe);
         if (success) {
+<<<<<<< HEAD
           navigation.replace('MainApp');
+=======
+          // navigation.replace('MainApp'); // KALDIRILDI, App.tsx yönetecek
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         }
       } else {
         const success = await signup(email, password, fullName);
@@ -87,8 +91,14 @@ const AuthScreen: React.FC = () => {
           Alert.alert(
             'Başarılı',
             'Hesabınız başarıyla oluşturuldu!',
+<<<<<<< HEAD
             [{ text: 'Tamam', onPress: () => navigation.replace('MainApp') }]
           );
+=======
+            [{ text: 'Tamam' }]
+          );
+          // navigation.replace('MainApp'); // KALDIRILDI, App.tsx yönetecek
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         }
       }
     } catch (error: any) {

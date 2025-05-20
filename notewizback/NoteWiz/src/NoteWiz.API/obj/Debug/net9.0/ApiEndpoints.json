@@ -1,6 +1,25 @@
 [
   {
     "ContainingType": "NoteWiz.API.Controllers.AIController",
+<<<<<<< HEAD
+=======
+    "Method": "Ask",
+    "RelativePath": "api/AI/ask",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "NoteWiz.API.Controllers.AIQuestionRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "NoteWiz.API.Controllers.AIController",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     "Method": "Chat",
     "RelativePath": "api/AI/chat",
     "HttpMethod": "POST",
@@ -37,6 +56,72 @@
     "ReturnTypes": []
   },
   {
+<<<<<<< HEAD
+=======
+    "ContainingType": "NoteWiz.API.Controllers.CategoryNotesController",
+    "Method": "CreateCategory",
+    "RelativePath": "api/categories",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "category",
+        "Type": "NoteWiz.Core.Entities.Category",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "NoteWiz.API.Controllers.CategoryNotesController",
+    "Method": "GetCategories",
+    "RelativePath": "api/categories",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "NoteWiz.API.Controllers.CategoryNotesController",
+    "Method": "GetNotesByCategory",
+    "RelativePath": "api/categories/{categoryId}/notes",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "categoryId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "NoteWiz.API.Controllers.CategoryNotesController",
+    "Method": "AddNoteToCategory",
+    "RelativePath": "api/categories/{categoryId}/notes",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "categoryId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "note",
+        "Type": "NoteWiz.Core.Entities.Note",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     "ContainingType": "NoteWiz.API.Controllers.DocumentController",
     "Method": "GetUserDocuments",
     "RelativePath": "api/Document",
@@ -64,6 +149,30 @@
   },
   {
     "ContainingType": "NoteWiz.API.Controllers.DocumentController",
+<<<<<<< HEAD
+=======
+    "Method": "UpdateDocument",
+    "RelativePath": "api/Document/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "NoteWiz.API.Controllers.UpdateDocumentRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "NoteWiz.API.Controllers.DocumentController",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     "Method": "DeleteDocument",
     "RelativePath": "api/Document/{id}",
     "HttpMethod": "DELETE",
@@ -80,6 +189,25 @@
   },
   {
     "ContainingType": "NoteWiz.API.Controllers.DocumentController",
+<<<<<<< HEAD
+=======
+    "Method": "GetFile",
+    "RelativePath": "api/Document/file/{fileName}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "fileName",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "NoteWiz.API.Controllers.DocumentController",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     "Method": "UploadDocument",
     "RelativePath": "api/Document/upload",
     "HttpMethod": "POST",
@@ -87,6 +215,7 @@
     "Order": 0,
     "Parameters": [
       {
+<<<<<<< HEAD
         "Name": "ContentType",
         "Type": "System.String",
         "IsRequired": false
@@ -114,6 +243,10 @@
       {
         "Name": "FileName",
         "Type": "System.String",
+=======
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         "IsRequired": false
       }
     ],
@@ -306,7 +439,11 @@
     "Parameters": [],
     "ReturnTypes": [
       {
+<<<<<<< HEAD
         "Type": "System.Collections.Generic.IEnumerable\u00601[[NoteWiz.API.DTOs.NoteResponseDTO, NoteWiz.API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+=======
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[NoteWiz.Core.DTOs.NoteResponseDTO, NoteWiz.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -326,13 +463,21 @@
     "Parameters": [
       {
         "Name": "noteDTO",
+<<<<<<< HEAD
         "Type": "NoteWiz.API.DTOs.NoteCreateDTO",
+=======
+        "Type": "NoteWiz.Core.DTOs.NoteCreateDTO",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         "IsRequired": true
       }
     ],
     "ReturnTypes": [
       {
+<<<<<<< HEAD
         "Type": "NoteWiz.API.DTOs.NoteResponseDTO",
+=======
+        "Type": "NoteWiz.Core.DTOs.NoteResponseDTO",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -358,7 +503,11 @@
     ],
     "ReturnTypes": [
       {
+<<<<<<< HEAD
         "Type": "NoteWiz.API.DTOs.NoteResponseDTO",
+=======
+        "Type": "NoteWiz.Core.DTOs.NoteResponseDTO",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -383,13 +532,21 @@
       },
       {
         "Name": "noteDTO",
+<<<<<<< HEAD
         "Type": "NoteWiz.API.DTOs.NoteUpdateDTO",
+=======
+        "Type": "NoteWiz.Core.DTOs.NoteUpdateDTO",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         "IsRequired": true
       }
     ],
     "ReturnTypes": [
       {
+<<<<<<< HEAD
         "Type": "NoteWiz.API.DTOs.NoteResponseDTO",
+=======
+        "Type": "NoteWiz.Core.DTOs.NoteResponseDTO",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -430,13 +587,21 @@
       },
       {
         "Name": "shareDTO",
+<<<<<<< HEAD
         "Type": "NoteWiz.API.DTOs.NoteShareCreateDTO",
+=======
+        "Type": "NoteWiz.Core.DTOs.CreateNoteShareDTO",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         "IsRequired": true
       }
     ],
     "ReturnTypes": [
       {
+<<<<<<< HEAD
         "Type": "NoteWiz.API.DTOs.NoteShareResponseDTO",
+=======
+        "Type": "NoteWiz.Core.DTOs.NoteShareResponseDTO",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -448,6 +613,30 @@
   },
   {
     "ContainingType": "NoteWiz.API.Controllers.NotesController",
+<<<<<<< HEAD
+=======
+    "Method": "MoveNote",
+    "RelativePath": "api/Notes/{noteId}/move",
+    "HttpMethod": "PATCH",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "noteId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "newCategoryId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "NoteWiz.API.Controllers.NotesController",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     "Method": "GetFriendsNotes",
     "RelativePath": "api/Notes/friends",
     "HttpMethod": "GET",
@@ -456,7 +645,11 @@
     "Parameters": [],
     "ReturnTypes": [
       {
+<<<<<<< HEAD
         "Type": "System.Collections.Generic.IEnumerable\u00601[[NoteWiz.API.DTOs.NoteResponseDTO, NoteWiz.API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+=======
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[NoteWiz.Core.DTOs.NoteResponseDTO, NoteWiz.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -468,6 +661,25 @@
   },
   {
     "ContainingType": "NoteWiz.API.Controllers.NotesController",
+<<<<<<< HEAD
+=======
+    "Method": "ResolveConflict",
+    "RelativePath": "api/Notes/resolve-conflict",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "resolution",
+        "Type": "NoteWiz.Core.DTOs.ConflictResolutionDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "NoteWiz.API.Controllers.NotesController",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     "Method": "GetSharedNotes",
     "RelativePath": "api/Notes/shared",
     "HttpMethod": "GET",
@@ -476,7 +688,37 @@
     "Parameters": [],
     "ReturnTypes": [
       {
+<<<<<<< HEAD
         "Type": "System.Collections.Generic.IEnumerable\u00601[[NoteWiz.API.DTOs.NoteResponseDTO, NoteWiz.API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+=======
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[NoteWiz.Core.DTOs.NoteResponseDTO, NoteWiz.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "NoteWiz.API.Controllers.NotesController",
+    "Method": "SyncNotes",
+    "RelativePath": "api/Notes/sync",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "NoteWiz.Core.DTOs.SyncRequestDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "NoteWiz.Core.DTOs.SyncResponseDTO",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -497,6 +739,35 @@
     "ReturnTypes": []
   },
   {
+<<<<<<< HEAD
+=======
+    "ContainingType": "NoteWiz.API.Controllers.NotesController",
+    "Method": "GetUserNotes",
+    "RelativePath": "api/Notes/user/{userId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[NoteWiz.Core.DTOs.NoteResponseDTO, NoteWiz.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     "ContainingType": "NoteWiz.API.Controllers.NoteSharesController",
     "Method": "Create",
     "RelativePath": "api/NoteShares",
@@ -506,7 +777,11 @@
     "Parameters": [
       {
         "Name": "request",
+<<<<<<< HEAD
         "Type": "NoteWiz.API.DTOs.CreateNoteShareDTO",
+=======
+        "Type": "NoteWiz.Core.DTOs.CreateNoteShareDTO",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         "IsRequired": true
       }
     ],
@@ -543,7 +818,11 @@
       },
       {
         "Name": "request",
+<<<<<<< HEAD
         "Type": "NoteWiz.API.DTOs.UpdateNoteShareDTO",
+=======
+        "Type": "NoteWiz.Core.DTOs.UpdateNoteShareDTO",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         "IsRequired": true
       }
     ],
@@ -778,7 +1057,11 @@
     ],
     "ReturnTypes": [
       {
+<<<<<<< HEAD
         "Type": "NoteWiz.API.DTOs.UserResponseDTO",
+=======
+        "Type": "NoteWiz.Core.DTOs.UserResponseDTO",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -790,6 +1073,25 @@
   },
   {
     "ContainingType": "NoteWiz.API.Controllers.UsersController",
+<<<<<<< HEAD
+=======
+    "Method": "ForgotPassword",
+    "RelativePath": "api/Users/forgot-password",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "model",
+        "Type": "NoteWiz.API.DTOs.ForgotPasswordRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "NoteWiz.API.Controllers.UsersController",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     "Method": "Login",
     "RelativePath": "api/Users/login",
     "HttpMethod": "POST",
@@ -804,7 +1106,11 @@
     ],
     "ReturnTypes": [
       {
+<<<<<<< HEAD
         "Type": "System.String",
+=======
+        "Type": "NoteWiz.API.DTOs.LoginResponseDTO",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -824,7 +1130,11 @@
     "Parameters": [],
     "ReturnTypes": [
       {
+<<<<<<< HEAD
         "Type": "NoteWiz.API.DTOs.UserResponseDTO",
+=======
+        "Type": "NoteWiz.Core.DTOs.UserResponseDTO",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -850,7 +1160,11 @@
     ],
     "ReturnTypes": [
       {
+<<<<<<< HEAD
         "Type": "NoteWiz.API.DTOs.UserResponseDTO",
+=======
+        "Type": "NoteWiz.Core.DTOs.UserResponseDTO",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -859,5 +1173,24 @@
         "StatusCode": 200
       }
     ]
+<<<<<<< HEAD
+=======
+  },
+  {
+    "ContainingType": "NoteWiz.API.Controllers.UsersController",
+    "Method": "SearchUsers",
+    "RelativePath": "api/Users/search",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "username",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
   }
 ]

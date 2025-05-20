@@ -28,7 +28,10 @@ export interface CreateNoteDto {
     coverId?: string;
     coverColor?: string;
     isArchived?: boolean;
+<<<<<<< HEAD
     pageType?: string; // lined, grid, plain
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 }
 
 export interface UpdateNoteDto {
@@ -37,13 +40,20 @@ export interface UpdateNoteDto {
     coverId?: string;
     coverColor?: string;
     isArchived?: boolean;
+<<<<<<< HEAD
     pageType?: string; // lined, grid, plain
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 }
 
 export interface NoteData {
     title: string;
     content: string;
     tags?: string[];
+<<<<<<< HEAD
+=======
+    color?: string;
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     isImportant?: boolean;
     categoryId?: string;
     folderId?: string | null;

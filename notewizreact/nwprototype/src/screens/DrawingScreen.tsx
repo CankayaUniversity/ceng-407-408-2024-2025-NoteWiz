@@ -24,6 +24,10 @@ import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../types/navigation';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { drawingService } from '../services/drawingService';
+<<<<<<< HEAD
+=======
+import { useNotes } from '../contexts/NoteContext';
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 
 // Bizim bileşenler
 import { DrawingHeader } from '../components/drawing/DrawingHeader';
@@ -61,6 +65,10 @@ type DrawingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList,
 const DrawingScreen: React.FC = () => {
   const route = useRoute<DrawingScreenRouteProp>();
   const navigation = useNavigation<DrawingScreenNavigationProp>();
+<<<<<<< HEAD
+=======
+  const { updateNoteDrawings } = useNotes();
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 
   // Çizim ile ilgili state
   const [strokes, setStrokes] = useState<Stroke[]>([]);
@@ -158,17 +166,28 @@ const DrawingScreen: React.FC = () => {
       if (!route.params?.noteId) {
         throw new Error('Note ID is required');
       }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
       // Çizim verilerini JSON formatına dönüştür
       const drawingData = JSON.stringify({
         strokes,
         canvasWidth: width,
         canvasHeight: height
       });
+<<<<<<< HEAD
 
       // Backend'e kaydet
       await drawingService.saveDrawing(route.params.noteId, drawingData);
 
+=======
+      // Backend'e kaydet
+      const savedDrawing = await drawingService.saveDrawing(route.params.noteId, drawingData);
+      // Context'teki notun drawings alanını güncelle
+      const drawings = await drawingService.getDrawings(route.params.noteId);
+      updateNoteDrawings(route.params.noteId, drawings);
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
       Alert.alert('Success', 'Drawing saved successfully');
     } catch (error) {
       console.error('Error saving drawing:', error);
@@ -182,12 +201,20 @@ const DrawingScreen: React.FC = () => {
       if (!route.params?.noteId) {
         throw new Error('Note ID is required');
       }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
       const drawings = await drawingService.getDrawings(route.params.noteId);
       if (drawings.length > 0) {
         const lastDrawing = drawings[drawings.length - 1];
         const drawingData = JSON.parse(lastDrawing.drawingData);
         setStrokes(drawingData.strokes);
+<<<<<<< HEAD
+=======
+        // Context'teki notun drawings alanını güncelle
+        updateNoteDrawings(route.params.noteId, drawings);
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
       }
     } catch (error) {
       console.error('Error loading drawing:', error);

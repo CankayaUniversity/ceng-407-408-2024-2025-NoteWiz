@@ -121,6 +121,7 @@ export const NoteCard: React.FC<NoteCardProps> = ({
               </View>
             )}
           </View>
+<<<<<<< HEAD
           {/* Kategori etiketi */}
           {category?.name && (
             <View style={{
@@ -141,6 +142,8 @@ export const NoteCard: React.FC<NoteCardProps> = ({
               </Text>
             </View>
           )}
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
           
           {/* For PDFs show the filename, for notes show content preview */}
           {note.isPdf ? (
@@ -156,6 +159,14 @@ export const NoteCard: React.FC<NoteCardProps> = ({
           )}
 
           <View style={styles.footer}>
+<<<<<<< HEAD
+=======
+            <View style={[styles.categoryBadge, { backgroundColor: categoryColor }]}>
+              <Text style={[styles.category, { color: categoryColor }]}>
+                {category?.name || 'Uncategorized'}
+              </Text>
+            </View>
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
             <Text style={styles.date}>
               {new Date(note.updatedAt).toLocaleDateString('tr-TR', {
                 day: 'numeric',
@@ -264,6 +275,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   } as ViewStyle,
+<<<<<<< HEAD
+=======
+  categoryBadge: {
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: 12,
+  } as ViewStyle,
+  category: {
+    fontSize: TYPOGRAPHY.sizes.xs,
+    fontWeight: TYPOGRAPHY.weights.medium as "500",
+  } as TextStyle,
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
   star: {
     position: 'absolute',
     top: SPACING.md,

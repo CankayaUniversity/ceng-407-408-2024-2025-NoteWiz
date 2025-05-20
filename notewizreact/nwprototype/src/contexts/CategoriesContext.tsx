@@ -22,7 +22,11 @@ const api = axios.create({
 // Request interceptor - her istekte token'ı ekle
 api.interceptors.request.use(async (config) => {
   try {
+<<<<<<< HEAD
     const token = await AsyncStorage.getItem('userToken');
+=======
+    const token = await AsyncStorage.getItem('token');
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -90,9 +94,13 @@ const CategoriesContext = createContext<CategoriesContextType | undefined>(undef
 
 // Provider bileşeni
 export const CategoriesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+<<<<<<< HEAD
   const [categories, setCategories] = useState<Category[]>([
     { id: 1, name: 'Work', color: '#4C6EF5' }
   ]);
+=======
+  const [categories, setCategories] = useState<Category[]>([]);
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -154,10 +162,17 @@ export const CategoriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Kategori ekle
   const addCategory = async (name: string, color: string) => {
     if (!user || !isAuthenticated) return;
+<<<<<<< HEAD
     setLoading(true);
     try {
       // Sadece name gönder
       const response = await api.post('/api/categories', { name });
+=======
+    
+    setLoading(true);
+    try {
+      const response = await api.post('/api/categories', { name, color });
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
       // API yanıtını kontrol et
       if (response.data) {
         setCategories(prevCategories => [...prevCategories, response.data]);

@@ -122,17 +122,48 @@ namespace NoteWiz.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+<<<<<<< HEAD
+=======
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+<<<<<<< HEAD
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
+=======
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UserId1")
+                        .HasColumnType("int");
+
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
 
+<<<<<<< HEAD
+=======
+                    b.HasIndex("UserId1");
+
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                     b.ToTable("Categories");
                 });
 
@@ -191,6 +222,7 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.ToTable("Documents");
                 });
 
+<<<<<<< HEAD
             modelBuilder.Entity("NoteWiz.Core.Entities.Folder", b =>
                 {
                     b.Property<int>("Id")
@@ -227,6 +259,8 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.ToTable("FolderNotes");
                 });
 
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
             modelBuilder.Entity("NoteWiz.Core.Entities.Friendship", b =>
                 {
                     b.Property<int>("Id")
@@ -307,7 +341,10 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.Property<string>("Color")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
+<<<<<<< HEAD
                         .HasMaxLength(14)
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                         .HasColumnType("nvarchar(7)")
                         .HasDefaultValue("#FFFFFF");
 
@@ -320,11 +357,24 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+<<<<<<< HEAD
                     b.Property<int?>("DocumentId")
                         .HasColumnType("int");
 
                     b.Property<int?>("FolderId")
                         .HasColumnType("int");
+=======
+                    b.Property<string>("DeviceId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("DocumentId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsOffline")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 
                     b.Property<bool>("IsPinned")
                         .ValueGeneratedOnAdd()
@@ -339,6 +389,7 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.Property<bool>("IsSynced")
                         .HasColumnType("bit");
 
+<<<<<<< HEAD
                     b.Property<DateTime?>("LastSyncedAt")
                         .HasColumnType("datetime2");
 
@@ -349,12 +400,33 @@ namespace NoteWiz.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Tags")
+=======
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<DateTime?>("LastSyncedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SyncStatus")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("synced");
+
+                    b.Property<string>("Tags")
+                        .IsRequired()
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()
+<<<<<<< HEAD
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+=======
+                        .HasColumnType("nvarchar(max)");
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -368,8 +440,11 @@ namespace NoteWiz.Infrastructure.Migrations
 
                     b.HasIndex("DocumentId");
 
+<<<<<<< HEAD
                     b.HasIndex("FolderId");
 
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                     b.HasIndex("UserId");
 
                     b.ToTable("Notes");
@@ -828,7 +903,11 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.HasOne("NoteWiz.Core.Entities.User", "User")
                         .WithMany("AuthTokens")
                         .HasForeignKey("UserId")
+<<<<<<< HEAD
                         .OnDelete(DeleteBehavior.NoAction)
+=======
+                        .OnDelete(DeleteBehavior.Cascade)
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                         .IsRequired();
 
                     b.Navigation("User");
@@ -837,24 +916,46 @@ namespace NoteWiz.Infrastructure.Migrations
             modelBuilder.Entity("NoteWiz.Core.Entities.Category", b =>
                 {
                     b.HasOne("NoteWiz.Core.Entities.User", "User")
+<<<<<<< HEAD
                         .WithMany("Categories")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
+=======
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("NoteWiz.Core.Entities.User", null)
+                        .WithMany("Categories")
+                        .HasForeignKey("UserId1");
+
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("NoteWiz.Core.Entities.Document", b =>
                 {
                     b.HasOne("NoteWiz.Core.Entities.Category", "Category")
+<<<<<<< HEAD
                         .WithMany()
                         .HasForeignKey("CategoryId");
+=======
+                        .WithMany("Documents")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.NoAction);
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 
                     b.HasOne("NoteWiz.Core.Entities.User", "User")
                         .WithMany("Documents")
                         .HasForeignKey("UserId")
+<<<<<<< HEAD
                         .OnDelete(DeleteBehavior.NoAction)
+=======
+                        .OnDelete(DeleteBehavior.Cascade)
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                         .IsRequired();
 
                     b.Navigation("Category");
@@ -862,6 +963,7 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+<<<<<<< HEAD
             modelBuilder.Entity("NoteWiz.Core.Entities.FolderNote", b =>
                 {
                     b.HasOne("NoteWiz.Core.Entities.Folder", "Folder")
@@ -881,18 +983,28 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.Navigation("Note");
                 });
 
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
             modelBuilder.Entity("NoteWiz.Core.Entities.Friendship", b =>
                 {
                     b.HasOne("NoteWiz.Core.Entities.User", "Friend")
                         .WithMany("FriendshipsReceived")
                         .HasForeignKey("FriendId")
+<<<<<<< HEAD
                         .OnDelete(DeleteBehavior.NoAction)
+=======
+                        .OnDelete(DeleteBehavior.Restrict)
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                         .IsRequired();
 
                     b.HasOne("NoteWiz.Core.Entities.User", "User")
                         .WithMany("FriendshipsInitiated")
                         .HasForeignKey("UserId")
+<<<<<<< HEAD
                         .OnDelete(DeleteBehavior.NoAction)
+=======
+                        .OnDelete(DeleteBehavior.Restrict)
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                         .IsRequired();
 
                     b.HasOne("NoteWiz.Core.Entities.User", null)
@@ -907,6 +1019,7 @@ namespace NoteWiz.Infrastructure.Migrations
             modelBuilder.Entity("NoteWiz.Core.Entities.FriendshipRequest", b =>
                 {
                     b.HasOne("NoteWiz.Core.Entities.User", "Receiver")
+<<<<<<< HEAD
                         .WithMany("FriendshipRequestsReceived")
                         .HasForeignKey("ReceiverId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -916,6 +1029,17 @@ namespace NoteWiz.Infrastructure.Migrations
                         .WithMany("FriendshipRequestsSent")
                         .HasForeignKey("SenderId")
                         .OnDelete(DeleteBehavior.NoAction)
+=======
+                        .WithMany()
+                        .HasForeignKey("ReceiverId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("NoteWiz.Core.Entities.User", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                         .IsRequired();
 
                     b.Navigation("Receiver");
@@ -933,25 +1057,36 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.HasOne("NoteWiz.Core.Entities.Document", "Document")
                         .WithMany("Notes")
                         .HasForeignKey("DocumentId")
+<<<<<<< HEAD
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("NoteWiz.Core.Entities.Folder", "Folder")
                         .WithMany("Notes")
                         .HasForeignKey("FolderId")
                         .OnDelete(DeleteBehavior.NoAction);
+=======
+                        .OnDelete(DeleteBehavior.Cascade);
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 
                     b.HasOne("NoteWiz.Core.Entities.User", "User")
                         .WithMany("Notes")
                         .HasForeignKey("UserId")
+<<<<<<< HEAD
                         .OnDelete(DeleteBehavior.NoAction)
+=======
+                        .OnDelete(DeleteBehavior.Cascade)
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                         .IsRequired();
 
                     b.Navigation("Category");
 
                     b.Navigation("Document");
 
+<<<<<<< HEAD
                     b.Navigation("Folder");
 
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                     b.Navigation("User");
                 });
 
@@ -982,7 +1117,11 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.HasOne("NoteWiz.Core.Entities.Note", "Note")
                         .WithMany("NoteDrawings")
                         .HasForeignKey("NoteId")
+<<<<<<< HEAD
                         .OnDelete(DeleteBehavior.NoAction)
+=======
+                        .OnDelete(DeleteBehavior.Cascade)
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                         .IsRequired();
 
                     b.Navigation("Note");
@@ -993,7 +1132,11 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.HasOne("NoteWiz.Core.Entities.Note", "Note")
                         .WithMany("NoteImages")
                         .HasForeignKey("NoteId")
+<<<<<<< HEAD
                         .OnDelete(DeleteBehavior.NoAction)
+=======
+                        .OnDelete(DeleteBehavior.Cascade)
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                         .IsRequired();
 
                     b.Navigation("Note");
@@ -1015,13 +1158,21 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.HasOne("NoteWiz.Core.Entities.Note", "Note")
                         .WithMany("SharedWith")
                         .HasForeignKey("NoteId")
+<<<<<<< HEAD
                         .OnDelete(DeleteBehavior.NoAction)
+=======
+                        .OnDelete(DeleteBehavior.Cascade)
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                         .IsRequired();
 
                     b.HasOne("NoteWiz.Core.Entities.User", "SharedWithUser")
                         .WithMany("SharedWithMe")
                         .HasForeignKey("SharedWithUserId")
+<<<<<<< HEAD
                         .OnDelete(DeleteBehavior.NoAction);
+=======
+                        .OnDelete(DeleteBehavior.Restrict);
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 
                     b.Navigation("Note");
 
@@ -1055,7 +1206,11 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.HasOne("NoteWiz.Core.Entities.User", "User")
                         .WithMany("Notifications")
                         .HasForeignKey("UserId")
+<<<<<<< HEAD
                         .OnDelete(DeleteBehavior.NoAction)
+=======
+                        .OnDelete(DeleteBehavior.Cascade)
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                         .IsRequired();
 
                     b.Navigation("User");
@@ -1066,7 +1221,11 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.HasOne("NoteWiz.Core.Entities.User", "User")
                         .WithMany("Tasks")
                         .HasForeignKey("UserId")
+<<<<<<< HEAD
                         .OnDelete(DeleteBehavior.NoAction)
+=======
+                        .OnDelete(DeleteBehavior.Cascade)
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                         .IsRequired();
 
                     b.Navigation("User");
@@ -1077,7 +1236,11 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.HasOne("NoteWiz.Core.Entities.User", "User")
                         .WithMany("Devices")
                         .HasForeignKey("UserId")
+<<<<<<< HEAD
                         .OnDelete(DeleteBehavior.NoAction)
+=======
+                        .OnDelete(DeleteBehavior.Cascade)
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                         .IsRequired();
 
                     b.Navigation("User");
@@ -1085,6 +1248,11 @@ namespace NoteWiz.Infrastructure.Migrations
 
             modelBuilder.Entity("NoteWiz.Core.Entities.Category", b =>
                 {
+<<<<<<< HEAD
+=======
+                    b.Navigation("Documents");
+
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                     b.Navigation("Notes");
                 });
 
@@ -1093,6 +1261,7 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.Navigation("Notes");
                 });
 
+<<<<<<< HEAD
             modelBuilder.Entity("NoteWiz.Core.Entities.Folder", b =>
                 {
                     b.Navigation("FolderNotes");
@@ -1104,6 +1273,10 @@ namespace NoteWiz.Infrastructure.Migrations
                 {
                     b.Navigation("FolderNotes");
 
+=======
+            modelBuilder.Entity("NoteWiz.Core.Entities.Note", b =>
+                {
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                     b.Navigation("NoteDrawings");
 
                     b.Navigation("NoteImages");
@@ -1121,10 +1294,13 @@ namespace NoteWiz.Infrastructure.Migrations
 
                     b.Navigation("Documents");
 
+<<<<<<< HEAD
                     b.Navigation("FriendshipRequestsReceived");
 
                     b.Navigation("FriendshipRequestsSent");
 
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                     b.Navigation("Friendships");
 
                     b.Navigation("FriendshipsInitiated");

@@ -12,16 +12,25 @@ import {
   Modal,
   FlatList,
   Image,
+<<<<<<< HEAD
   Alert,
   ScrollView,
   TextInput
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+=======
+  Alert
+} from 'react-native';
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { Note, useNotes, FolderData } from '../contexts/NoteContext';
 import { useCategories } from '../contexts/CategoriesContext';
+<<<<<<< HEAD
+=======
+import { CategoryFilter } from '../components/ui/CategoryFilter';
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 import { SearchBar } from '../components/ui/SearchBar';
 import Animated, {
   useAnimatedScrollHandler,
@@ -36,10 +45,14 @@ import { NoteCard } from '../components/notes/NoteCard';
 import { EmptyState } from '../components/notes/EmptyState';
 import { NotesHeader } from '../components/notes/NotesHeader';
 import { COLORS, SHADOWS, SPACING } from '../constants/theme';
+<<<<<<< HEAD
 import { CreateIcon, FolderIcon, DocumentIcon, ImageIcon, PdfIcon, CloseIcon, TrashIcon } from '../components/icons';
 import { folderService } from '../services/folderService';
 import { apiClient } from '../services/newApi';
 import { askAI } from '../services/openai';
+=======
+import { CreateIcon, FolderIcon, DocumentIcon, ImageIcon, PdfIcon, CloseIcon } from '../components/icons';
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 
 const { height } = Dimensions.get('window');
 const HEADER_MAX_HEIGHT = Platform.OS === 'ios' ? 150 : 170;
@@ -82,20 +95,29 @@ const NotesScreen: React.FC = () => {
     loading: isLoading, 
     addFolder, 
     moveNoteToFolder,
+<<<<<<< HEAD
     updateNoteCover,
     loadNotes,
     deleteNote,
     updateNoteSummary
+=======
+    updateNoteCover 
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
   } = useNotes();
   
   const { categories } = useCategories();
   const [searchQuery, setSearchQuery] = useState('');
+<<<<<<< HEAD
+=======
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
   const [refreshing, setRefreshing] = useState(false);
   const [showFABMenu, setShowFABMenu] = useState(false);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [currentFolder, setCurrentFolder] = useState<string | null>(null);
   const scrollY = useSharedValue(0);
+<<<<<<< HEAD
   const [showAddFolderModal, setShowAddFolderModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [newFolderColor, setNewFolderColor] = useState('#4C6EF5');
@@ -106,6 +128,8 @@ const NotesScreen: React.FC = () => {
   const [showAddNoteModal, setShowAddNoteModal] = useState(false);
   const [selectedNotesToAdd, setSelectedNotesToAdd] = useState<string[]>([]);
   const [folderNoteCounts, setFolderNoteCounts] = useState<{ [key: string]: number }>({});
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 
   // Predefined cover options
   const coverOptions = [
@@ -119,6 +143,7 @@ const NotesScreen: React.FC = () => {
 
   // All notes and folders in the current directory
   const getCurrentItems = useCallback((): NoteOrFolder[] => {
+<<<<<<< HEAD
     let items: NoteOrFolder[] = [];
     if (currentFolder === null) {
       items = notes.filter(note => !note.folderId);
@@ -135,10 +160,26 @@ const NotesScreen: React.FC = () => {
   }, [notes, currentFolder]);
 
   // Filter notes based on search
+=======
+    if (currentFolder === null) {
+      return notes.filter(note => !note.folderId);
+    } else {
+      return notes.filter(note => {
+        const noteFolderId = typeof note.folderId === 'number' 
+          ? note.folderId.toString() 
+          : note.folderId;
+        return noteFolderId === currentFolder;
+      });
+    }
+  }, [notes, currentFolder]);
+
+  // Filter notes based on search and category
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
   const getFilteredItems = useCallback((): NoteOrFolder[] => {
     const currentItems = getCurrentItems();
     
     return currentItems.filter(item => {
+<<<<<<< HEAD
       const matchesSearch = 
         (item.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         ((item.content || '').toLowerCase().includes(searchQuery.toLowerCase()));
@@ -146,6 +187,23 @@ const NotesScreen: React.FC = () => {
       return matchesSearch;
     });
   }, [getCurrentItems, searchQuery]);
+=======
+      const isFolder = 'isFolder' in item && item.isFolder;
+      
+      if (isFolder) {
+        return item.title.toLowerCase().includes(searchQuery.toLowerCase());
+      }
+      
+      const matchesSearch = 
+        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (item.content?.toLowerCase().includes(searchQuery.toLowerCase()) || false);
+      
+      const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
+      
+      return matchesSearch && matchesCategory;
+    });
+  }, [getCurrentItems, searchQuery, selectedCategory]);
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 
   // Sort items: folders first, then notes sorted by updated date
   const sortedItems = useCallback((): NoteOrFolder[] => {
@@ -350,7 +408,11 @@ const NotesScreen: React.FC = () => {
 
   // Handle note selection (for cover picking, etc.)
   const handleNoteOptions = (noteId: string) => {
+<<<<<<< HEAD
     const note = notes.filter(n => n.id.toString() === noteId)[0];
+=======
+    const note = notes.find(n => n.id.toString() === noteId);
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     if (!note) return;
     
     // Show options menu
@@ -399,6 +461,7 @@ const NotesScreen: React.FC = () => {
     );
   };
 
+<<<<<<< HEAD
   // Klasörleri ve notları ayıran fonksiyonlar
   const folders = notes.filter(n => n.isFolder);
   const notesWithoutFolder = notes.filter(n => !n.folderId && !n.isFolder);
@@ -477,6 +540,9 @@ const NotesScreen: React.FC = () => {
   }, [folders.length]);
 
   // Render header with breadcrumb navigation
+=======
+        // Render header with breadcrumb navigation
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
   const renderHeader = () => {
     // Build breadcrumb trail
     let breadcrumbs: Note[] = [];
@@ -528,6 +594,93 @@ const NotesScreen: React.FC = () => {
     );
   };
 
+<<<<<<< HEAD
+=======
+  // Render note or folder item
+  const renderItem = ({ item, index }: { item: Note; index: number }) => {
+    if (item.isFolder) {
+      return (
+        <Animated.View
+          entering={FadeInDown.delay(index * 50).springify()}
+        >
+          <TouchableOpacity
+            style={styles.folderCard}
+            onPress={() => handleFolderPress(item.id, item.title)}
+          >
+            <FolderIcon size={36} color={COLORS.primary.main} />
+            <View style={styles.folderInfo}>
+              <Text style={styles.folderTitle} numberOfLines={1}>{item.title}</Text>
+              <Text style={styles.folderMeta}>
+                {notes.filter(n => {
+                  if (typeof n.folderId === 'string' && typeof item.id === 'string') {
+                    return n.folderId === item.id;
+                  } else if (typeof n.folderId === 'number' && typeof item.id === 'number') {
+                    return n.folderId === item.id;
+                  } else if (typeof n.folderId === 'string' && typeof item.id === 'number') {
+                    return n.folderId === item.id.toString();
+                  } else if (typeof n.folderId === 'number' && typeof item.id === 'string') {
+                    return n.folderId.toString() === item.id;
+                  }
+                  return false;
+                }).length} items • {new Date(item.updatedAt).toLocaleDateString()}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </Animated.View>
+      );
+    }
+
+    // It's a note
+    const categoryObj = categories.find(cat => {
+      if (typeof cat.id === 'number' && typeof item.category === 'string') {
+        return cat.id.toString() === item.category;
+      }
+      if (typeof cat.id === 'string' && typeof item.category === 'string') {
+        return cat.id === item.category;
+      }
+      if (typeof cat.id === 'number' && typeof item.category === 'number') {
+        return cat.id === item.category;
+      }
+      return false;
+    });
+    
+    return (
+      <Animated.View
+        entering={FadeInDown.delay(index * 50).springify()}
+      >
+        <NoteCard
+          note={{
+            id: typeof item.id === 'number' ? item.id.toString() : (typeof item.id === 'string' ? item.id : ''),
+            title: item.title,
+            content: item.content || '',
+            isImportant: item.isPinned || false,
+            updatedAt: new Date(item.updatedAt),
+            isPdf: item.isPdf,
+            pdfUrl: item.pdfUrl,
+            pdfName: item.pdfName,
+            coverImage: typeof item.coverImage === 'string' ? { uri: item.coverImage } : item.coverImage
+          }}
+          category={{
+            id: categoryObj?.id ? (typeof categoryObj.id === 'number' ? categoryObj.id.toString() : (typeof categoryObj.id === 'string' ? categoryObj.id : '')) : '',
+            name: categoryObj?.name || '',
+            color: categoryObj?.color
+          }}
+          onPress={() => navigation.navigate('NoteDetail', {
+            noteId: typeof item.id === 'number' ? item.id.toString() : (typeof item.id === 'string' ? item.id : ''),
+            title: item.title,
+            content: item.content,
+            category: item.category,
+            isImportant: item.isPinned || false,
+            color: categoryObj?.color,
+            folderId: item.folderId ? (typeof item.folderId === 'number' ? item.folderId.toString() : (typeof item.folderId === 'string' ? item.folderId : '')) : null
+          })}
+          onLongPress={() => handleNoteOptions(typeof item.id === 'number' ? item.id.toString() : (typeof item.id === 'string' ? item.id : ''))}
+        />
+      </Animated.View>
+    );
+  };
+
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar
@@ -554,6 +707,7 @@ const NotesScreen: React.FC = () => {
       {/* Breadcrumb Navigation */}
       {renderHeader()}
 
+<<<<<<< HEAD
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.listContent}>
         {/* Klasörsüz Notlar */}
         {sortedItems().filter(note => !note.isFolder && !note.folderId).length > 0 && (
@@ -631,6 +785,39 @@ const NotesScreen: React.FC = () => {
           </View>
         )}
       </ScrollView>
+=======
+      {/* Category Filter */}
+      <CategoryFilter
+        selectedCategory={selectedCategory}
+        onSelectCategory={setSelectedCategory}
+      />
+
+      {/* Notes and Folders List */}
+      <Animated.FlatList<Note>
+        data={sortedItems()}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={renderItem}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            progressViewOffset={HEADER_MAX_HEIGHT + 60}
+            colors={[COLORS.primary.main]}
+            tintColor={COLORS.primary.main}
+          />
+        }
+        ListEmptyComponent={
+          <EmptyState
+            query={searchQuery}
+            selectedCategory={selectedCategory}
+          />
+        }
+      />
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 
       {/* FAB Menu */}
       <TouchableOpacity
@@ -707,7 +894,11 @@ const NotesScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
             
+<<<<<<< HEAD
             <FlatList
+=======
+                          <FlatList
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
               data={coverOptions}
               keyExtractor={(item) => item.id}
               numColumns={2}
@@ -721,7 +912,11 @@ const NotesScreen: React.FC = () => {
                     onPress={() => handleCoverSelect(note, item.id)}
                   >
                     <View style={styles.coverPreview}>
+<<<<<<< HEAD
                       {item.image && item.image !== '' ? (
+=======
+                      {item.image ? (
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                         <Image
                           source={item.image}
                           style={styles.coverImage}
@@ -758,6 +953,7 @@ const NotesScreen: React.FC = () => {
           onPress={toggleFABMenu}
         />
       )}
+<<<<<<< HEAD
 
       {/* Klasör ekleme modalı */}
       <Modal visible={showAddFolderModal} transparent animationType="slide">
@@ -828,6 +1024,8 @@ const NotesScreen: React.FC = () => {
           </View>
         </View>
       </Modal>
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     </SafeAreaView>
   );
 };

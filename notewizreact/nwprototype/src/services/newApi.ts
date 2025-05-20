@@ -40,24 +40,63 @@ apiClient.interceptors.request.use(
   async (config) => {
     const token = await AsyncStorage.getItem('userToken');
     if (token) {
+<<<<<<< HEAD
       config.headers.Authorization = `Bearer ${token}`;
+=======
+      console.log('[API] Adding token to request:', token.substring(0, 20) + '...');
+      config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      console.log('[API] No token found for request');
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     }
     return config;
   },
   (error) => {
+<<<<<<< HEAD
     console.error('Request error:', error);
+=======
+    console.error('[API] Request error:', error);
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     return Promise.reject(error);
   }
 );
 
 // Response interceptor for handling errors
 apiClient.interceptors.response.use(
+<<<<<<< HEAD
   (response) => response,
   async (error) => {
     console.error('Response error:', error);
     if (error.response?.status === 401) {
       await AsyncStorage.removeItem('userToken');
       EventEmitter.emit('unauthorized');
+=======
+  (response) => {
+    console.log('[API] Response success:', response.config.url);
+    return response;
+  },
+  async (error) => {
+    console.error('[API] Response error:', {
+      url: error.config?.url,
+      status: error.response?.status,
+      data: error.response?.data
+    });
+
+    // Sadece login ve register endpointleri hariç 401'de logout
+    const url = error.config?.url || '';
+    if (
+      error.response?.status === 401 &&
+      !url.includes('/Users/login') &&
+      !url.includes('/Users/register')
+    ) {
+      console.log('[API] 401 Unauthorized, checking token...');
+      const token = await AsyncStorage.getItem('userToken');
+      if (token) {
+        console.log('[API] Token exists but request failed, removing token');
+        await AsyncStorage.removeItem('userToken');
+        EventEmitter.emit('unauthorized');
+      }
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     }
     return Promise.reject(error);
   }
@@ -161,6 +200,7 @@ export const notesService = {
     }
   },
 
+<<<<<<< HEAD
   getFolders: async () => {
     try {
       const response = await apiClient.get('/Notes?isFolder=true');
@@ -170,6 +210,8 @@ export const notesService = {
     }
   },
 
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
   getNote: async (id: number) => {
     try {
       const response = await apiClient.get(`/Notes/${id}`);
@@ -179,7 +221,11 @@ export const notesService = {
     }
   },
 
+<<<<<<< HEAD
   createNote: async (note: { title: string; content: string; categoryId?: number }) => {
+=======
+  createNote: async (note: { title: string; content: string }) => {
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     try {
       const response = await apiClient.post('/Notes', note);
       return response.data;
@@ -188,6 +234,7 @@ export const notesService = {
     }
   },
 
+<<<<<<< HEAD
   updateNote: async (
     id: number,
     note: {
@@ -201,6 +248,9 @@ export const notesService = {
       categoryId?: number;
     }
   ) => {
+=======
+  updateNote: async (id: number, note: { title: string; content: string }) => {
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     try {
       console.log('[apiClient.put] Making request to:', `/Notes/${id}`, 'with data:', note);
       const response = await apiClient.put(`/Notes/${id}`, note);
@@ -237,6 +287,7 @@ export const notesService = {
     } catch (error) {
       handleApiError(error);
     }
+<<<<<<< HEAD
   },
 
   getFolderNotes: async (folderId: number) => {
@@ -246,6 +297,8 @@ export const notesService = {
     } catch (error) {
       handleApiError(error);
     }
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
   }
 };
 

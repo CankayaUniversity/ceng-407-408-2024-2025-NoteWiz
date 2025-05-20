@@ -43,11 +43,18 @@ const CalendarScreen: React.FC = () => {
     newMarkedDates[today] = { selected: today === selectedDate, marked: false, dotColor: COLORS.primary.main };
 
     // Görevleri tarihlere göre grupla
+<<<<<<< HEAD
     if (Array.isArray(tasks)) {
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     tasks.forEach(task => {
       if (task.dueDate) {
         const dateStr = task.dueDate.substring(0, 10);
         console.log('Task:', task.title, 'dueDate:', task.dueDate, 'dateStr:', dateStr);
+<<<<<<< HEAD
+=======
+        
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         // İşaretli tarihler için ayarlar
         newMarkedDates[dateStr] = {
           ...newMarkedDates[dateStr],
@@ -55,6 +62,10 @@ const CalendarScreen: React.FC = () => {
           dotColor: task.isCompleted ? COLORS.success.main : COLORS.primary.main,
           selected: dateStr === selectedDate
         };
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         // Gün görevleri için
         if (!newDayTasks[dateStr]) {
           newDayTasks[dateStr] = [];
@@ -62,9 +73,13 @@ const CalendarScreen: React.FC = () => {
         newDayTasks[dateStr].push(task);
       }
     });
+<<<<<<< HEAD
     } else {
       console.warn('tasks is not an array:', tasks);
     }
+=======
+    console.log('Selected date:', selectedDate);
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 
     // Seçili gün için işaretleme
     if (newMarkedDates[selectedDate]) {

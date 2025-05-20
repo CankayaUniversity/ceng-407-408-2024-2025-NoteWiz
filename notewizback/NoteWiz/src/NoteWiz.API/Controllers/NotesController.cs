@@ -9,6 +9,7 @@ using NoteWiz.Core.Entities;
 using NoteWiz.Core.Interfaces;
 using System.Security.Claims;
 using Microsoft.Extensions.Logging;
+using AutoMapper;
 
 namespace NoteWiz.API.Controllers
 {
@@ -21,13 +22,15 @@ namespace NoteWiz.API.Controllers
         private readonly IFriendshipService _friendshipService;
         private readonly IUserService _userService;
         private readonly ILogger<NotesController> _logger;
+        private readonly IMapper _mapper;
 
-        public NotesController(INoteService noteService, IFriendshipService friendshipService, IUserService userService, ILogger<NotesController> logger)
+        public NotesController(INoteService noteService, IFriendshipService friendshipService, IUserService userService, ILogger<NotesController> logger, IMapper mapper)
         {
             _noteService = noteService;
             _friendshipService = friendshipService;
             _userService = userService;
             _logger = logger;
+            _mapper = mapper;
         }
 
         private int GetCurrentUserId()
@@ -231,116 +234,46 @@ namespace NoteWiz.API.Controllers
         [HttpPost]
         public async Task<ActionResult<NoteResponseDTO>> CreateNote(NoteCreateDTO noteDTO)
         {
-            _logger.LogInformation("Gelen noteDTO: {@noteDTO}", noteDTO);
             var userId = GetCurrentUserId();
-            var tagsValue = string.IsNullOrEmpty(noteDTO.Tags) ? "" : noteDTO.Tags;
             var note = new Note
             {
                 Title = noteDTO.Title,
                 Content = noteDTO.Content,
                 IsPrivate = noteDTO.IsPrivate,
+                Color = noteDTO.Color ?? "#FFFFFF",
+                CoverImageUrl = noteDTO.CoverImage,
+                CategoryId = noteDTO.CategoryId,
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow,
-                CoverImageUrl = noteDTO.CoverImage == "undefined" ? null : noteDTO.CoverImage,
-                CategoryId = noteDTO.CategoryId,
-                Tags = tagsValue
+                UpdatedAt = DateTime.UtcNow,
+                IsOffline = noteDTO.IsOffline,
+                SyncStatus = noteDTO.SyncStatus ?? "synced",
+                LastModifiedAt = noteDTO.LastModifiedAt ?? DateTime.UtcNow
             };
 
-            note = await _noteService.CreateNoteAsync(note);
-
-            return CreatedAtAction(nameof(GetNote), new { id = note.Id }, new NoteResponseDTO
-            {
-                Id = note.Id,
-                Title = note.Title ?? string.Empty,
-                Content = note.Content ?? string.Empty,
-                IsPrivate = note.IsPrivate,
-                Color = note.Color ?? "#FFFFFF",
-                CreatedAt = note.CreatedAt,
-                UpdatedAt = note.UpdatedAt,
-                CoverImage = note.CoverImageUrl ?? string.Empty,
-                SharedWith = note.SharedWith?.Select(sw => new NoteShareResponseDTO
-                {
-                    Id = sw.Id,
-                    NoteId = sw.NoteId,
-                    SharedWithUserId = sw.SharedWithUserId,
-                    SharedWithEmail = sw.SharedWithUser?.Email ?? string.Empty,
-                    CanEdit = sw.CanEdit,
-                    SharedAt = sw.SharedAt,
-                    SharedWithUser = sw.SharedWithUser != null ? new UserResponseDTO
-                    {
-                        Id = sw.SharedWithUser.Id,
-                        Username = sw.SharedWithUser.Username ?? string.Empty,
-                        Email = sw.SharedWithUser.Email ?? string.Empty,
-                        FullName = sw.SharedWithUser.FullName ?? string.Empty,
-                        CreatedAt = sw.SharedWithUser.CreatedAt
-                    } : null
-                }).ToList() ?? new List<NoteShareResponseDTO>()
-            });
+            var createdNote = await _noteService.CreateNoteAsync(note);
+            var responseDTO = _mapper.Map<NoteResponseDTO>(createdNote);
+            return CreatedAtAction(nameof(GetNote), new { id = createdNote.Id }, responseDTO);
         }
 
         [HttpPut("{id}")]
         public async Task<ActionResult<NoteResponseDTO>> UpdateNote(int id, NoteUpdateDTO noteDTO)
         {
             var userId = GetCurrentUserId();
-            var note = await _noteService.GetNoteByIdAsync(id);
+            var existingNote = await _noteService.GetNoteByIdAsync(id);
 
-            if (note == null)
+            if (existingNote == null)
                 return NotFound();
 
-            if (note.UserId != userId)
-            {
-                var shares = await _noteService.GetNoteSharesAsync(id, userId);
-                if (!shares.Any(s => s.CanEdit))
-                    return Forbid();
-            }
+            if (existingNote.UserId != userId)
+                return Forbid();
 
-            note.Title = noteDTO.Title;
-            note.Content = noteDTO.Content;
-            note.IsPrivate = noteDTO.IsPrivate;
-            note.UpdatedAt = DateTime.UtcNow;
-            note.CoverImageUrl = noteDTO.CoverImage == "undefined" ? null : noteDTO.CoverImage;
-            note.CategoryId = noteDTO.CategoryId;
-
-            _logger.LogInformation("UpdateNote called for id: {id}", id);
-            _logger.LogInformation("Updated note: {@note}", note);
-
-            note = await _noteService.UpdateNoteAsync(note);
-            note = await _noteService.GetNoteByIdAsync(id);
-
-            if (note == null)
-            {
-                _logger.LogError("UpdateNoteAsync returned null for id: {id}", id);
-                return StatusCode(500, "Note update failed");
-            }
-
-            return Ok(new NoteResponseDTO
-            {
-                Id = note.Id,
-                Title = note.Title ?? string.Empty,
-                Content = note.Content ?? string.Empty,
-                IsPrivate = note.IsPrivate,
-                Color = note.Color ?? "#FFFFFF",
-                CreatedAt = note.CreatedAt,
-                UpdatedAt = note.UpdatedAt,
-                CoverImage = note.CoverImageUrl ?? string.Empty,
-                SharedWith = note.SharedWith?.Select(sw => new NoteShareResponseDTO
-                {
-                    Id = sw.Id,
-                    NoteId = sw.NoteId,
-                    SharedWithUserId = sw.SharedWithUserId,
-                    SharedWithEmail = sw.SharedWithUser?.Email ?? string.Empty,
-                    CanEdit = sw.CanEdit,
-                    SharedAt = sw.SharedAt,
-                    SharedWithUser = sw.SharedWithUser != null ? new UserResponseDTO
-                    {
-                        Id = sw.SharedWithUser.Id,
-                        Username = sw.SharedWithUser.Username ?? string.Empty,
-                        Email = sw.SharedWithUser.Email ?? string.Empty,
-                        FullName = sw.SharedWithUser.FullName ?? string.Empty,
-                        CreatedAt = sw.SharedWithUser.CreatedAt
-                    } : null
-                }).ToList() ?? new List<NoteShareResponseDTO>()
-            });
+            // AutoMapper ile güncelle
+            _mapper.Map(noteDTO, existingNote);
+            
+            var updatedNote = await _noteService.UpdateNoteAsync(existingNote);
+            var responseDTO = _mapper.Map<NoteResponseDTO>(updatedNote);
+            return Ok(responseDTO);
         }
 
         [HttpDelete("{id}")]
@@ -432,7 +365,7 @@ namespace NoteWiz.API.Controllers
                     IsPinned = n.IsPinned,
                     IsPrivate = n.IsPrivate,
                     CoverImage = n.CoverImageUrl ?? string.Empty,
-                    Tags = n.Tags ?? string.Empty,
+                    Tags = n.Tags ?? new List<string>(),
                     CategoryId = n.CategoryId,
                     CreatedAt = n.CreatedAt,
                     UpdatedAt = n.UpdatedAt,
@@ -486,22 +419,70 @@ namespace NoteWiz.API.Controllers
             return Ok(note);
         }
 
-        [HttpPatch("{id}/summary")]
-        public async Task<IActionResult> UpdateNoteSummary(int id, [FromBody] string summary)
+        [HttpPost("sync")]
+        public async Task<ActionResult<SyncResponseDTO>> SyncNotes([FromBody] SyncRequestDTO request)
         {
             try
             {
-                var userId = GetCurrentUserId();
-                var note = await _noteService.GetNoteByIdAsync(id);
-                if (note == null) return NotFound();
-                if (note.UserId != userId) return Forbid();
-                var updatedNote = await _noteService.UpdateNoteSummaryAsync(id, summary);
-                return Ok(new { updatedNote.Id, updatedNote.Summary });
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                var deviceId = request.DeviceId;
+
+                // Sunucudaki notları al
+                var serverNotes = await _noteService.GetUserNotesAsync(userId);
+
+                // Çakışma kontrolü
+                var conflicts = new List<Note>();
+                foreach (var clientNote in request.Notes)
+                {
+                    var serverNote = serverNotes.FirstOrDefault(n => n.Id == clientNote.Id);
+                    if (serverNote != null && serverNote.LastModifiedAt > clientNote.LastModifiedAt)
+                    {
+                        conflicts.Add(serverNote);
+                    }
+                }
+
+                // Senkronizasyon yanıtı
+                var response = new SyncResponseDTO
+                {
+                    ServerNotes = serverNotes.Select(n => _mapper.Map<NoteDTO>(n)).ToList(),
+                    Conflicts = conflicts.Select(n => _mapper.Map<NoteDTO>(n)).ToList(),
+                    SyncTimestamp = DateTime.UtcNow
+                };
+
+                return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating note summary");
-                return StatusCode(500, new { error = "An error occurred while updating summary", details = ex.Message });
+                return StatusCode(500, new { message = "Sync failed", error = ex.Message });
+            }
+        }
+
+        [HttpPost("resolve-conflict")]
+        public async Task<ActionResult> ResolveConflict([FromBody] ConflictResolutionDTO resolution)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                
+                // Çakışma çözümü
+                if (resolution.UseServerVersion)
+                {
+                    // Sunucu versiyonunu kullan
+                    var serverNote = _mapper.Map<Note>(resolution.ServerNote);
+                    await _noteService.UpdateNoteAsync(serverNote);
+                }
+                else
+                {
+                    // İstemci versiyonunu kullan
+                    var clientNote = _mapper.Map<Note>(resolution.ClientNote);
+                    await _noteService.UpdateNoteAsync(clientNote);
+                }
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Conflict resolution failed", error = ex.Message });
             }
         }
     }

@@ -47,7 +47,11 @@ const TaskDetailScreen = () => {
   //   ? new Date(route.params.presetDueDate) 
   //   : undefined;
   
+<<<<<<< HEAD
   const editingTask = tasks.find(t => t.id?.toString() === taskId?.toString());
+=======
+  const editingTask = tasks.find(t => t.id.toString() === taskId);
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
   
   console.log('TaskDetail - taskId:', taskId);
   // console.log('TaskDetail - presetDueDate:', presetDueDate);
@@ -75,6 +79,19 @@ const TaskDetailScreen = () => {
     });
   }, [navigation, taskId]);
 
+<<<<<<< HEAD
+=======
+  useEffect(() => {
+    if (editingTask) {
+      setTitle(editingTask.title);
+      setDescription(editingTask.description);
+      setDueDate(editingTask.dueDate ? new Date(editingTask.dueDate) : undefined);
+      setIsCompleted(editingTask.isCompleted);
+      // Diğer state'ler gerekiyorsa ekle
+    }
+  }, [editingTask]);
+
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
   // Tarih seçimi işleyicisi
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
@@ -125,16 +142,26 @@ const TaskDetailScreen = () => {
       };
 
       if (taskId) {
+<<<<<<< HEAD
         const updatedTask = await updateTask(Number(taskId), taskData);
         console.log('Task updated successfully');
         
+=======
+        const updatedTask = await updateTask(String(taskId), taskData);
+        console.log('Task updated successfully');
+        if (!updatedTask) return;
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         if (hasReminder && reminderDate) {
           await NotificationService.scheduleTaskReminder({
             ...updatedTask,
             id: String(updatedTask.id),
             reminder: reminderDate.toISOString(),
             priority: 'medium',
+<<<<<<< HEAD
             completed: updatedTask.isCompleted,
+=======
+            isCompleted: updatedTask.isCompleted,
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
           });
         } else {
           await NotificationService.cancelNotification(`task-${updatedTask.id}`);
@@ -143,14 +170,22 @@ const TaskDetailScreen = () => {
         // Yeni görev ekle
         const newTask = await addTask(taskData);
         console.log('Task added successfully with ID:', newTask.id);
+<<<<<<< HEAD
         
+=======
+        if (!newTask) return;
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         if (hasReminder && reminderDate) {
           await NotificationService.scheduleTaskReminder({
             ...newTask,
             id: String(newTask.id),
             reminder: reminderDate.toISOString(),
             priority: 'medium',
+<<<<<<< HEAD
             completed: newTask.isCompleted,
+=======
+            isCompleted: newTask.isCompleted,
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
           });
         }
       }

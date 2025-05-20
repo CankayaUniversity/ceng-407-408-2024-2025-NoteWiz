@@ -6,7 +6,11 @@ export interface Folder {
   id: string;
   name: string;
   color: string;
+<<<<<<< HEAD
   icon?: string;
+=======
+  icon: string;
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
   parentId?: string;
   children?: Folder[];
   isArchived?: boolean;

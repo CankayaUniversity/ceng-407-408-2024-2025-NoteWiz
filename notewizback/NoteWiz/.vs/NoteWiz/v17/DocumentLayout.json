@@ -1,5 +1,6 @@
 {
   "Version": 1,
+<<<<<<< HEAD
   "WorkspaceRootPath": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\",
   "Documents": [
     {
@@ -17,6 +18,21 @@
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506123907_AddDocumentTable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506123907_AddDocumentTable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+=======
+  "WorkspaceRootPath": "D:\\notewiz\\a\\notewizback\\NoteWiz\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|d:\\notewiz\\a\\notewizback\\notewiz\\src\\notewiz.api\\dtos\\userdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|solutionrelative:src\\notewiz.api\\dtos\\userdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{71E0B019-445D-40FE-A746-6B50C6A0A531}|src\\NoteWiz.Core\\NoteWiz.Core.csproj|d:\\notewiz\\a\\notewizback\\notewiz\\src\\notewiz.core\\entities\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{71E0B019-445D-40FE-A746-6B50C6A0A531}|src\\NoteWiz.Core\\NoteWiz.Core.csproj|solutionrelative:src\\notewiz.core\\entities\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|d:\\notewiz\\a\\notewizback\\notewiz\\src\\notewiz.api\\dtos\\taskdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BF0B75C0-2490-48EF-B35A-653403ABA9A4}|src\\NoteWiz.API\\NoteWiz.API.csproj|solutionrelative:src\\notewiz.api\\dtos\\taskdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     }
   ],
   "DocumentGroupContainers": [
@@ -39,6 +55,7 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+<<<<<<< HEAD
               "Title": "Program.cs",
               "DocumentMoniker": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.API\\Program.cs",
               "RelativeDocumentMoniker": "src\\NoteWiz.API\\Program.cs",
@@ -47,11 +64,22 @@
               "ViewState": "AgIAAC8BAAAAAAAAAAAjwEQBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-05-06T13:11:21.046Z",
+=======
+              "Title": "UserDTOs.cs",
+              "DocumentMoniker": "D:\\notewiz\\a\\notewizback\\NoteWiz\\src\\NoteWiz.API\\DTOs\\UserDTOs.cs",
+              "RelativeDocumentMoniker": "src\\NoteWiz.API\\DTOs\\UserDTOs.cs",
+              "ToolTip": "D:\\notewiz\\a\\notewizback\\NoteWiz\\src\\NoteWiz.API\\DTOs\\UserDTOs.cs",
+              "RelativeToolTip": "src\\NoteWiz.API\\DTOs\\UserDTOs.cs",
+              "ViewState": "AgIAAB0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-19T12:51:25.071Z",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
+<<<<<<< HEAD
               "Title": "DocumentController.cs",
               "DocumentMoniker": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.API\\Controllers\\DocumentController.cs",
               "RelativeDocumentMoniker": "src\\NoteWiz.API\\Controllers\\DocumentController.cs",
@@ -60,11 +88,22 @@
               "ViewState": "AgIAAA8AAAAAAAAAAAAAABgAAABSAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-05-06T12:59:31.967Z",
+=======
+              "Title": "User.cs",
+              "DocumentMoniker": "D:\\notewiz\\a\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\Entities\\User.cs",
+              "RelativeDocumentMoniker": "src\\NoteWiz.Core\\Entities\\User.cs",
+              "ToolTip": "D:\\notewiz\\a\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\Entities\\User.cs",
+              "RelativeToolTip": "src\\NoteWiz.Core\\Entities\\User.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-19T12:50:51.693Z",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
+<<<<<<< HEAD
               "Title": "20250506125717_RemoveDocumentUpload.cs",
               "DocumentMoniker": "D:\\ceng-407-408-2024-2025-NoteWiz\\NoteWiz\\src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506125717_RemoveDocumentUpload.cs",
               "RelativeDocumentMoniker": "src\\NoteWiz.Infrastructure\\Migrations\\NoteWizDb\\20250506125717_RemoveDocumentUpload.cs",
@@ -86,6 +125,16 @@
               "ViewState": "AgIAAA4AAAAAAAAAAAAAwDMAAAAjAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-05-06T12:39:07.416Z",
+=======
+              "Title": "TaskDTOs.cs",
+              "DocumentMoniker": "D:\\notewiz\\a\\notewizback\\NoteWiz\\src\\NoteWiz.API\\DTOs\\TaskDTOs.cs",
+              "RelativeDocumentMoniker": "src\\NoteWiz.API\\DTOs\\TaskDTOs.cs",
+              "ToolTip": "D:\\notewiz\\a\\notewizback\\NoteWiz\\src\\NoteWiz.API\\DTOs\\TaskDTOs.cs",
+              "RelativeToolTip": "src\\NoteWiz.API\\DTOs\\TaskDTOs.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-19T10:35:01.517Z",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
               "EditorCaption": ""
             }
           ]

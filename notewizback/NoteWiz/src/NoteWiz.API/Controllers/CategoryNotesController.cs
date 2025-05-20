@@ -3,6 +3,7 @@ using NoteWiz.Infrastructure.Data;
 using NoteWiz.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace NoteWiz.API.Controllers
 {
@@ -23,13 +24,15 @@ namespace NoteWiz.API.Controllers
         {
             try 
             {
-                var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
                 var categories = await _context.Categories
                     .Where(c => c.UserId == userId)
                     .Select(c => new {
                         Id = c.Id,
                         Name = c.Name,
-                        UserId = c.UserId
+                        UserId = c.UserId,
+                        Color = c.Color,
+                        CreatedAt = c.CreatedAt
                     })
                     .ToListAsync();
                 
@@ -45,31 +48,24 @@ namespace NoteWiz.API.Controllers
         [HttpGet("{categoryId}/notes")]
         public async Task<IActionResult> GetNotesByCategory(int categoryId)
         {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             var notes = await _context.Notes
-                .Where(n => n.CategoryId == categoryId)
+                .Where(n => n.CategoryId == categoryId && n.UserId == userId)
                 .ToListAsync();
             return Ok(notes);
         }
 
-        // DTO tanımı
-        public class CreateCategoryDto
-        {
-            public string Name { get; set; }
-        }
-
         // POST: api/categories
         [HttpPost]
-        public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryDto dto)
+        public async Task<IActionResult> CreateCategory([FromBody] Category category)
         {
-            if (string.IsNullOrWhiteSpace(dto.Name))
+            if (string.IsNullOrWhiteSpace(category.Name))
                 return BadRequest("Name is required");
 
-            var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
-            var category = new Category
-            {
-                Name = dto.Name,
-                UserId = userId,
-            };
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            category.UserId = userId;
+            category.CreatedAt = DateTime.UtcNow;
+            
             _context.Categories.Add(category);
             await _context.SaveChangesAsync();
             return Ok(category);
@@ -79,8 +75,11 @@ namespace NoteWiz.API.Controllers
         [HttpPost("{categoryId}/notes")]
         public async Task<IActionResult> AddNoteToCategory(int categoryId, [FromBody] Note note)
         {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             note.CategoryId = categoryId;
+            note.UserId = userId;
             note.CreatedAt = DateTime.UtcNow;
+            
             _context.Notes.Add(note);
             await _context.SaveChangesAsync();
             return Ok(note);

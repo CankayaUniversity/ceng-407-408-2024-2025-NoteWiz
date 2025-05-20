@@ -29,6 +29,7 @@ const NoteForm: React.FC<NoteFormProps> = ({
   const [coverColor, setCoverColor] = useState<string | undefined>(initialData?.coverColor);
   const [isArchived, setIsArchived] = useState(initialData?.isArchived || false);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
+<<<<<<< HEAD
   const [pageType, setPageType] = useState(initialData?.pageType || 'plain');
 
   const pageTypes = [
@@ -36,6 +37,8 @@ const NoteForm: React.FC<NoteFormProps> = ({
     { label: 'Kareli', value: 'grid' },
     { label: 'Düz', value: 'plain' },
   ];
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 
   const handleSubmit = () => {
     const formData: CreateNoteDto | UpdateNoteDto = {
@@ -44,7 +47,10 @@ const NoteForm: React.FC<NoteFormProps> = ({
       coverId: coverId === 'none' ? undefined : coverId,
       coverColor,
       isArchived,
+<<<<<<< HEAD
       pageType,
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     };
 
     onSubmit(formData);
@@ -82,6 +88,7 @@ const NoteForm: React.FC<NoteFormProps> = ({
           placeholderTextColor={colors.gray[500]}
         />
 
+<<<<<<< HEAD
         <Text style={{ marginTop: 16, marginBottom: 8, fontWeight: 'bold' }}>Sayfa Tipi</Text>
         <View style={{ flexDirection: 'row', marginBottom: 16 }}>
           {pageTypes.map(opt => (
@@ -100,6 +107,8 @@ const NoteForm: React.FC<NoteFormProps> = ({
           ))}
         </View>
 
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         <TouchableOpacity
           style={styles.archiveButton}
           onPress={() => setIsArchived(!isArchived)}

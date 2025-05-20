@@ -93,6 +93,7 @@ C:\Users\d-disal\nw\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWi
 C:\Users\d-disal\nw\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\refint\NoteWiz.Core.dll
 C:\Users\d-disal\nw\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.pdb
 C:\Users\d-disal\nw\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\ref\NoteWiz.Core.dll
+<<<<<<< HEAD
 C:\Users\d-disal\nw2\notewizback\NoteWiz\src\NoteWiz.Core\bin\Debug\net9.0\NoteWiz.Core.deps.json
 C:\Users\d-disal\nw2\notewizback\NoteWiz\src\NoteWiz.Core\bin\Debug\net9.0\NoteWiz.Core.dll
 C:\Users\d-disal\nw2\notewizback\NoteWiz\src\NoteWiz.Core\bin\Debug\net9.0\NoteWiz.Core.pdb
@@ -105,3 +106,17 @@ C:\Users\d-disal\nw2\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteW
 C:\Users\d-disal\nw2\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\refint\NoteWiz.Core.dll
 C:\Users\d-disal\nw2\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.pdb
 C:\Users\d-disal\nw2\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\ref\NoteWiz.Core.dll
+=======
+D:\notewiz\a\notewizback\NoteWiz\src\NoteWiz.Core\bin\Debug\net9.0\NoteWiz.Core.deps.json
+D:\notewiz\a\notewizback\NoteWiz\src\NoteWiz.Core\bin\Debug\net9.0\NoteWiz.Core.dll
+D:\notewiz\a\notewizback\NoteWiz\src\NoteWiz.Core\bin\Debug\net9.0\NoteWiz.Core.pdb
+D:\notewiz\a\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.GeneratedMSBuildEditorConfig.editorconfig
+D:\notewiz\a\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.AssemblyInfoInputs.cache
+D:\notewiz\a\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.AssemblyInfo.cs
+D:\notewiz\a\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.csproj.CoreCompileInputs.cache
+D:\notewiz\a\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.sourcelink.json
+D:\notewiz\a\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.dll
+D:\notewiz\a\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\refint\NoteWiz.Core.dll
+D:\notewiz\a\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.pdb
+D:\notewiz\a\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\ref\NoteWiz.Core.dll
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c

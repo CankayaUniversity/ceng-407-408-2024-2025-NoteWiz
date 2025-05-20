@@ -38,7 +38,10 @@ import PDFView from 'react-native-pdf';
 import ViewShot from 'react-native-view-shot';
 import { Image as RNImage } from 'react-native';
 import { API_URL } from '../config/api';
+<<<<<<< HEAD
 import { useCategories } from '../contexts/CategoriesContext';
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 
 const CATEGORIES = [
   'Work',
@@ -82,10 +85,16 @@ type NoteDetailScreenRouteProp = RouteProp<RootStackParamList, 'NoteDetail'>;
 const NoteDetailScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<NoteDetailScreenRouteProp>();
+<<<<<<< HEAD
   const { createNote, updateNote, deleteNote, notes, loadNotes } = useNotes();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const { categories, addCategory } = useCategories();
+=======
+  const { createNote, updateNote, deleteNote, notes } = useNotes();
+  const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 
   const noteIdParam = route.params?.noteId;
   let noteId: number | undefined = undefined;
@@ -103,7 +112,11 @@ const NoteDetailScreen = () => {
   // Note state
   const [title, setTitle] = useState(route.params?.title || '');
   const [content, setContent] = useState(route.params?.content || '');
+<<<<<<< HEAD
   const [categoryId, setCategoryId] = useState<number | null>(null);
+=======
+  const [category, setCategory] = useState(route.params?.category || 'Other');
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
   const [isImportant, setIsImportant] = useState(route.params?.isImportant || false);
   // Cover image
   const [coverImage, setCoverImage] = useState<ImageSourcePropType | string | null>(null);
@@ -137,6 +150,7 @@ const NoteDetailScreen = () => {
 
   const API_BASE_URL = API_URL;
 
+<<<<<<< HEAD
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [addingCategory, setAddingCategory] = useState(false);
@@ -151,6 +165,8 @@ const NoteDetailScreen = () => {
     { name: 'Other', color: '#868E96' },
   ];
 
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
   useEffect(() => {
     const fetchNote = async () => {
       if (!noteId) return;
@@ -160,7 +176,11 @@ const NoteDetailScreen = () => {
         if (note) {
           setTitle(note.title || '');
           setContent(note.content || '');
+<<<<<<< HEAD
           setCategoryId(note.categoryId || null);
+=======
+          setCategory(note.category || 'Other');
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
           setIsImportant(note.isImportant || false);
           setIsPdf(note.isPdf || false);
           setPdfUrl(note.pdfUrl || '');
@@ -175,6 +195,7 @@ const NoteDetailScreen = () => {
     fetchNote();
   }, [noteId]);
 
+<<<<<<< HEAD
   // Kategori seçimini ilk açılışta notun kategorisine göre ayarla
   useEffect(() => {
     // Eğer route.params?.category varsa, categories listesinden id'yi bul
@@ -195,6 +216,8 @@ const NoteDetailScreen = () => {
     }
   }, [noteId, notes, categories]);
 
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
   // PDF'yi cache'e kopyalayan fonksiyon
   async function copyPdfToCache(uri: string, name: string): Promise<string> {
     const destPath = `${RNFS.CachesDirectoryPath}/${Date.now()}_${name}`;
@@ -323,6 +346,16 @@ const NoteDetailScreen = () => {
           >
             <Text style={styles.headerButtonText}>✏️ Draw</Text>
           </TouchableOpacity>
+<<<<<<< HEAD
+=======
+          {/* More options button */}
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => setShowMoreOptions(!showMoreOptions)}
+          >
+            <Text style={styles.headerButtonText}>•••</Text>
+          </TouchableOpacity>
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
           {/* Save button */}
           <TouchableOpacity
             style={styles.headerButton}
@@ -347,15 +380,25 @@ const NoteDetailScreen = () => {
         </View>
       ),
     });
+<<<<<<< HEAD
   }, [navigation, noteId, title, content, categoryId, isImportant, isPdf, pdfUrl, pdfName, coverImage]);
 
   // Modified handleSave function for NoteDetailScreen.tsx
   const handleSave = async () => {
     console.log('Kaydet butonuna basıldı, categoryId:', categoryId);
+=======
+  }, [navigation, noteId, title, content, category, isImportant, isPdf, pdfUrl, pdfName, coverImage, showMoreOptions]);
+
+  // Modified handleSave function for NoteDetailScreen.tsx
+  const handleSave = async () => {
+    console.log('handleSave fonksiyonu çağrıldı');
+    console.log('handleSave state:', { isPdf, pdfUrl, pdfName });
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     if (!isPdf && !title.trim()) {
       Alert.alert('Warning', 'Please enter a title');
       return;
     }
+<<<<<<< HEAD
     if (!categoryId) {
       Alert.alert('Uyarı', 'Lütfen bir kategori seçin!');
       return;
@@ -379,14 +422,35 @@ const NoteDetailScreen = () => {
       Object.keys(noteData).forEach(key => {
         if (noteData[key] === undefined) delete noteData[key];
       });
+=======
+    setIsLoading(true);
+    try {
+      const noteData = {
+        title,
+        content,
+        isImportant,
+        color: '#7950F2',
+        coverImage: typeof coverImage === 'string' ? coverImage : undefined,
+        isPdf,
+        pdfUrl,
+        pdfName,
+        category,
+        folderId: folderId !== undefined && folderId !== null ? folderId.toString() : null,
+        tags: [],
+      };
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
       console.log('Saving note data:', noteData);
       if (!noteId) {
         // Yeni not oluşturuluyor
         const createdNote = await createNote(noteData);
         if (createdNote && createdNote.id) {
           setContent(createdNote.content || content);
+<<<<<<< HEAD
           await loadNotes();
           navigation.navigate('MainApp', { screen: 'Notes' });
+=======
+          navigation.navigate('Tabs', { screen: 'Notes' });
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         } else {
           Alert.alert('Hata', 'Not oluşturulamadı!');
         }
@@ -399,8 +463,12 @@ const NoteDetailScreen = () => {
         const updated = await updateNote(noteId, noteData);
         if (updated && updated.content) {
           setContent(updated.content);
+<<<<<<< HEAD
           await loadNotes();
           navigation.navigate('MainApp', { screen: 'Notes' });
+=======
+          navigation.navigate('Tabs', { screen: 'Notes' });
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         }
       }
     } catch (err) {
@@ -552,12 +620,18 @@ const NoteDetailScreen = () => {
       } else if (response.errorCode) {
         Alert.alert('Hata', 'Resim seçilemedi: ' + response.errorMessage);
         return;
+<<<<<<< HEAD
       } else {
         const assets = response.assets;
         if (assets && Array.isArray(assets) && assets[0]?.uri) {
           setContent(prev => prev + `\n[IMAGE:${assets[0].uri}]\n`);
           setShowAddModal(false);
         }
+=======
+      } else if (response.assets?.[0]?.uri) {
+        setContent(prev => prev + `\n[IMAGE:${response.assets?.[0]?.uri}]\n`);
+        setShowAddModal(false);
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
       }
     });
   };
@@ -579,6 +653,7 @@ const NoteDetailScreen = () => {
   }
 
   return (
+<<<<<<< HEAD
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -721,6 +796,184 @@ const NoteDetailScreen = () => {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
+=======
+    <KeyboardAvoidingView 
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      {/* Permission Bar */}
+      {/* <View style={{ height: 6, width: '100%', backgroundColor: canEdit ? '#FF69B4' : '#4CAF50' }} /> */}
+      {/* Legend Box */}
+      {/*
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 6, marginBottom: 2 }}>
+        <View style={{ width: 18, height: 8, backgroundColor: '#FF69B4', borderRadius: 2, marginRight: 4 }} />
+        <Text style={{ fontSize: 12, color: '#888', marginRight: 12 }}>Düzenleme Yetkisi</Text>
+        <View style={{ width: 18, height: 8, backgroundColor: '#4CAF50', borderRadius: 2, marginRight: 4 }} />
+        <Text style={{ fontSize: 12, color: '#888' }}>Sadece Görüntüleme</Text>
+      </View>
+      */}
+      <ScrollView style={{ flex: 1 }}>
+        {/* Cover image */}
+        {coverImage && (
+          typeof coverImage === 'string' && coverImage.startsWith('#') ? (
+            <View style={[styles.coverImage, { backgroundColor: coverImage }]} />
+          ) : (
+            <Image
+              source={typeof coverImage === 'string' ? { uri: coverImage } : coverImage}
+              style={styles.coverImage}
+              resizeMode="cover"
+            />
+          )
+        )}
+
+        {/* Star button for marking important */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.starButton}
+            onPress={() => setIsImportant(!isImportant)}
+          >
+            <StarIcon
+              size={24}
+              color={isImportant ? '#FFD700' : '#CCCCCC'}
+            />
+          </TouchableOpacity>
+          
+          {/* Add cover button (only visible if no cover exists) */}
+          {!coverImage && (
+            <TouchableOpacity
+              style={styles.addCoverButton}
+              onPress={() => setShowCoverPicker(true)}
+            >
+              <ImageIcon size={20} color={COLORS.primary.main} />
+              <Text style={styles.addCoverText}>Add Cover</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Title input */}
+        <TextInput
+          style={styles.titleInput}
+          placeholder={isPdf ? "PDF Title" : "Title"}
+          value={title}
+          onChangeText={setTitle}
+          maxLength={100}
+          editable={canEdit}
+        />
+
+        {/* Category selector */}
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoryContainer}
+        >
+          {CATEGORIES.map((cat) => (
+            <TouchableOpacity
+              key={cat}
+              style={[
+                styles.categoryButton,
+                category === cat && styles.categoryButtonActive,
+              ]}
+              onPress={() => setCategory(cat)}
+            >
+              <Text
+                style={[
+                  styles.categoryText,
+                  category === cat && styles.categoryTextActive,
+                ]}
+              >
+                {cat}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* İçerik ve resimler (renderNoteContent) */}
+        <View style={{ paddingHorizontal: 16, paddingTop: 8, minHeight: 300 }}>
+          {renderNoteContent(content)}
+        </View>
+
+        {/* Content input - düzenleme için */}
+        <TextInput
+          style={styles.contentInput}
+          placeholder="İçerik yazın..."
+          value={content}
+          onChangeText={setContent}
+          multiline
+          editable={canEdit}
+        />
+
+        {/* AI'ye Soru Sor Butonu */}
+        <TouchableOpacity
+          style={{ backgroundColor: '#4C6EF5', padding: 12, borderRadius: 8, margin: 16, alignItems: 'center' }}
+          onPress={() => {
+            setAiPrompt(selectedText || '');
+            setAiModalVisible(true);
+          }}
+        >
+          <Text style={{ color: '#FFF', fontWeight: 'bold' }}>AI'ye Soru Sor</Text>
+        </TouchableOpacity>
+        
+        {/* PDF mode switch button */}
+        {isPdf && (
+          <TouchableOpacity
+            style={styles.switchModeButton}
+            onPress={() => {
+              setIsPdf(false);
+              setPdfUrl('');
+              setPdfName('');
+            }}
+          >
+            <Text style={styles.switchModeButtonText}>Switch to Text Note</Text>
+          </TouchableOpacity>
+        )}
+      </ScrollView>
+
+      {/* More options menu */}
+      {showMoreOptions && (
+        <SafeAreaView style={styles.optionsMenuContainer}>
+          <View style={styles.optionsMenu}>
+            <TouchableOpacity 
+              style={styles.optionItem}
+              onPress={() => {
+                setShowMoreOptions(false);
+                setShowCoverPicker(true);
+              }}
+            >
+              <ImageIcon size={20} color={COLORS.primary.main} />
+              <Text style={styles.optionText}>
+                {coverImage ? 'Change Cover' : 'Add Cover'}
+              </Text>
+            </TouchableOpacity>
+            
+            {noteId && (
+              <TouchableOpacity 
+                style={styles.optionItem}
+                onPress={() => {
+                  setShowMoreOptions(false);
+                  handleDelete();
+                }}
+              >
+                <Text style={styles.optionTextDelete}>Delete Note</Text>
+              </TouchableOpacity>
+            )}
+            
+            <TouchableOpacity 
+              style={styles.optionItem}
+              onPress={() => setShowMoreOptions(false)}
+            >
+              <Text style={styles.optionText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+          
+          {/* Backdrop */}
+          <TouchableOpacity
+            style={styles.optionsBackdrop}
+            activeOpacity={1}
+            onPress={() => setShowMoreOptions(false)}
+          />
+        </SafeAreaView>
+      )}
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 
       {/* Cover picker modal */}
       <NoteCoverPicker
@@ -790,6 +1043,35 @@ const NoteDetailScreen = () => {
           </View>
         </View>
       </Modal>
+<<<<<<< HEAD
+=======
+      {/* Save Button (bottom floating) */}
+      <TouchableOpacity
+        style={{
+          backgroundColor: canEdit ? '#4C6EF5' : '#B0B0B0',
+          padding: 16,
+          borderRadius: 8,
+          margin: 16,
+          alignItems: 'center',
+          position: 'absolute',
+          bottom: 0,
+          left: 16,
+          right: 16,
+          zIndex: 100,
+          opacity: canEdit ? 1 : 0.5,
+        }}
+        onPress={handleSave}
+        disabled={!canEdit}
+      >
+        <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 18 }}>Kaydet</Text>
+      </TouchableOpacity>
+
+      {/* Not içeriğinde popupImageUri varsa görsel olarak göster */}
+      {popupImageUri && (
+        <RNImage source={{ uri: popupImageUri }} style={{ width: 200, height: 80, margin: 8, alignSelf: 'center' }} />
+      )}
+
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
       {/* Ekle modalı */}
       <Modal visible={showAddModal} transparent animationType="fade">
         <View style={{ flex:1, backgroundColor:'rgba(0,0,0,0.2)', justifyContent:'center', alignItems:'center' }}>
@@ -815,6 +1097,7 @@ const NoteDetailScreen = () => {
           </View>
         </View>
       </Modal>
+<<<<<<< HEAD
 
       {/* Kategori ekleme modalı */}
       <Modal visible={showAddCategoryModal} transparent animationType="fade">
@@ -844,6 +1127,9 @@ const NoteDetailScreen = () => {
         </View>
       </Modal>
     </SafeAreaView>
+=======
+    </KeyboardAvoidingView>
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
   );
 };
 
@@ -922,6 +1208,7 @@ const styles = StyleSheet.create({
     color: COLORS.text.primary,
   },
   contentInput: {
+<<<<<<< HEAD
     fontSize: 16,
     paddingHorizontal: 16,
     paddingTop: 8,
@@ -929,6 +1216,15 @@ const styles = StyleSheet.create({
     color: COLORS.text.primary,
     textAlignVertical: 'top',
     marginBottom: 16,
+=======
+    flex: 1,
+    fontSize: 16,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    minHeight: 300,
+    color: COLORS.text.primary,
+    textAlignVertical: 'top',
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
   },
   categoryContainer: {
     paddingHorizontal: 12,

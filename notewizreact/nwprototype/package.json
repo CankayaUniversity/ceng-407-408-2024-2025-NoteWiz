@@ -11,11 +11,20 @@
   },
   "dependencies": {
     "@microsoft/signalr": "^8.0.7",
+<<<<<<< HEAD
     "@notifee/react-native": "^7.9.0",
     "@react-native-async-storage/async-storage": "^1.24.0",
     "@react-native-community/blur": "^4.4.1",
     "@react-native-community/datetimepicker": "^7.6.2",
     "@react-native-community/slider": "^4.5.6",
+=======
+    "@notifee/react-native": "^7.8.0",
+    "@react-native-async-storage/async-storage": "^1.24.0",
+    "@react-native-community/blur": "^4.4.1",
+    "@react-native-community/datetimepicker": "^7.6.2",
+    "@react-native-community/netinfo": "^11.4.1",
+    "@react-native-community/slider": "^4.5.0",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.1.9",
     "@react-navigation/native-stack": "^7.3.13",
@@ -30,13 +39,20 @@
     "react-native-calendars": "^1.1312.0",
     "react-native-document-picker": "^9.0.1",
     "react-native-dotenv": "^3.4.11",
+<<<<<<< HEAD
     "react-native-elements": "^3.4.3",
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     "react-native-fs": "^2.20.0",
     "react-native-image-picker": "^7.2.3",
     "react-native-linear-gradient": "^2.8.3",
     "react-native-mlkit-ocr": "^0.3.0",
     "react-native-pdf": "^6.7.4",
+<<<<<<< HEAD
     "react-native-reanimated": "^3.17.5",
+=======
+    "react-native-reanimated": "^3.6.1",
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     "react-native-safe-area-context": "^4.14.1",
     "react-native-screens": "^4.10.0",
     "react-native-svg": "^15.0.0",

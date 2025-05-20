@@ -441,6 +441,7 @@ export const ShareIcon: React.FC<IconProps> = ({ size = 24, color = '#000', styl
       strokeLinejoin="round"
     />
   </Svg>
+<<<<<<< HEAD
 );
 
 export const TrashIcon: React.FC<IconProps> = ({ size = 24, color = '#000', style }) => (
@@ -481,4 +482,6 @@ export const TrashIcon: React.FC<IconProps> = ({ size = 24, color = '#000', styl
       strokeLinejoin="round"
     />
   </Svg>
+=======
+>>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 );
