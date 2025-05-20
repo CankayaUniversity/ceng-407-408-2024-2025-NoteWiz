@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "O8tC4CI/Md8=",
+  "dgSpecHash": "ed4eacUmNkA=",
   "success": true,
-  "projectFilePath": "C:\\Users\\d-disal\\nw\\notewizback\\NoteWiz\\src\\NoteWiz.Application\\NoteWiz.Application.csproj",
+  "projectFilePath": "C:\\Users\\d-disal\\nw2\\notewizback\\NoteWiz\\src\\NoteWiz.Application\\NoteWiz.Application.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Zeynep\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\Zeynep\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",

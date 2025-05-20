@@ -17,18 +17,22 @@ export interface Note {
   isFolder?: boolean;
   parentFolderId?: string | null;
   category?: string;
+  categoryId?: number;
   sharedWith?: any[];
   drawings?: any[];
   isPdf?: boolean;
   pdfUrl?: string;
   pdfName?: string;
   coverImage?: any;
+  icon?: string;
+  name?: string;
+  summary?: string;
 }
 
 export interface CreateNoteDTO {
   title: string;
   content: string;
-  tags?: string[];
+  tags?: string;
   color?: string;
   isPinned?: boolean;
   isImportant?: boolean;
@@ -39,7 +43,7 @@ export interface CreateNoteDTO {
   pdfName?: string;
   isFolder?: boolean;
   folderId?: string | null;
-  category?: string;
+  categoryId?: number;
 }
 
 export interface UpdateNoteDTO extends Partial<CreateNoteDTO> {
@@ -62,6 +66,15 @@ export interface User {
 class NoteService {
   async getNotes(): Promise<Note[]> {
     const response = await apiClient.get('/Notes');
+    if (!Array.isArray(response.data)) {
+      console.error('API response is not an array:', response.data);
+      return [];
+    }
+    return response.data.map(this.transformApiNote);
+  }
+
+  async getFolderNotes(folderId: number): Promise<Note[]> {
+    const response = await apiClient.get(`/folder/${folderId}/notes`);
     return response.data.map(this.transformApiNote);
   }
 
@@ -82,12 +95,17 @@ class NoteService {
   async updateNote(id: string, note: UpdateNoteDTO): Promise<Note> {
     console.log('[noteService.updateNote] Starting update with id:', id, 'note:', note);
     try {
-      // Only send the fields that the backend expects
+      // Send all note fields to the API
       const noteData = {
         title: note.title,
-        content: note.content,
+        content: note.content || '',
+        color: note.color,
+        isPinned: note.isPinned,
         isPrivate: note.isPrivate || false,
-        coverImage: note.coverImage
+        coverImage: note.coverImage,
+        folderId: note.folderId,
+        tags: note.tags,
+        categoryId: note.categoryId
       };
       console.log('[noteService.updateNote] Sending to API:', noteData);
       const response = await apiClient.put(`/Notes/${id}`, noteData);
@@ -113,7 +131,7 @@ class NoteService {
 
   async getSharedNotes(): Promise<Note[]> {
     const response = await apiClient.get('/Notes/shared');
-    return response.data.map(this.transformApiNote);
+    return Array.isArray(response.data) ? response.data.map(this.transformApiNote) : [];
   }
 
   async shareNote(id: string, userId: string, canEdit: boolean): Promise<void> {
@@ -123,12 +141,14 @@ class NoteService {
   private transformApiNote(apiNote: any): Note {
     return {
       ...apiNote,
-      id: apiNote.id.toString(),
-      userId: apiNote.userId.toString(),
-      folderId: apiNote.folderId?.toString() || null,
-      parentFolderId: apiNote.parentFolderId?.toString() || null,
+      id: apiNote.id ? apiNote.id.toString() : '',
+      userId: apiNote.userId ? apiNote.userId.toString() : '',
+      folderId: apiNote.folderId ? apiNote.folderId.toString() : null,
+      parentFolderId: apiNote.parentFolderId ? apiNote.parentFolderId.toString() : null,
       isImportant: apiNote.isPinned,
       isPinned: apiNote.isPinned,
+      isFolder: typeof apiNote.isFolder === 'boolean' ? apiNote.isFolder : false,
+      categoryId: apiNote.categoryId
     };
   }
 }

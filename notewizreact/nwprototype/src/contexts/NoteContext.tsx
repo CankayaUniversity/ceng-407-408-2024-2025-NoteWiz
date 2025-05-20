@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { Note, noteService, CreateNoteDTO, UpdateNoteDTO, UpdateCoverDTO } from '../services/noteService';
 import { useAuth } from './AuthContext';
+import { folderService } from '../services/folderService';
+import { apiClient } from '../services/newApi';
 
 // Note tipini yeniden export et
 export type { Note };
@@ -30,6 +32,7 @@ interface NoteContextData {
   clearError: () => void;
   addFolder: (folder: FolderData) => Promise<void>;
   moveNoteToFolder: (noteId: number | string, folderId: number | string | null) => Promise<void>;
+  updateNoteSummary: (noteId: string, summary: string) => void;
 }
 
 const NoteContext = createContext<NoteContextData>({} as NoteContextData);
@@ -52,8 +55,12 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loadNotes = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await noteService.getNotes();
-      setNotes(response);
+      const [notes, folders] = await Promise.all([
+        noteService.getNotes(),
+        folderService.getFolders()
+      ]);
+      // Notlar ve klasörleri tek dizide birleştir
+      setNotes([...notes, ...folders]);
     } catch (err) {
       setError('Failed to load notes');
       console.error(err);
@@ -94,10 +101,14 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isPinned: noteData.isImportant,
       };
       const newNote = await noteService.createNote(apiNoteData);
-      setNotes(prev => [...prev, {
-        ...newNote,
-        isImportant: newNote.isPinned,
-      }]);
+      setNotes(prev => [
+        ...prev,
+        {
+          ...newNote,
+          id: newNote.id ? newNote.id : Date.now().toString(),
+          isImportant: newNote.isPinned,
+        }
+      ]);
       return newNote;
     } catch (err) {
       setError('Failed to create note');
@@ -208,11 +219,20 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     try {
       setLoading(true);
+      // First, update the note's folderId
       const noteData: UpdateNoteDTO = {
         folderId: folderId
       };
       
+      // Update the note in the API
       const updatedNote = await noteService.updateNote(noteId, noteData);
+      
+      // If moving to a folder, also add the relationship to FolderNotes
+      if (folderId) {
+        await apiClient.post(`/folder/${folderId}/notes/${noteId}`);
+      }
+      
+      // Update the local state
       setNotes(prev => prev.map(note => 
         note.id === noteId ? { ...note, folderId } : note
       ));
@@ -226,6 +246,10 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const clearError = useCallback(() => {
     setError(null);
+  }, []);
+
+  const updateNoteSummary = useCallback((noteId: string, summary: string) => {
+    setNotes(prev => prev.map(note => note.id === noteId ? { ...note, summary } : note));
   }, []);
 
   return (
@@ -245,6 +269,7 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
         clearError,
         addFolder,
         moveNoteToFolder,
+        updateNoteSummary,
       }}
     >
       {children}

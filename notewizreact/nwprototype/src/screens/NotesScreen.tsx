@@ -12,14 +12,16 @@ import {
   Modal,
   FlatList,
   Image,
-  Alert
+  Alert,
+  ScrollView,
+  TextInput
 } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { Note, useNotes, FolderData } from '../contexts/NoteContext';
 import { useCategories } from '../contexts/CategoriesContext';
-import { CategoryFilter } from '../components/ui/CategoryFilter';
 import { SearchBar } from '../components/ui/SearchBar';
 import Animated, {
   useAnimatedScrollHandler,
@@ -34,7 +36,10 @@ import { NoteCard } from '../components/notes/NoteCard';
 import { EmptyState } from '../components/notes/EmptyState';
 import { NotesHeader } from '../components/notes/NotesHeader';
 import { COLORS, SHADOWS, SPACING } from '../constants/theme';
-import { CreateIcon, FolderIcon, DocumentIcon, ImageIcon, PdfIcon, CloseIcon } from '../components/icons';
+import { CreateIcon, FolderIcon, DocumentIcon, ImageIcon, PdfIcon, CloseIcon, TrashIcon } from '../components/icons';
+import { folderService } from '../services/folderService';
+import { apiClient } from '../services/newApi';
+import { askAI } from '../services/openai';
 
 const { height } = Dimensions.get('window');
 const HEADER_MAX_HEIGHT = Platform.OS === 'ios' ? 150 : 170;
@@ -77,18 +82,30 @@ const NotesScreen: React.FC = () => {
     loading: isLoading, 
     addFolder, 
     moveNoteToFolder,
-    updateNoteCover 
+    updateNoteCover,
+    loadNotes,
+    deleteNote,
+    updateNoteSummary
   } = useNotes();
   
   const { categories } = useCategories();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [refreshing, setRefreshing] = useState(false);
   const [showFABMenu, setShowFABMenu] = useState(false);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [currentFolder, setCurrentFolder] = useState<string | null>(null);
   const scrollY = useSharedValue(0);
+  const [showAddFolderModal, setShowAddFolderModal] = useState(false);
+  const [newFolderName, setNewFolderName] = useState('');
+  const [newFolderColor, setNewFolderColor] = useState('#4C6EF5');
+  const [newFolderIcon, setNewFolderIcon] = useState('folder');
+  const folderColors = ['#4C6EF5','#FFD43B','#63E6BE','#FF8787','#845EF7','#FFA94D'];
+  const folderIcons = ['folder','archive','star','description','insert-drive-file'];
+  const [selectedFolderForAdd, setSelectedFolderForAdd] = useState<Folder | null>(null);
+  const [showAddNoteModal, setShowAddNoteModal] = useState(false);
+  const [selectedNotesToAdd, setSelectedNotesToAdd] = useState<string[]>([]);
+  const [folderNoteCounts, setFolderNoteCounts] = useState<{ [key: string]: number }>({});
 
   // Predefined cover options
   const coverOptions = [
@@ -102,38 +119,33 @@ const NotesScreen: React.FC = () => {
 
   // All notes and folders in the current directory
   const getCurrentItems = useCallback((): NoteOrFolder[] => {
+    let items: NoteOrFolder[] = [];
     if (currentFolder === null) {
-      return notes.filter(note => !note.folderId);
+      items = notes.filter(note => !note.folderId);
     } else {
-      return notes.filter(note => {
-        const noteFolderId = typeof note.folderId === 'number' 
-          ? note.folderId.toString() 
-          : note.folderId;
+      items = notes.filter(note => {
+        const noteFolderId = note.folderId !== undefined && note.folderId !== null ? String(note.folderId) : '';
         return noteFolderId === currentFolder;
       });
+      // Eğer FolderNotes ilişkisiyle de not ekliyorsan, onları da ekle
+      // items = [...items, ...folderNotesFromManyToMany];
     }
+    // Duplicate'ları kaldır (id'ye göre tekilleştir)
+    return Array.from(new Map(items.map(note => [note.id, note])).values());
   }, [notes, currentFolder]);
 
-  // Filter notes based on search and category
+  // Filter notes based on search
   const getFilteredItems = useCallback((): NoteOrFolder[] => {
     const currentItems = getCurrentItems();
     
     return currentItems.filter(item => {
-      const isFolder = 'isFolder' in item && item.isFolder;
-      
-      if (isFolder) {
-        return item.title.toLowerCase().includes(searchQuery.toLowerCase());
-      }
-      
       const matchesSearch = 
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (item.content?.toLowerCase().includes(searchQuery.toLowerCase()) || false);
+        (item.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        ((item.content || '').toLowerCase().includes(searchQuery.toLowerCase()));
       
-      const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
-      
-      return matchesSearch && matchesCategory;
+      return matchesSearch;
     });
-  }, [getCurrentItems, searchQuery, selectedCategory]);
+  }, [getCurrentItems, searchQuery]);
 
   // Sort items: folders first, then notes sorted by updated date
   const sortedItems = useCallback((): NoteOrFolder[] => {
@@ -338,7 +350,7 @@ const NotesScreen: React.FC = () => {
 
   // Handle note selection (for cover picking, etc.)
   const handleNoteOptions = (noteId: string) => {
-    const note = notes.find(n => n.id.toString() === noteId);
+    const note = notes.filter(n => n.id.toString() === noteId)[0];
     if (!note) return;
     
     // Show options menu
@@ -387,7 +399,84 @@ const NotesScreen: React.FC = () => {
     );
   };
 
-        // Render header with breadcrumb navigation
+  // Klasörleri ve notları ayıran fonksiyonlar
+  const folders = notes.filter(n => n.isFolder);
+  const notesWithoutFolder = notes.filter(n => !n.folderId && !n.isFolder);
+  const notesByFolder = folders.map(folder => ({
+    folder,
+    notes: notes.filter(n => n.folderId && n.folderId.toString() === folder.id.toString() && !n.isFolder)
+  }));
+
+  // Klasör ekleme fonksiyonu
+  const handleAddFolder = async () => {
+    if (!newFolderName.trim()) return;
+    try {
+      await folderService.addFolder(newFolderName, newFolderColor);
+      await loadNotes(); // Klasör ekledikten sonra notes'u backendden tekrar çek
+      setShowAddFolderModal(false);
+      setNewFolderName('');
+    } catch (err) {
+      Alert.alert('Klasör eklenemedi', 'Bir hata oluştu.');
+    }
+  };
+
+  // Klasör silme fonksiyonu
+  const handleDeleteFolder = async (folderId: string) => {
+    try {
+      // Önce klasördeki notların folderId'sini null yap
+      const notesInFolder = notes.filter(n => n.folderId && String(n.folderId) === String(folderId));
+      for (const note of notesInFolder) {
+        await moveNoteToFolder(note.id, null);
+      }
+      // Sonra klasörü sil
+      await folderService.deleteFolder(Number(folderId));
+      // Klasörleri tekrar çek veya state'ten çıkar
+      // setFolders(folders.filter(f => f.id !== folderId));
+    } catch (err) {
+      Alert.alert('Klasör silinemedi', 'Bir hata oluştu.');
+    }
+  };
+
+  // Klasöre eklenebilecek notları bul
+  const getAvailableNotesForFolder = (folderId: string) => {
+    return notes.filter(n => !n.folderId && !n.isFolder);
+  };
+
+  // Klasöre not ekle
+  const handleAddNotesToFolder = async (folder: Folder) => {
+    for (const noteId of selectedNotesToAdd) {
+      await moveNoteToFolder(noteId, folder.id);
+    }
+    await loadNotes();
+    setSelectedNotesToAdd([]);
+    setSelectedFolderForAdd(null);
+    setShowAddNoteModal(false);
+  };
+
+  // Klasörden not çıkar
+  const handleRemoveNoteFromFolder = async (noteId: string) => {
+    await moveNoteToFolder(noteId, null);
+    await loadNotes();
+  };
+
+  // Klasör not sayılarını backend'den çek
+  useEffect(() => {
+    const fetchCounts = async () => {
+      const counts: { [key: string]: number } = {};
+      for (const folder of folders) {
+        try {
+          const res = await apiClient.get(`/folder/${folder.id}/notes`);
+          counts[folder.id] = Array.isArray(res.data) ? res.data.length : 0;
+        } catch {
+          counts[folder.id] = 0;
+        }
+      }
+      setFolderNoteCounts(counts);
+    };
+    fetchCounts();
+  }, [folders.length]);
+
+  // Render header with breadcrumb navigation
   const renderHeader = () => {
     // Build breadcrumb trail
     let breadcrumbs: Note[] = [];
@@ -439,90 +528,6 @@ const NotesScreen: React.FC = () => {
     );
   };
 
-  // Render note or folder item
-  const renderItem = ({ item, index }: { item: Note; index: number }) => {
-    if (item.isFolder) {
-      return (
-        <Animated.View
-          entering={FadeInDown.delay(index * 50).springify()}
-        >
-          <TouchableOpacity
-            style={styles.folderCard}
-            onPress={() => handleFolderPress(item.id, item.title)}
-          >
-            <FolderIcon size={36} color={COLORS.primary.main} />
-            <View style={styles.folderInfo}>
-              <Text style={styles.folderTitle} numberOfLines={1}>{item.title}</Text>
-              <Text style={styles.folderMeta}>
-                {notes.filter(n => {
-                  if (typeof n.folderId === 'string' && typeof item.id === 'string') {
-                    return n.folderId === item.id;
-                  } else if (typeof n.folderId === 'number' && typeof item.id === 'number') {
-                    return n.folderId === item.id;
-                  } else if (typeof n.folderId === 'string' && typeof item.id === 'number') {
-                    return n.folderId === item.id.toString();
-                  } else if (typeof n.folderId === 'number' && typeof item.id === 'string') {
-                    return n.folderId.toString() === item.id;
-                  }
-                  return false;
-                }).length} items • {new Date(item.updatedAt).toLocaleDateString()}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        </Animated.View>
-      );
-    }
-
-    // It's a note
-    const categoryObj = categories.find(cat => {
-      if (typeof cat.id === 'number' && typeof item.category === 'string') {
-        return cat.id.toString() === item.category;
-      }
-      if (typeof cat.id === 'string' && typeof item.category === 'string') {
-        return cat.id === item.category;
-      }
-      if (typeof cat.id === 'number' && typeof item.category === 'number') {
-        return cat.id === item.category;
-      }
-      return false;
-    });
-    
-    return (
-      <Animated.View
-        entering={FadeInDown.delay(index * 50).springify()}
-      >
-        <NoteCard
-          note={{
-            id: typeof item.id === 'number' ? item.id.toString() : (typeof item.id === 'string' ? item.id : ''),
-            title: item.title,
-            content: item.content || '',
-            isImportant: item.isPinned || false,
-            updatedAt: new Date(item.updatedAt),
-            isPdf: item.isPdf,
-            pdfUrl: item.pdfUrl,
-            pdfName: item.pdfName,
-            coverImage: typeof item.coverImage === 'string' ? { uri: item.coverImage } : item.coverImage
-          }}
-          category={{
-            id: categoryObj?.id ? (typeof categoryObj.id === 'number' ? categoryObj.id.toString() : (typeof categoryObj.id === 'string' ? categoryObj.id : '')) : '',
-            name: categoryObj?.name || '',
-            color: categoryObj?.color
-          }}
-          onPress={() => navigation.navigate('NoteDetail', {
-            noteId: typeof item.id === 'number' ? item.id.toString() : (typeof item.id === 'string' ? item.id : ''),
-            title: item.title,
-            content: item.content,
-            category: item.category,
-            isImportant: item.isPinned || false,
-            color: categoryObj?.color,
-            folderId: item.folderId ? (typeof item.folderId === 'number' ? item.folderId.toString() : (typeof item.folderId === 'string' ? item.folderId : '')) : null
-          })}
-          onLongPress={() => handleNoteOptions(typeof item.id === 'number' ? item.id.toString() : (typeof item.id === 'string' ? item.id : ''))}
-        />
-      </Animated.View>
-    );
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar
@@ -549,37 +554,83 @@ const NotesScreen: React.FC = () => {
       {/* Breadcrumb Navigation */}
       {renderHeader()}
 
-      {/* Category Filter */}
-      <CategoryFilter
-        selectedCategory={selectedCategory}
-        onSelectCategory={setSelectedCategory}
-      />
-
-      {/* Notes and Folders List */}
-      <Animated.FlatList<Note>
-        data={sortedItems()}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            progressViewOffset={HEADER_MAX_HEIGHT + 60}
-            colors={[COLORS.primary.main]}
-            tintColor={COLORS.primary.main}
-          />
-        }
-        ListEmptyComponent={
-          <EmptyState
-            query={searchQuery}
-            selectedCategory={selectedCategory}
-          />
-        }
-      />
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.listContent}>
+        {/* Klasörsüz Notlar */}
+        {sortedItems().filter(note => !note.isFolder && !note.folderId).length > 0 && (
+          <View style={{ marginBottom: 24 }}>
+            <Text style={{ fontWeight: 'bold', fontSize: 17, marginBottom: 8 }}>Klasörsüz Notlar</Text>
+            {sortedItems().filter(note => !note.isFolder && !note.folderId).map(note => (
+              <View key={note.id} style={{ position: 'relative', marginBottom: 12 }}>
+                <NoteCard
+                  note={{
+                    id: note.id.toString(),
+                    title: note.title,
+                    content: note.content || '',
+                    isImportant: note.isPinned || false,
+                    updatedAt: new Date(note.updatedAt),
+                    isPdf: note.isPdf,
+                    pdfUrl: note.pdfUrl,
+                    pdfName: note.pdfName,
+                    coverImage: note.coverImage && note.coverImage.uri ? { uri: note.coverImage.uri } : undefined
+                  }}
+                  category={{
+                    id: note.category?.toString() || '',
+                    name: categories.find(c => c.id.toString() === note.category?.toString())?.name || '',
+                    color: categories.find(c => c.id.toString() === note.category?.toString())?.color
+                  }}
+                  onPress={() => navigation.navigate('NoteDetail', { noteId: note.id.toString() })}
+                />
+                {/* Özet kutucuğu */}
+                {note.summary && (
+                  <View style={{ backgroundColor: '#e7f5ff', borderRadius: 8, padding: 8, marginTop: 4 }}>
+                    <Text style={{ color: '#1864ab', fontSize: 13, fontStyle: 'italic' }}>{note.summary}</Text>
+                  </View>
+                )}
+                <TouchableOpacity
+                  style={{ backgroundColor: '#228be6', borderRadius: 8, padding: 6, marginTop: 4, alignItems: 'center', alignSelf: 'flex-start' }}
+                  onPress={async () => {
+                    const summaryPrompt = `${note.content} özetle`;
+                    console.log('Özetlenecek içerik:', note.content);
+                    try {
+                      const aiResponse = await askAI(summaryPrompt);
+                      console.log('AI cevabı:', aiResponse);
+                      await apiClient.post('/ai/log', {
+                        userId: note.userId,
+                        noteId: note.id,
+                        interactionType: 'summary',
+                        inputPrompt: summaryPrompt,
+                        aiResponse: aiResponse,
+                      });
+                      await apiClient.patch(`/notes/${note.id}/summary`, aiResponse);
+                      updateNoteSummary(note.id, aiResponse);
+                    } catch (err) {
+                      Alert.alert('Hata', 'AI özetleme başarısız!');
+                    }
+                  }}
+                >
+                  <Text style={{ color: '#fff', fontSize: 13, fontWeight: 'bold' }}>
+                    {note.summary ? 'Yeniden Özetle' : 'Özetle'}
+                  </Text>
+                </TouchableOpacity>
+                {/* /Özet kutucuğu */}
+                <TouchableOpacity
+                  style={{ position: 'absolute', top: 8, right: 8, zIndex: 10, backgroundColor: '#fff', borderRadius: 16, padding: 6, elevation: 2 }}
+                  onPress={async () => {
+                    Alert.alert('Notu Sil', 'Bu notu silmek istediğine emin misin?', [
+                      { text: 'İptal', style: 'cancel' },
+                      { text: 'Sil', style: 'destructive', onPress: async () => { await deleteNote(note.id); await loadNotes(); } }
+                    ]);
+                  }}
+                >
+                  <TrashIcon size={20} color="#FA5252" />
+                </TouchableOpacity>
+                {/* Not başlığı */}
+                <Text style={{ fontWeight: 'bold', fontSize: 17, marginBottom: 4 }}>{note.title}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </ScrollView>
 
       {/* FAB Menu */}
       <TouchableOpacity
@@ -656,7 +707,7 @@ const NotesScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
             
-                          <FlatList
+            <FlatList
               data={coverOptions}
               keyExtractor={(item) => item.id}
               numColumns={2}
@@ -670,7 +721,7 @@ const NotesScreen: React.FC = () => {
                     onPress={() => handleCoverSelect(note, item.id)}
                   >
                     <View style={styles.coverPreview}>
-                      {item.image ? (
+                      {item.image && item.image !== '' ? (
                         <Image
                           source={item.image}
                           style={styles.coverImage}
@@ -707,6 +758,76 @@ const NotesScreen: React.FC = () => {
           onPress={toggleFABMenu}
         />
       )}
+
+      {/* Klasör ekleme modalı */}
+      <Modal visible={showAddFolderModal} transparent animationType="slide">
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.2)', justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ backgroundColor: '#fff', borderRadius: 12, padding: 24, minWidth: 280, maxWidth: 340 }}>
+            <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 16 }}>Klasör Ekle</Text>
+            <TextInput
+              value={newFolderName}
+              onChangeText={setNewFolderName}
+              placeholder="Klasör adı"
+              style={{ borderWidth: 1, borderColor: '#eee', borderRadius: 8, padding: 10, marginBottom: 12 }}
+            />
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+              {folderColors.map(color => (
+                <TouchableOpacity
+                  key={color}
+                  style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: color, marginHorizontal: 4, borderWidth: newFolderColor === color ? 2 : 0, borderColor: '#222' }}
+                  onPress={() => setNewFolderColor(color)}
+                />
+              ))}
+              {folderIcons.map(icon => (
+                <TouchableOpacity key={icon} onPress={() => setNewFolderIcon(icon)} style={{ marginHorizontal: 4 }}>
+                  <Icon name={icon} size={22} color={newFolderIcon === icon ? '#222' : '#AAA'} />
+                </TouchableOpacity>
+              ))}
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 }}>
+              <TouchableOpacity onPress={() => setShowAddFolderModal(false)} style={{ marginRight: 16 }}>
+                <Text style={{ color: '#888' }}>İptal</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleAddFolder}>
+                <Text style={{ color: '#4C6EF5', fontWeight: 'bold' }}>Ekle</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Klasöre not ekleme modalı */}
+      <Modal visible={showAddNoteModal} transparent animationType="slide">
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.2)', justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ backgroundColor: '#fff', borderRadius: 12, padding: 24, minWidth: 280, maxWidth: 340 }}>
+            <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 16 }}>Notları Klasöre Ekle</Text>
+            <ScrollView style={{ maxHeight: 220 }}>
+              {selectedFolderForAdd && getAvailableNotesForFolder(selectedFolderForAdd.id).map(note => (
+                <TouchableOpacity
+                  key={note.id}
+                  style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}
+                  onPress={() => setSelectedNotesToAdd(prev => prev.includes(note.id) ? prev.filter(id => id !== note.id) : [...prev, note.id])}
+                >
+                  <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: '#4C6EF5', marginRight: 12, backgroundColor: selectedNotesToAdd.includes(note.id) ? '#4C6EF5' : '#fff', justifyContent: 'center', alignItems: 'center' }}>
+                    {selectedNotesToAdd.includes(note.id) && (
+                      <Text style={{ color: '#fff', fontWeight: 'bold' }}>✓</Text>
+                    )}
+                  </View>
+                  <Text style={{ fontSize: 16 }}>{note.title}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 16 }}>
+              <TouchableOpacity onPress={() => setShowAddNoteModal(false)} style={{ marginRight: 16 }}>
+                <Text style={{ color: '#888' }}>İptal</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => selectedFolderForAdd && handleAddNotesToFolder(selectedFolderForAdd)} disabled={selectedNotesToAdd.length === 0}>
+                <Text style={{ color: selectedNotesToAdd.length === 0 ? '#AAA' : '#4C6EF5', fontWeight: 'bold' }}>Ekle</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };

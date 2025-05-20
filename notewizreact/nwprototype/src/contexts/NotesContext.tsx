@@ -1,5 +1,5 @@
 // src/contexts/NotesContext.tsx
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { notesService } from '../services/newApi';
 import { useAuth } from './AuthContext';
 
@@ -25,6 +25,7 @@ export interface Note {
   sharedWith?: any[];
   category?: string;
   drawings?: any[];
+  isPrivate: boolean;
 }
 
 // For folder operations
@@ -42,6 +43,8 @@ interface NotesContextType {
   deleteNote: (id: number) => Promise<boolean>;
   addFolder: (folder: FolderData) => Promise<void>;
   moveNoteToFolder: (noteId: number, folderId: number | null) => Promise<void>;
+  loadNotes: () => Promise<void>;
+  loadFolderNotes: (folderId: number) => Promise<void>;
 }
 
 // Create context
@@ -53,6 +56,8 @@ const NotesContext = createContext<NotesContextType>({
   deleteNote: async () => false,
   addFolder: async () => {},
   moveNoteToFolder: async () => {},
+  loadNotes: async () => {},
+  loadFolderNotes: async () => {},
 });
 
 export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -108,22 +113,30 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const updateNote = async (id: number, noteData: Partial<Note>): Promise<boolean> => {
     if (!isAuthenticated) return false;
-    
     try {
-      const apiNoteData = {
-        title: noteData.title || '',
-        content: noteData.content || '',
-        tags: noteData.tags || [],
-        color: noteData.color || '#FFFFFF',
-        isPinned: noteData.isImportant || false
+      // Mevcut notu bul
+      const currentNote = notes.find(n => n.id === id);
+      const apiNoteData: {
+        title: string;
+        content: string;
+        color?: string;
+        isPinned: boolean;
+        folderId: number | null;
+        tags: string[];
+        isPrivate: boolean;
+      } = {
+        title: noteData.title || currentNote?.title || 'Untitled Note',
+        content: noteData.content || currentNote?.content || '',
+        color: noteData.color || currentNote?.color || '#FFFFFF',
+        isPinned: noteData.isImportant ?? currentNote?.isPinned ?? false,
+        folderId: noteData.folderId ?? currentNote?.folderId ?? null,
+        tags: noteData.tags || currentNote?.tags || [],
+        isPrivate: noteData.isPrivate ?? currentNote?.isPrivate ?? true
       };
-      
       const updatedNote = await notesService.updateNote(id, apiNoteData);
-      
       setNotes(prevNotes => 
         prevNotes.map(note => note.id === id ? updatedNote : note)
       );
-      
       return true;
     } catch (error) {
       console.error('Error updating note:', error);
@@ -172,7 +185,10 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     
     try {
       const note = notes.find(n => n.id === noteId);
-      if (!note) return;
+      if (!note) {
+        console.error('Note not found');
+        return;
+      }
 
       originalFolderId = note.folderId;
 
@@ -181,10 +197,15 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         prevNotes.map(n => n.id === noteId ? { ...n, folderId } : n)
       );
 
-      // Update the note's content in the API
+      // Update the note in the API with all required fields
       await notesService.updateNote(noteId, {
-        title: note.title,
-        content: note.content
+        title: note.title || "Untitled Note",
+        content: note.content || "",
+        color: note.color || "#FFFFFF",
+        isPinned: note.isPinned ?? false,
+        folderId: folderId,
+        tags: Array.isArray(note.tags) ? note.tags : [],
+        isPrivate: note.isPrivate ?? true
       });
     } catch (error) {
       console.error('Error moving note to folder:', error);
@@ -195,6 +216,37 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const loadNotes = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const [notes, folders] = await Promise.all([
+        notesService.getNotes(),
+        notesService.getFolders()
+      ]);
+      console.log('Çekilen notlar:', notes);
+      console.log('Çekilen klasörler:', folders);
+      setNotes([...notes, ...folders]);
+    } catch (err) {
+      console.error('Failed to load notes:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const loadFolderNotes = useCallback(async (folderId: number) => {
+    if (!isAuthenticated) return;
+    
+    try {
+      setIsLoading(true);
+      const folderNotes = await notesService.getFolderNotes(folderId);
+      setNotes(folderNotes);
+    } catch (error) {
+      console.error('Error loading folder notes:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isAuthenticated]);
+
   const contextValue = {
     notes,
     isLoading,
@@ -202,7 +254,9 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     updateNote,
     deleteNote,
     addFolder,
-    moveNoteToFolder
+    moveNoteToFolder,
+    loadNotes,
+    loadFolderNotes
   };
 
   return (

@@ -15,6 +15,7 @@ namespace NoteWiz.Core.Entities
         public int Id { get; set; }
 
         [Required]
+        [MaxLength(255)]
         public string Title { get; set; } = string.Empty;
 
         public string? Content { get; set; }
@@ -24,11 +25,13 @@ namespace NoteWiz.Core.Entities
 
         public int? DocumentId { get; set; }
 
+        [Required]
+        [MaxLength(14)]
         public string Color { get; set; } = "#FFFFFF";
 
         public bool IsPinned { get; set; }
 
-        public bool IsPrivate { get; set; } = true; // Default to private
+        public bool IsPrivate { get; set; } = true;
 
         [NotMapped]
         public string? CoverImage
@@ -38,9 +41,11 @@ namespace NoteWiz.Core.Entities
         }
         public string? CoverImageUrl { get; set; }
 
-        public List<string> Tags { get; set; } = new();
+        public string? Tags { get; set; }
 
         public int? CategoryId { get; set; }
+
+        public string? Summary { get; set; }
 
         [ForeignKey("CategoryId")]
         public Category Category { get; set; }
@@ -51,6 +56,12 @@ namespace NoteWiz.Core.Entities
 
         public bool IsSynced { get; set; } // For mobile sync status
         public DateTime? LastSyncedAt { get; set; }
+
+        public string? PageType { get; set; }
+
+        public int? FolderId { get; set; }
+        public virtual Folder Folder { get; set; }
+        public virtual ICollection<FolderNote> FolderNotes { get; set; } = new List<FolderNote>(); // Many-to-many
 
         // Navigation properties
         [ForeignKey("UserId")]
@@ -65,7 +76,6 @@ namespace NoteWiz.Core.Entities
 
         public Note()
         {
-            Tags = new List<string>();
             SharedWith = new HashSet<NoteShare>();
             NoteDrawings = new HashSet<NoteDrawing>();
             NoteImages = new HashSet<NoteImage>();

@@ -2428,11 +2428,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\d-disal\\nw\\notewizback\\NoteWiz\\src\\NoteWiz.Application\\NoteWiz.Application.csproj",
+      "projectUniqueName": "C:\\Users\\d-disal\\nw2\\notewizback\\NoteWiz\\src\\NoteWiz.Application\\NoteWiz.Application.csproj",
       "projectName": "NoteWiz.Application",
-      "projectPath": "C:\\Users\\d-disal\\nw\\notewizback\\NoteWiz\\src\\NoteWiz.Application\\NoteWiz.Application.csproj",
+      "projectPath": "C:\\Users\\d-disal\\nw2\\notewizback\\NoteWiz\\src\\NoteWiz.Application\\NoteWiz.Application.csproj",
       "packagesPath": "C:\\Users\\Zeynep\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\d-disal\\nw\\notewizback\\NoteWiz\\src\\NoteWiz.Application\\obj\\",
+      "outputPath": "C:\\Users\\d-disal\\nw2\\notewizback\\NoteWiz\\src\\NoteWiz.Application\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Zeynep\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -2447,11 +2447,11 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "C:\\Users\\d-disal\\nw\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj": {
-              "projectPath": "C:\\Users\\d-disal\\nw\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj"
+            "C:\\Users\\d-disal\\nw2\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj": {
+              "projectPath": "C:\\Users\\d-disal\\nw2\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj"
             },
-            "C:\\Users\\d-disal\\nw\\notewizback\\NoteWiz\\src\\NoteWiz.Infrastructure\\NoteWiz.Infrastructure.csproj": {
-              "projectPath": "C:\\Users\\d-disal\\nw\\notewizback\\NoteWiz\\src\\NoteWiz.Infrastructure\\NoteWiz.Infrastructure.csproj"
+            "C:\\Users\\d-disal\\nw2\\notewizback\\NoteWiz\\src\\NoteWiz.Infrastructure\\NoteWiz.Infrastructure.csproj": {
+              "projectPath": "C:\\Users\\d-disal\\nw2\\notewizback\\NoteWiz\\src\\NoteWiz.Infrastructure\\NoteWiz.Infrastructure.csproj"
             }
           }
         }

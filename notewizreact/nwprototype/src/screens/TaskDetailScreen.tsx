@@ -47,7 +47,7 @@ const TaskDetailScreen = () => {
   //   ? new Date(route.params.presetDueDate) 
   //   : undefined;
   
-  const editingTask = tasks.find(t => t.id.toString() === taskId);
+  const editingTask = tasks.find(t => t.id?.toString() === taskId?.toString());
   
   console.log('TaskDetail - taskId:', taskId);
   // console.log('TaskDetail - presetDueDate:', presetDueDate);
