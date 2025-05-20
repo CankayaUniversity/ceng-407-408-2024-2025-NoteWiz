@@ -29,10 +29,6 @@ namespace NoteWiz.Infrastructure.Data
         public DbSet<Friendship> Friendships { get; set; }
         public DbSet<FriendshipRequest> FriendshipRequests { get; set; }
         public DbSet<Document> Documents { get; set; }
-<<<<<<< HEAD
-        public DbSet<Folder> Folders { get; set; }
-=======
->>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -57,15 +53,11 @@ namespace NoteWiz.Infrastructure.Data
                 entity.Property(n => n.CoverImage)
                     .IsRequired(false);
 
-<<<<<<< HEAD
-                entity.Property(n => n.Tags);
-=======
                 entity.Property(n => n.Tags)
                     .HasConversion(
                         v => string.Join(',', v),
                         v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList()
                     );
->>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
             });
 
             modelBuilder.Entity<TaskItem>()
@@ -123,15 +115,6 @@ namespace NoteWiz.Infrastructure.Data
                 .WithMany(d => d.Notes)
                 .HasForeignKey(n => n.DocumentId)
                 .OnDelete(DeleteBehavior.Restrict);
-<<<<<<< HEAD
-
-            modelBuilder.Entity<Folder>()
-                .HasMany(f => f.Notes)
-                .WithOne(n => n.Folder)
-                .HasForeignKey(n => n.FolderId)
-                .OnDelete(DeleteBehavior.SetNull);
-=======
->>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         }
     }
 } 

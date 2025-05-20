@@ -40,11 +40,8 @@ namespace NoteWiz.Core.Entities
         public virtual ICollection<Friendship> FriendshipsReceived { get; set; }
         public virtual ICollection<Document> Documents { get; set; }
         public virtual ICollection<Category> Categories { get; set; }
-<<<<<<< HEAD
         public virtual ICollection<FriendshipRequest> FriendshipRequestsSent { get; set; }
         public virtual ICollection<FriendshipRequest> FriendshipRequestsReceived { get; set; }
-=======
->>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 
         public User()
         {
@@ -59,11 +56,8 @@ namespace NoteWiz.Core.Entities
             FriendshipsReceived = new HashSet<Friendship>();
             Documents = new HashSet<Document>();
             Categories = new HashSet<Category>();
-<<<<<<< HEAD
             FriendshipRequestsSent = new HashSet<FriendshipRequest>();
             FriendshipRequestsReceived = new HashSet<FriendshipRequest>();
-=======
->>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         }
     }
 } 

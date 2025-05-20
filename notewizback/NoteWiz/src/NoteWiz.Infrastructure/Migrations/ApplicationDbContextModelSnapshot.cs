@@ -122,8 +122,6 @@ namespace NoteWiz.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-<<<<<<< HEAD
-=======
                     b.Property<string>("Color")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -135,16 +133,10 @@ namespace NoteWiz.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
->>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-<<<<<<< HEAD
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-=======
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -154,16 +146,12 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.Property<int?>("UserId1")
                         .HasColumnType("int");
 
->>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
 
-<<<<<<< HEAD
-=======
                     b.HasIndex("UserId1");
 
->>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                     b.ToTable("Categories");
                 });
 
@@ -222,45 +210,6 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.ToTable("Documents");
                 });
 
-<<<<<<< HEAD
-            modelBuilder.Entity("NoteWiz.Core.Entities.Folder", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Color")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Folders");
-                });
-
-            modelBuilder.Entity("NoteWiz.Core.Entities.FolderNote", b =>
-                {
-                    b.Property<int>("FolderId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("NoteId")
-                        .HasColumnType("int");
-
-                    b.HasKey("FolderId", "NoteId");
-
-                    b.HasIndex("NoteId");
-
-                    b.ToTable("FolderNotes");
-                });
-
-=======
->>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
             modelBuilder.Entity("NoteWiz.Core.Entities.Friendship", b =>
                 {
                     b.Property<int>("Id")
@@ -341,10 +290,7 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.Property<string>("Color")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
-<<<<<<< HEAD
                         .HasMaxLength(14)
-=======
->>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                         .HasColumnType("nvarchar(7)")
                         .HasDefaultValue("#FFFFFF");
 
@@ -357,13 +303,6 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-<<<<<<< HEAD
-                    b.Property<int?>("DocumentId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("FolderId")
-                        .HasColumnType("int");
-=======
                     b.Property<string>("DeviceId")
                         .HasColumnType("nvarchar(max)");
 
@@ -374,7 +313,6 @@ namespace NoteWiz.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
->>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 
                     b.Property<bool>("IsPinned")
                         .ValueGeneratedOnAdd()
@@ -389,18 +327,6 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.Property<bool>("IsSynced")
                         .HasColumnType("bit");
 
-<<<<<<< HEAD
-                    b.Property<DateTime?>("LastSyncedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("PageType")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Summary")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Tags")
-=======
                     b.Property<DateTime?>("LastModifiedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -416,17 +342,12 @@ namespace NoteWiz.Infrastructure.Migrations
 
                     b.Property<string>("Tags")
                         .IsRequired()
->>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()
-<<<<<<< HEAD
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
-=======
-                        .HasColumnType("nvarchar(max)");
->>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -440,11 +361,6 @@ namespace NoteWiz.Infrastructure.Migrations
 
                     b.HasIndex("DocumentId");
 
-<<<<<<< HEAD
-                    b.HasIndex("FolderId");
-
-=======
->>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
                     b.HasIndex("UserId");
 
                     b.ToTable("Notes");

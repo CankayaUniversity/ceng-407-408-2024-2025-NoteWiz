@@ -8,17 +8,11 @@
     "net9.0": []
   },
   "packageFolders": {
-<<<<<<< HEAD
     "C:\\Users\\Zeynep\\.nuget\\packages\\": {}
-=======
-    "C:\\Users\\eray-\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
->>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-<<<<<<< HEAD
       "projectUniqueName": "C:\\Users\\d-disal\\nw2\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj",
       "projectName": "NoteWiz.Core",
       "projectPath": "C:\\Users\\d-disal\\nw2\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj",
@@ -27,30 +21,11 @@
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Zeynep\\AppData\\Roaming\\NuGet\\NuGet.Config"
-=======
-      "projectUniqueName": "D:\\notewiz\\a\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj",
-      "projectName": "NoteWiz.Core",
-      "projectPath": "D:\\notewiz\\a\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\NoteWiz.Core.csproj",
-      "packagesPath": "C:\\Users\\eray-\\.nuget\\packages\\",
-      "outputPath": "D:\\notewiz\\a\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\obj\\",
-      "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-      ],
-      "configFilePaths": [
-        "C:\\Users\\eray-\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
->>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
       ],
       "originalTargetFrameworks": [
         "net9.0"
       ],
       "sources": {
-<<<<<<< HEAD
-=======
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
->>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -69,11 +44,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-<<<<<<< HEAD
       "SdkAnalysisLevel": "10.0.100"
-=======
-      "SdkAnalysisLevel": "9.0.100"
->>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
     },
     "frameworks": {
       "net9.0": {
@@ -89,7 +60,6 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
-<<<<<<< HEAD
         "downloadDependencies": [
           {
             "name": "Microsoft.AspNetCore.App.Ref",
@@ -104,14 +74,11 @@
             "version": "[9.0.3, 9.0.3]"
           }
         ],
-=======
->>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
         "frameworkReferences": {
           "Microsoft.NETCore.App": {
             "privateAssets": "all"
           }
         },
-<<<<<<< HEAD
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.100-preview.3.25201.16/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.CSharp": "(, 4.7.0]",
@@ -402,10 +369,15 @@
           "System.Xml.XPath": "(, 4.3.0]",
           "System.Xml.XPath.XDocument": "(, 5.0.0]"
         }
-=======
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.102/PortableRuntimeIdentifierGraph.json"
->>>>>>> 2919ceb5cf3c0d83b6677f30839892951700aa7c
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "Undefined",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Önbellek dosyası C:\\Users\\d-disal\\nw2\\notewizback\\NoteWiz\\src\\NoteWiz.Core\\obj\\project.nuget.cache okunurken bir sorun oluştu : '<' is an invalid start of a property name. Expected a '\"'. Path: $ | LineNumber: 2 | BytePositionInLine: 0."
+    }
+  ]
 }
