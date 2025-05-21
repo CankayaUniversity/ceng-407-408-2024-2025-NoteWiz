@@ -17,11 +17,12 @@ import {
   TextInput
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { Note, useNotes, FolderData } from '../contexts/NoteContext';
 import { useCategories } from '../contexts/CategoriesContext';
+import { CategoryFilter } from '../components/ui/CategoryFilter';
 import { SearchBar } from '../components/ui/SearchBar';
 import Animated, {
   useAnimatedScrollHandler,
@@ -39,7 +40,6 @@ import { COLORS, SHADOWS, SPACING } from '../constants/theme';
 import { CreateIcon, FolderIcon, DocumentIcon, ImageIcon, PdfIcon, CloseIcon, TrashIcon } from '../components/icons';
 import { folderService } from '../services/folderService';
 import { apiClient } from '../services/newApi';
-import { askAI } from '../services/openai';
 
 const { height } = Dimensions.get('window');
 const HEADER_MAX_HEIGHT = Platform.OS === 'ios' ? 150 : 170;
@@ -84,12 +84,12 @@ const NotesScreen: React.FC = () => {
     moveNoteToFolder,
     updateNoteCover,
     loadNotes,
-    deleteNote,
-    updateNoteSummary
+    deleteNote
   } = useNotes();
   
   const { categories } = useCategories();
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [refreshing, setRefreshing] = useState(false);
   const [showFABMenu, setShowFABMenu] = useState(false);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
@@ -134,18 +134,26 @@ const NotesScreen: React.FC = () => {
     return Array.from(new Map(items.map(note => [note.id, note])).values());
   }, [notes, currentFolder]);
 
-  // Filter notes based on search
+  // Filter notes based on search and category
   const getFilteredItems = useCallback((): NoteOrFolder[] => {
     const currentItems = getCurrentItems();
     
     return currentItems.filter(item => {
+      const isFolder = 'isFolder' in item && item.isFolder;
+      
+      if (isFolder) {
+        return (item.title || '').toLowerCase().includes(searchQuery.toLowerCase());
+      }
+      
       const matchesSearch = 
         (item.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         ((item.content || '').toLowerCase().includes(searchQuery.toLowerCase()));
       
-      return matchesSearch;
+      const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
+      
+      return matchesSearch && matchesCategory;
     });
-  }, [getCurrentItems, searchQuery]);
+  }, [getCurrentItems, searchQuery, selectedCategory]);
 
   // Sort items: folders first, then notes sorted by updated date
   const sortedItems = useCallback((): NoteOrFolder[] => {
@@ -299,19 +307,17 @@ const NotesScreen: React.FC = () => {
     } else if (coverId === 'generated') {
       Alert.alert(
         'AI Cover Generator',
-        'Would you like to generate a cover based on note title or content?',
+        'AI is generating a cover...',
         [
           {
-            text: 'Title',
-            onPress: () => generateAICover(noteItem.id.toString(), 'title'),
-          },
-          {
-            text: 'Content',
-            onPress: () => generateAICover(noteItem.id.toString(), 'content'),
-          },
-          {
-            text: 'Cancel',
-            style: 'cancel',
+            text: 'OK',
+            onPress: () => {
+              // Randomly select one of the predefined covers as a placeholder
+              const randomCover = coverOptions.filter(c => c.id !== 'none' && c.id !== 'generated');
+              const selectedCover = randomCover[Math.floor(Math.random() * randomCover.length)];
+              // Use the color for the UpdateCoverDTO
+              updateNoteCover(noteItem.id, { color: selectedCover.color });
+            },
           },
         ]
       );
@@ -356,7 +362,7 @@ const NotesScreen: React.FC = () => {
     // Show options menu
     Alert.alert(
       'Note Options',
-      `${note.title}`,
+      note.title,
       [
         {
           text: 'Change Cover',
@@ -528,6 +534,12 @@ const NotesScreen: React.FC = () => {
     );
   };
 
+  useFocusEffect(
+    React.useCallback(() => {
+      loadNotes();
+    }, [loadNotes])
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar
@@ -554,13 +566,58 @@ const NotesScreen: React.FC = () => {
       {/* Breadcrumb Navigation */}
       {renderHeader()}
 
+      {/* Category Filter */}
+      <CategoryFilter
+        selectedCategory={selectedCategory}
+        onSelectCategory={setSelectedCategory}
+      />
+
+      {/* Klasörler yatay scroll */}
+      <View style={{ marginTop: 16, marginBottom: 8 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 12 }}>
+          <View style={{ flexDirection: 'row', width: '100%', justifyContent: (sortedItems().filter(item => item.isFolder).length <= 4 ? 'space-between' : 'flex-start'), flex: 1 }}>
+            {sortedItems().filter(item => item.isFolder).map(folder => (
+              <View key={folder.id} style={{ alignItems: 'center', marginRight: 16, minWidth: 70 }}>
+                <TouchableOpacity 
+                  style={{ alignItems: 'center' }}
+                  onPress={() => navigation.navigate('FolderDetail', { folderId: folder.id.toString() })}
+                >
+                  {/* Klasör ikonu */}
+                  {folder.icon && typeof folder.icon === 'string' ? (
+                    <Icon name={folder.icon} size={32} color={folder.color || COLORS.primary.main} />
+                  ) : (
+                    <FolderIcon size={32} color={folder.color || COLORS.primary.main} />
+                  )}
+                  <Text style={{ fontSize: 14, fontWeight: 'bold', marginTop: 4 }}>{folder.name || folder.title}</Text>
+                  {/* Not sayısı badge */}
+                  <View style={{ backgroundColor: '#228be6', borderRadius: 10, minWidth: 20, height: 20, alignItems: 'center', justifyContent: 'center', marginTop: 2, paddingHorizontal: 6 }}>
+                    <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 12 }}>{folderNoteCounts[folder.id] ?? 0}</Text>
+                  </View>
+                </TouchableOpacity>
+                {/* Klasör silme butonu */}
+                <TouchableOpacity onPress={() => handleDeleteFolder(String(folder.id))} style={{ marginTop: 2 }}>
+                  <Text style={{ color: '#FA5252', fontSize: 12 }}>Sil</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+            {/* Klasör ekleme butonu */}
+            <TouchableOpacity onPress={() => setShowAddFolderModal(true)} style={{ alignItems: 'center', justifyContent: 'center', marginRight: 8, minWidth: 70 }}>
+              <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#e7f5ff', alignItems: 'center', justifyContent: 'center' }}>
+                <CreateIcon size={20} color={COLORS.primary.main} />
+              </View>
+              <Text style={{ fontSize: 12, color: COLORS.primary.main, marginTop: 4 }}>Ekle</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </View>
+
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.listContent}>
         {/* Klasörsüz Notlar */}
         {sortedItems().filter(note => !note.isFolder && !note.folderId).length > 0 && (
           <View style={{ marginBottom: 24 }}>
             <Text style={{ fontWeight: 'bold', fontSize: 17, marginBottom: 8 }}>Klasörsüz Notlar</Text>
             {sortedItems().filter(note => !note.isFolder && !note.folderId).map(note => (
-              <View key={note.id} style={{ position: 'relative', marginBottom: 12 }}>
+              <View key={note.id} style={{ position: 'relative' }}>
                 <NoteCard
                   note={{
                     id: note.id.toString(),
@@ -580,39 +637,6 @@ const NotesScreen: React.FC = () => {
                   }}
                   onPress={() => navigation.navigate('NoteDetail', { noteId: note.id.toString() })}
                 />
-                {/* Özet kutucuğu */}
-                {note.summary && (
-                  <View style={{ backgroundColor: '#e7f5ff', borderRadius: 8, padding: 8, marginTop: 4 }}>
-                    <Text style={{ color: '#1864ab', fontSize: 13, fontStyle: 'italic' }}>{note.summary}</Text>
-                  </View>
-                )}
-                <TouchableOpacity
-                  style={{ backgroundColor: '#228be6', borderRadius: 8, padding: 6, marginTop: 4, alignItems: 'center', alignSelf: 'flex-start' }}
-                  onPress={async () => {
-                    const summaryPrompt = `${note.content} özetle`;
-                    console.log('Özetlenecek içerik:', note.content);
-                    try {
-                      const aiResponse = await askAI(summaryPrompt);
-                      console.log('AI cevabı:', aiResponse);
-                      await apiClient.post('/ai/log', {
-                        userId: note.userId,
-                        noteId: note.id,
-                        interactionType: 'summary',
-                        inputPrompt: summaryPrompt,
-                        aiResponse: aiResponse,
-                      });
-                      await apiClient.patch(`/notes/${note.id}/summary`, aiResponse);
-                      updateNoteSummary(note.id, aiResponse);
-                    } catch (err) {
-                      Alert.alert('Hata', 'AI özetleme başarısız!');
-                    }
-                  }}
-                >
-                  <Text style={{ color: '#fff', fontSize: 13, fontWeight: 'bold' }}>
-                    {note.summary ? 'Yeniden Özetle' : 'Özetle'}
-                  </Text>
-                </TouchableOpacity>
-                {/* /Özet kutucuğu */}
                 <TouchableOpacity
                   style={{ position: 'absolute', top: 8, right: 8, zIndex: 10, backgroundColor: '#fff', borderRadius: 16, padding: 6, elevation: 2 }}
                   onPress={async () => {
@@ -624,8 +648,6 @@ const NotesScreen: React.FC = () => {
                 >
                   <TrashIcon size={20} color="#FA5252" />
                 </TouchableOpacity>
-                {/* Not başlığı */}
-                <Text style={{ fontWeight: 'bold', fontSize: 17, marginBottom: 4 }}>{note.title}</Text>
               </View>
             ))}
           </View>
