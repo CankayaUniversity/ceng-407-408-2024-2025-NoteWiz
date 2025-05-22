@@ -20,9 +20,9 @@ namespace NoteWiz.API.Controllers
     public class FriendshipController : ControllerBase
     {
         private readonly IFriendshipService _friendshipService;
-        private readonly NoteWizDbContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public FriendshipController(IFriendshipService friendshipService, NoteWizDbContext context)
+        public FriendshipController(IFriendshipService friendshipService, ApplicationDbContext context)
         {
             _friendshipService = friendshipService;
             _context = context;
