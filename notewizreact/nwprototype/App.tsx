@@ -36,6 +36,9 @@ import AIChatScreen from './src/screens/AIChatScreen';
 import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
 import OCRScreen from './src/screens/OCRScreen';
 import FolderDetailScreen from './src/screens/FolderDetailScreen';
+import PdfListScreen from './src/screens/PdfListScreen';
+import PdfDrawingScreen from './src/screens/PdfDrawingScreen';
+import PdfViewerScreen from './src/screens/PdfViewerScreen';
 
 // Types
 import { RootStackParamList, MainTabParamList } from './src/types/navigation';
@@ -310,6 +313,21 @@ const App = () => {
                             name="OCR"
                             component={OCRScreen}
                             options={{ title: 'OCR ile Not' }}
+                          />
+                          <Stack.Screen
+                            name="PdfList"
+                            component={PdfListScreen}
+                            options={{ title: "PDF'lerim" }}
+                          />
+                          <Stack.Screen
+                            name="PdfDrawing"
+                            component={PdfDrawingScreen}
+                            options={{ title: 'PDF Çizim' }}
+                          />
+                          <Stack.Screen
+                            name="PdfViewerScreen"
+                            component={PdfViewerScreen}
+                            options={{ title: 'PDF Görüntüle' }}
                           />
                         </Stack.Navigator>
                       </NavigationContainer>

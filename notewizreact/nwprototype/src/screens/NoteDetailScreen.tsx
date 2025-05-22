@@ -113,6 +113,7 @@ const NoteDetailScreen = () => {
   const [isPdf, setIsPdf] = useState<boolean>(false);
   const [pdfUrl, setPdfUrl] = useState<string>('');
   const [pdfName, setPdfName] = useState<string>('');
+  const [isLocalOnly, setIsLocalOnly] = useState(false);
 
   // UI states
   const [showMoreOptions, setShowMoreOptions] = useState(false);
@@ -150,6 +151,40 @@ const NoteDetailScreen = () => {
     { name: 'To-Do', color: '#845EF7' },
     { name: 'Other', color: '#868E96' },
   ];
+
+  // PDF Viewer için state
+  const [pdfViewerUri, setPdfViewerUri] = useState<string | null>(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [numberOfPages, setNumberOfPages] = useState(1);
+
+  const screenHeight = Dimensions.get('window').height;
+
+  // PDF url değiştiğinde, gerekirse content://'i file://'a kopyala
+  useEffect(() => {
+    let isMounted = true;
+    const preparePdfUri = async () => {
+      if (isPdf && pdfUrl) {
+        setPdfLoading(true);
+        let viewerUri = pdfUrl;
+        if (pdfUrl.startsWith('content://')) {
+          const destPath = `${RNFS.TemporaryDirectoryPath || RNFS.CachesDirectoryPath}/${Date.now()}_pdf.pdf`;
+          try {
+            await RNFS.copyFile(pdfUrl, destPath);
+            viewerUri = destPath.startsWith('file://') ? destPath : `file://${destPath}`;
+          } catch (e) {
+            console.log('PDF kopyalama hatası:', e);
+          }
+        }
+        if (isMounted) setPdfViewerUri(viewerUri);
+        setPdfLoading(false);
+      } else {
+        setPdfViewerUri(null);
+      }
+    };
+    preparePdfUri();
+    return () => { isMounted = false; };
+  }, [isPdf, pdfUrl]);
 
   useEffect(() => {
     const fetchNote = async () => {
@@ -197,6 +232,12 @@ const NoteDetailScreen = () => {
 
   // PDF'yi cache'e kopyalayan fonksiyon
   async function copyPdfToCache(uri: string, name: string): Promise<string> {
+    // If it's already a local file, return the URI directly
+    if (uri.startsWith('file://') || uri.startsWith('content://')) {
+      return uri;
+    }
+    
+    // Otherwise, download and cache it
     const destPath = `${RNFS.CachesDirectoryPath}/${Date.now()}_${name}`;
     await RNFS.copyFile(uri, destPath);
     return destPath;
@@ -210,22 +251,15 @@ const NoteDetailScreen = () => {
       });
       const selectedPdf = result[0];
       const uri = selectedPdf.fileCopyUri || selectedPdf.uri;
-      const cachedPath = await copyPdfToCache(uri, selectedPdf.name || 'document.pdf');
-      Alert.alert(
-        'PDF Selected',
-        `"${selectedPdf.name || 'Unnamed PDF'}" file selected. Lütfen kaydetmek için Kaydet butonuna basın.`,
-        [
-          {
-            text: 'Tamam',
-            onPress: () => {
-              setPdfName(selectedPdf.name || 'Unnamed PDF');
-              setIsPdf(true);
-              setContent('');
-              setPdfUrl(cachedPath); // Artık cache yolunu kullanıyoruz!
-            }
-          }
-        ]
-      );
+      // (İstersen burada PDF'den metin de çıkarabilirsin)
+      // let pdfText = await PdfText.extract(uri);
+      setPdfName(selectedPdf.name || 'Unnamed PDF');
+      setIsPdf(true);
+      setContent('PDF eklendi'); // veya pdfText
+      setTitle(selectedPdf.name || 'PDF');
+      setPdfUrl(uri);
+      setIsLocalOnly(true);
+      // Eğer documentId gerekiyorsa, burada setDocumentId(null) veya uygun değeri ata
     } catch (err) {
       if (DocumentPicker.isCancel(err)) {
         console.log('User cancelled file selection');
@@ -235,11 +269,15 @@ const NoteDetailScreen = () => {
     }
   };
 
-  // PDF Upload - Updated for .NET API
+  // PDF Upload - Only upload when sharing is needed
   const uploadPdf = async (pdfUri: string, pdfName: string): Promise<string> => {
+    // If it's already a remote URL, return it
+    if (pdfUri.startsWith('http://') || pdfUri.startsWith('https://')) {
+      return pdfUri;
+    }
+
     console.log('uploadPdf fonksiyonu çağrıldı');
     try {
-      // pdfUri artık cache dizininde bir yol
       const formData = new FormData();
       formData.append('file', {
         uri: Platform.OS === 'android' ? `file://${pdfUri}` : pdfUri,
@@ -352,6 +390,15 @@ const NoteDetailScreen = () => {
   // Modified handleSave function for NoteDetailScreen.tsx
   const handleSave = async () => {
     console.log('Kaydet butonuna basıldı, categoryId:', categoryId);
+    console.log('Kaydedilecek veri:', {
+      title,
+      content,
+      pdfUrl,
+      pdfName,
+      isPdf,
+      isLocalOnly,
+      categoryId
+    });
     if (!isPdf && !title.trim()) {
       Alert.alert('Warning', 'Please enter a title');
       return;
@@ -368,12 +415,12 @@ const NoteDetailScreen = () => {
         content: content,
         color: '#7950F2',
         tags: "",
-        categoryId: categoryId, // <-- Kategori id'si backend'e gönderiliyor
-        // Eğer kullanıyorsan aşağıdakileri de ekleyebilirsin:
-        // isPinned: isImportant || false,
-        // isPrivate: isPrivate || false,
-        // coverImage: typeof coverImage === 'string' ? coverImage : undefined,
-        // pageType: pageType // lined, grid, plain
+        categoryId: categoryId,
+        isPdf: isPdf,
+        pdfUrl: pdfUrl,
+        pdfName: pdfName,
+        isLocalOnly: isLocalOnly,
+        // documentId: documentId, // Eğer ileride gerekirse ekle
       };
       // undefined olanları gönderme
       Object.keys(noteData).forEach(key => {
@@ -441,22 +488,6 @@ const NoteDetailScreen = () => {
           },
         },
       ],
-    );
-  };
-
-  // PDF Viewer Component
-  const PdfViewer = ({ uri }: { uri: string }) => {
-    // Eğer uri http ile başlıyorsa file:// ekleme!
-    const isHttp = uri.startsWith('http://') || uri.startsWith('https://');
-    const source = { uri: isHttp ? uri : (Platform.OS === 'android' ? `file://${uri}` : uri), cache: true };
-    return (
-      <View style={styles.pdfContainer}>
-        <Text style={styles.pdfNameText}>{pdfName || 'PDF Document'}</Text>
-        <PDFView
-          source={source}
-          style={{ width: '100%', height: 500 }}
-        />
-      </View>
     );
   };
 
@@ -706,6 +737,41 @@ const NoteDetailScreen = () => {
             {renderNoteContent(content)}
           </View>
 
+          {/* PDF Viewer */}
+          {isPdf && pdfViewerUri ? (
+            <View style={{ flex: 1, minHeight: screenHeight * 0.7 }}>
+              {pdfLoading ? (
+                <ActivityIndicator size="large" color={COLORS.primary.main} style={{ marginTop: 40 }} />
+              ) : (
+                <>
+                  <Pdf
+                    source={{ uri: pdfViewerUri }}
+                    style={{ flex: 1, width: '100%', height: '100%' }}
+                    onError={error => console.log('PDF render error:', error)}
+                    enablePaging={true}
+                    horizontal={false}
+                    fitPolicy={0}
+                    spacing={2}
+                    page={page}
+                    onPageChanged={(page, numberOfPages) => {
+                      setPage(page);
+                      setNumberOfPages(numberOfPages);
+                    }}
+                  />
+                  <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', margin: 8 }}>
+                    <TouchableOpacity onPress={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
+                      <Text style={{ fontSize: 18, marginHorizontal: 16, opacity: page === 1 ? 0.5 : 1 }}>◀</Text>
+                    </TouchableOpacity>
+                    <Text style={{ fontSize: 16 }}>{page} / {numberOfPages}</Text>
+                    <TouchableOpacity onPress={() => setPage(p => Math.min(numberOfPages, p + 1))} disabled={page === numberOfPages}>
+                      <Text style={{ fontSize: 18, marginHorizontal: 16, opacity: page === numberOfPages ? 0.5 : 1 }}>▶</Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
+            </View>
+          ) : null}
+
           {/* PDF mode switch button */}
           {isPdf && (
             <TouchableOpacity
@@ -717,6 +783,15 @@ const NoteDetailScreen = () => {
               }}
             >
               <Text style={styles.switchModeButtonText}>Switch to Text Note</Text>
+            </TouchableOpacity>
+          )}
+
+          {isPdf && (
+            <TouchableOpacity
+              style={{backgroundColor: '#4C6EF5', borderRadius: 8, padding: 10, alignItems: 'center', margin: 12}}
+              onPress={() => navigation.navigate('PdfDrawingScreen', { noteId })}
+            >
+              <Text style={{color: '#FFF'}}>Çizim Yap</Text>
             </TouchableOpacity>
           )}
         </ScrollView>
