@@ -12,8 +12,8 @@ using NoteWiz.Infrastructure.Data;
 namespace NoteWiz.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250522171805_DemoCascade")]
-    partial class DemoCascade
+    [Migration("20250522190916_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -876,7 +876,7 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.HasOne("NoteWiz.Core.Entities.Note", "Note")
                         .WithMany("FolderNotes")
                         .HasForeignKey("NoteId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Folder");

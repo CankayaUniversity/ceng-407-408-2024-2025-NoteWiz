@@ -17,10 +17,10 @@ namespace NoteWiz.API.Controllers
     {
         private readonly IAuthService _authService;
         private readonly IUserRepository _userRepository;
-        private readonly NoteWizDbContext _context;
+        private readonly ApplicationDbContext _context;
         private readonly IEmailService _emailService;
 
-        public UsersController(IAuthService authService, IUserRepository userRepository, NoteWizDbContext context, IEmailService emailService)
+        public UsersController(IAuthService authService, IUserRepository userRepository, ApplicationDbContext context, IEmailService emailService)
         {
             _authService = authService;
             _userRepository = userRepository;
