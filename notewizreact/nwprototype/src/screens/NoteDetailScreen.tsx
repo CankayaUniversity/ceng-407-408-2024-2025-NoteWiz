@@ -1,5 +1,5 @@
 // src/screens/NoteDetailScreen.tsx - .NET API hatası düzeltildi
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import RNFS from 'react-native-fs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {launchImageLibrary} from 'react-native-image-picker';
@@ -39,6 +39,8 @@ import ViewShot from 'react-native-view-shot';
 import { Image as RNImage } from 'react-native';
 import { API_URL } from '../config/api';
 import { useCategories } from '../contexts/CategoriesContext';
+import Svg, { Path } from 'react-native-svg';
+import { PanResponder, GestureResponderEvent } from 'react-native';
 
 const CATEGORIES = [
   'Work',
@@ -122,6 +124,7 @@ const NoteDetailScreen = () => {
   const [aiModalVisible, setAiModalVisible] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiResponse, setAiResponse] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
   const [selectedText, setSelectedText] = useState('');
 
   // New state for selected cover ID
@@ -135,8 +138,6 @@ const NoteDetailScreen = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [newLink, setNewLink] = useState('');
-
-  const API_BASE_URL = API_URL;
 
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -159,6 +160,84 @@ const NoteDetailScreen = () => {
   const [numberOfPages, setNumberOfPages] = useState(1);
 
   const screenHeight = Dimensions.get('window').height;
+
+  // Çizim için state'ler
+  const [isDrawingMode, setIsDrawingMode] = useState(false);
+  const [strokes, setStrokes] = useState<{path: string; color: string; strokeWidth: number}[]>([]);
+  const [currentPath, setCurrentPath] = useState<string>('');
+  const [selectedColor, setSelectedColor] = useState<string>('#000000');
+  const [selectedStrokeWidth, setSelectedStrokeWidth] = useState<number>(3);
+  const currentPoints = useRef<{x: number; y: number}[]>([]);
+
+  // PanResponder için
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (evt: GestureResponderEvent) => {
+        console.log('PanResponder Grant');
+        console.log('X:', evt.nativeEvent.locationX, 'Y:', evt.nativeEvent.locationY);
+        if (!isDrawingMode) return;
+        currentPoints.current = [];
+        const p = {
+          x: evt.nativeEvent.locationX,
+          y: evt.nativeEvent.locationY,
+        };
+        currentPoints.current.push(p);
+        setCurrentPath(generatePath(currentPoints.current));
+      },
+      onPanResponderMove: (evt: GestureResponderEvent) => {
+        console.log('PanResponder Move');
+        console.log('X:', evt.nativeEvent.locationX, 'Y:', evt.nativeEvent.locationY);
+        if (!isDrawingMode) return;
+        const p = {
+          x: evt.nativeEvent.locationX,
+          y: evt.nativeEvent.locationY,
+        };
+        currentPoints.current.push(p);
+        setCurrentPath(generatePath(currentPoints.current));
+        console.log('currentPath:', generatePath(currentPoints.current));
+        console.log('strokes:', strokes);
+      },
+      onPanResponderRelease: () => {
+        console.log('PanResponder Release');
+        if (!isDrawingMode) return;
+        if (currentPoints.current.length > 0) {
+          const finalPath = generatePath(currentPoints.current);
+          const newStroke = {
+            path: finalPath,
+            color: selectedColor,
+            strokeWidth: selectedStrokeWidth,
+          };
+          setStrokes((prev) => [...prev, newStroke]);
+        }
+        currentPoints.current = [];
+        setCurrentPath('');
+        console.log('currentPath:', currentPath);
+        console.log('strokes:', strokes);
+      },
+    })
+  ).current;
+
+  const generatePath = (points: {x: number; y: number}[]) => {
+    if (!points.length) return '';
+    let d = `M${points[0].x},${points[0].y}`;
+    for (let i = 1; i < points.length; i++) {
+      d += ` L${points[i].x},${points[i].y}`;
+    }
+    return d;
+  };
+
+  const handleUndo = () => {
+    if (strokes.length > 0) {
+      setStrokes((prev) => prev.slice(0, -1));
+    }
+  };
+
+  const handleClear = () => {
+    setStrokes([]);
+    setCurrentPath('');
+  };
 
   // PDF url değiştiğinde, gerekirse content://'i file://'a kopyala
   useEffect(() => {
@@ -348,7 +427,7 @@ const NoteDetailScreen = () => {
           >
             <Text style={styles.headerButtonText}>📄 PDF</Text>
           </TouchableOpacity>
-          {/* Draw button */}
+          {/* Draw button eski haliyle */}
           <TouchableOpacity
             style={styles.headerButton}
             onPress={() => {
@@ -601,6 +680,63 @@ const NoteDetailScreen = () => {
     }
   };
 
+  // Seçili metin aralığı ve metni için state
+  const [selection, setSelection] = useState<{ start: number; end: number }>({ start: 0, end: 0 });
+
+  // Kelime seçimi için state
+  const [wordSelectStart, setWordSelectStart] = useState<number | null>(null);
+  const [wordSelectEnd, setWordSelectEnd] = useState<number | null>(null);
+  const [wordSelectedText, setWordSelectedText] = useState('');
+
+  // Kelime kelime böl
+  const words = content.split(/(\s+)/); // Boşlukları da koru
+
+  // Kelimeye tıklama fonksiyonu
+  const handleWordPress = (idx: number) => {
+    if (!canEdit) return;
+    
+    if (wordSelectStart === null) {
+      setWordSelectStart(idx);
+      setWordSelectEnd(null);
+      setWordSelectedText('');
+    } else if (wordSelectEnd === null) {
+      setWordSelectEnd(idx);
+      // Başlangıç ve bitişi sırala
+      const start = Math.min(wordSelectStart, idx);
+      const end = Math.max(wordSelectStart, idx);
+      const selected = words.slice(start, end + 1).join('');
+      setWordSelectedText(selected);
+    } else {
+      // Yeni seçim başlat
+      setWordSelectStart(idx);
+      setWordSelectEnd(null);
+      setWordSelectedText('');
+    }
+  };
+
+  // Seçili metni düzenleme fonksiyonu
+  const handleEditSelectedText = (newText: string) => {
+    if (!canEdit || wordSelectStart === null || wordSelectEnd === null) return;
+    
+    const start = Math.min(wordSelectStart, wordSelectEnd);
+    const end = Math.max(wordSelectStart, wordSelectEnd);
+    
+    const newWords = [...words];
+    newWords.splice(start, end - start + 1, newText);
+    setContent(newWords.join(''));
+    
+    // Seçimi sıfırla
+    setWordSelectStart(null);
+    setWordSelectEnd(null);
+    setWordSelectedText('');
+  };
+
+  // Yeni kelime ekleme fonksiyonu
+  const handleAddWord = (word: string) => {
+    if (!canEdit) return;
+    setContent(prev => prev + ' ' + word);
+  };
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -611,6 +747,18 @@ const NoteDetailScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* AI'ye Soru Sor butonu */}
+      <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', padding: 12 }}>
+        <TouchableOpacity
+          style={{ backgroundColor: '#4C6EF5', borderRadius: 8, paddingVertical: 8, paddingHorizontal: 16 }}
+          onPress={() => {
+            setSelectedText(content); // Content'i seçili metin olarak ayarla
+            setAiModalVisible(true);
+          }}
+        >
+          <Text style={{ color: '#fff', fontWeight: 'bold' }}>AI'ye Soru Sor</Text>
+        </TouchableOpacity>
+      </View>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -722,77 +870,219 @@ const NoteDetailScreen = () => {
             editable={canEdit}
           />
 
-          {/* Content input */}
-          <TextInput
-            style={styles.contentInput}
-            placeholder="İçerik yazın..."
-            value={content}
-            onChangeText={setContent}
-            multiline
-            editable={canEdit}
-          />
+          {/* Seçili metni göster */}
+          {wordSelectedText !== '' && (
+            <View style={{ backgroundColor: '#F3F0FF', padding: 10, margin: 10, borderRadius: 8 }}>
+              <Text style={{ color: '#4C6EF5', fontWeight: 'bold' }}>Seçili metin:</Text>
+              <TextInput
+                value={wordSelectedText}
+                onChangeText={setWordSelectedText}
+                style={{ 
+                  backgroundColor: '#fff',
+                  padding: 8,
+                  borderRadius: 6,
+                  marginVertical: 8,
+                  borderWidth: 1,
+                  borderColor: '#E5E5E5'
+                }}
+                multiline
+              />
+              <View style={{ flexDirection: 'row', marginTop: 8 }}>
+                <TouchableOpacity 
+                  onPress={() => {
+                    handleEditSelectedText(wordSelectedText);
+                  }}
+                  style={{ 
+                    backgroundColor: '#4C6EF5',
+                    padding: 8,
+                    borderRadius: 6,
+                    marginRight: 8
+                  }}
+                >
+                  <Text style={{ color: '#fff' }}>Düzenlemeyi Kaydet</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  onPress={() => {
+                    setSelectedText(wordSelectedText);
+                    setAiModalVisible(true);
+                  }}
+                  style={{ 
+                    backgroundColor: '#12B886',
+                    padding: 8,
+                    borderRadius: 6
+                  }}
+                >
+                  <Text style={{ color: '#fff' }}>AI'ye Gönder</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* Content alanı */}
+          <View style={{ backgroundColor: '#fff', borderRadius: 8, margin: 8, borderWidth: 1, borderColor: '#eee', padding: 12 }}>
+            <TextInput
+              style={[styles.contentInput, { marginBottom: 8, borderWidth: 0 }]}
+              placeholder="İçerik yazın..."
+              value={content}
+              onChangeText={setContent}
+              multiline
+              editable={canEdit}
+            />
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+              {words.map((word, idx) => {
+                // Seçili aralıkta mı?
+                let isSelected = false;
+                if (wordSelectStart !== null && wordSelectEnd !== null) {
+                  const start = Math.min(wordSelectStart, wordSelectEnd);
+                  const end = Math.max(wordSelectStart, wordSelectEnd);
+                  isSelected = idx >= start && idx <= end;
+                }
+                return (
+                  <TouchableOpacity
+                    key={idx}
+                    onPress={() => handleWordPress(idx)}
+                    style={{
+                      backgroundColor: isSelected ? '#FFE066' : 'transparent',
+                      borderRadius: 4,
+                      margin: 1,
+                      paddingHorizontal: 2,
+                    }}
+                  >
+                    <Text style={{ fontSize: 16, color: '#222' }}>{word}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
 
           {/* İçerik ve resimler (renderNoteContent) */}
           <View style={{ paddingHorizontal: 16, paddingTop: 8, minHeight: 300 }}>
             {renderNoteContent(content)}
           </View>
 
-          {/* PDF Viewer */}
-          {isPdf && pdfViewerUri ? (
-            <View style={{ flex: 1, minHeight: screenHeight * 0.7 }}>
-              {pdfLoading ? (
-                <ActivityIndicator size="large" color={COLORS.primary.main} style={{ marginTop: 40 }} />
-              ) : (
-                <>
-                  <Pdf
-                    source={{ uri: pdfViewerUri }}
-                    style={{ flex: 1, width: '100%', height: '100%' }}
-                    onError={error => console.log('PDF render error:', error)}
-                    enablePaging={true}
-                    horizontal={false}
-                    fitPolicy={0}
-                    spacing={2}
-                    page={page}
-                    onPageChanged={(page, numberOfPages) => {
-                      setPage(page);
-                      setNumberOfPages(numberOfPages);
-                    }}
+          {/* PDF Viewer + Drawing Canvas veya normal içerik + çizim */}
+          <View style={{ position: 'relative', minHeight: 300, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ccc' }}>
+            {/* PDF veya içerik */}
+            {isPdf && pdfViewerUri ? (
+              <View style={{ flex: 1, minHeight: screenHeight * 0.7 }}>
+                {pdfLoading ? (
+                  <ActivityIndicator size="large" color={COLORS.primary.main} style={{ marginTop: 40 }} />
+                ) : (
+                  <>
+                    <View style={{ flex: 1 }}>
+                      <Pdf
+                        source={{ uri: pdfViewerUri }}
+                        style={{ flex: 1, width: '100%', height: '100%' }}
+                        onError={error => console.log('PDF render error:', error)}
+                        enablePaging={true}
+                        horizontal={false}
+                        fitPolicy={0}
+                        spacing={2}
+                        page={page}
+                        onPageChanged={(page, numberOfPages) => {
+                          setPage(page);
+                          setNumberOfPages(numberOfPages);
+                        }}
+                      />
+                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', margin: 8 }}>
+                      <TouchableOpacity onPress={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
+                        <Text style={{ fontSize: 18, marginHorizontal: 16, opacity: page === 1 ? 0.5 : 1 }}>◀</Text>
+                      </TouchableOpacity>
+                      <Text style={{ fontSize: 16 }}>{page} / {numberOfPages}</Text>
+                      <TouchableOpacity onPress={() => setPage(p => Math.min(numberOfPages, p + 1))} disabled={page === numberOfPages}>
+                        <Text style={{ fontSize: 18, marginHorizontal: 16, opacity: page === numberOfPages ? 0.5 : 1 }}>▶</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </>
+                )}
+              </View>
+            ) : null}
+
+            {/* Şeffaf çizim katmanı */}
+            {isDrawingMode && (
+              <View
+                style={[StyleSheet.absoluteFill, { zIndex: 10, backgroundColor: 'transparent', pointerEvents: 'box-none' }]}
+              >
+                <View
+                  style={{ flex: 1, height: 300 }}
+                  {...panResponder.panHandlers}
+                  pointerEvents="box-only"
+                >
+                  <Svg style={{ width: '100%', height: 300, backgroundColor: 'rgba(255,0,0,0.1)' }}>
+                    {/* SVG sınırlarını gösteren yeşil path'ler */}
+                    <Path d="M0,0 L300,0" stroke="green" strokeWidth={2} />
+                    <Path d="M0,0 L0,300" stroke="green" strokeWidth={2} />
+                    <Path d="M300,0 L300,300" stroke="green" strokeWidth={2} />
+                    <Path d="M0,300 L300,300" stroke="green" strokeWidth={2} />
+                    {/* Test için sabit path */}
+                    <Path d="M10,10 L290,290" stroke="#000" strokeWidth={5} fill="none" />
+                    {/* strokes: mavi */}
+                    {strokes.map((stroke, idx) => (
+                      <Path
+                        key={idx}
+                        d={stroke.path}
+                        stroke="#0074D9"
+                        strokeWidth={stroke.strokeWidth}
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    ))}
+                    {/* currentPath: kırmızı */}
+                    {currentPath !== '' && (
+                      <Path
+                        d={currentPath}
+                        stroke="#FF4136"
+                        strokeWidth={selectedStrokeWidth}
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    )}
+                  </Svg>
+                </View>
+              </View>
+            )}
+          </View>
+
+          {/* Çizim araçları */}
+          {isDrawingMode && (
+            <View style={styles.drawingTools}>
+              <View style={styles.toolRow}>
+                <TouchableOpacity style={styles.toolButton} onPress={handleUndo}>
+                  <Text>↩️ Geri Al</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.toolButton} onPress={handleClear}>
+                  <Text>🗑️ Temizle</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.toolButton} 
+                  onPress={() => setSelectedStrokeWidth(prev => Math.min(10, prev + 1))}
+                >
+                  <Text>➕ Kalınlık</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.toolButton} 
+                  onPress={() => setSelectedStrokeWidth(prev => Math.max(1, prev - 1))}
+                >
+                  <Text>➖ Kalınlık</Text>
+                </TouchableOpacity>
+              </View>
+              <ScrollView horizontal style={styles.colorPicker}>
+                {['#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF'].map((color) => (
+                  <TouchableOpacity
+                    key={color}
+                    style={[
+                      styles.colorButton,
+                      { backgroundColor: color },
+                      selectedColor === color && styles.selectedColor,
+                    ]}
+                    onPress={() => setSelectedColor(color)}
                   />
-                  <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', margin: 8 }}>
-                    <TouchableOpacity onPress={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
-                      <Text style={{ fontSize: 18, marginHorizontal: 16, opacity: page === 1 ? 0.5 : 1 }}>◀</Text>
-                    </TouchableOpacity>
-                    <Text style={{ fontSize: 16 }}>{page} / {numberOfPages}</Text>
-                    <TouchableOpacity onPress={() => setPage(p => Math.min(numberOfPages, p + 1))} disabled={page === numberOfPages}>
-                      <Text style={{ fontSize: 18, marginHorizontal: 16, opacity: page === numberOfPages ? 0.5 : 1 }}>▶</Text>
-                    </TouchableOpacity>
-                  </View>
-                </>
-              )}
+                ))}
+              </ScrollView>
             </View>
-          ) : null}
-
-          {/* PDF mode switch button */}
-          {isPdf && (
-            <TouchableOpacity
-              style={styles.switchModeButton}
-              onPress={() => {
-                setIsPdf(false);
-                setPdfUrl('');
-                setPdfName('');
-              }}
-            >
-              <Text style={styles.switchModeButtonText}>Switch to Text Note</Text>
-            </TouchableOpacity>
-          )}
-
-          {isPdf && (
-            <TouchableOpacity
-              style={{backgroundColor: '#4C6EF5', borderRadius: 8, padding: 10, alignItems: 'center', margin: 12}}
-              onPress={() => navigation.navigate('PdfDrawingScreen', { noteId })}
-            >
-              <Text style={{color: '#FFF'}}>Çizim Yap</Text>
-            </TouchableOpacity>
           )}
         </ScrollView>
       </KeyboardAvoidingView>
@@ -807,58 +1097,73 @@ const NoteDetailScreen = () => {
 
       {/* AI Modal */}
       <Modal visible={aiModalVisible} transparent animationType="slide">
-        <View style={{
-          flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.4)'
-        }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.4)' }}>
           <View style={{ backgroundColor: '#FFF', borderRadius: 12, padding: 20, width: '80%' }}>
             <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 8 }}>AI'ye Soru Sor</Text>
+            <Text style={{ marginBottom: 8, color: '#333' }}>Seçili metin:</Text>
+            <Text style={{ backgroundColor: '#F3F0FF', padding: 8, borderRadius: 6, marginBottom: 12 }}>{selectedText}</Text>
             <TextInput
               value={aiPrompt}
               onChangeText={setAiPrompt}
-              placeholder="AI'ye sorulacak metni girin"
-              style={{ borderWidth: 1, borderColor: '#E5E5E5', borderRadius: 8, padding: 8, minHeight: 60, marginBottom: 12 }}
+              placeholder="AI'ye sorulacak ek soruyu girin"
+              style={{ borderWidth: 1, borderColor: '#E5E5E5', borderRadius: 8, padding: 8, minHeight: 40, marginBottom: 12 }}
               multiline
             />
             <TouchableOpacity
               style={{ backgroundColor: '#12B886', borderRadius: 8, padding: 12, alignItems: 'center', marginBottom: 8 }}
               onPress={async () => {
-                const result = await askAI(aiPrompt);
-                setAiResponse(result);
+                setAiLoading(true);
+                setAiResponse('');
+                try {
+                  const fullPrompt = `"${selectedText}"
+\nKullanıcıdan gelen soru: ${aiPrompt}`;
+                  const result = await askAI(fullPrompt);
+                  setAiResponse(result);
+                } catch (e) {
+                  setAiResponse('AI cevabı alınamadı.');
+                } finally {
+                  setAiLoading(false);
+                }
               }}
+              disabled={aiLoading || !aiPrompt.trim()}
             >
-              <Text style={{ color: '#FFF', fontWeight: 'bold' }}>AI'ye Sor</Text>
+              <Text style={{ color: '#FFF', fontWeight: 'bold' }}>{aiLoading ? 'Gönderiliyor...' : 'AI ile Sorgula'}</Text>
             </TouchableOpacity>
-            {aiResponse ? (
-              <>
-                <Text style={{ fontWeight: 'bold', marginTop: 8 }}>Cevap:</Text>
-                <ViewShot ref={popupViewRef} options={{ format: 'png', quality: 1.0 }} style={{ backgroundColor: '#FFF', padding: 8, borderRadius: 8 }}>
-                  <Text style={{ marginVertical: 8 }}>{aiResponse}</Text>
-                </ViewShot>
+            {aiResponse !== '' && (
+              <View style={{ marginTop: 12 }}>
+                <Text style={{ fontWeight: 'bold', marginBottom: 4 }}>AI Cevabı:</Text>
+                <Text style={{ backgroundColor: '#F8F9FA', padding: 8, borderRadius: 6 }}>{aiResponse}</Text>
                 <TouchableOpacity
-                  style={{ backgroundColor: '#4C6EF5', borderRadius: 8, padding: 10, alignItems: 'center', marginBottom: 8 }}
+                  style={{ backgroundColor: '#4C6EF5', borderRadius: 8, padding: 10, alignItems: 'center', marginTop: 12 }}
                   onPress={() => {
                     setContent(content + '\n' + aiResponse);
                     setAiModalVisible(false);
+                    setAiPrompt('');
                     setAiResponse('');
                   }}
                 >
-                  <Text style={{ color: '#FFF' }}>Notuma Yazı Olarak Ekle</Text>
+                  <Text style={{ color: '#FFF' }}>Notuma yazı olarak ekle</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={{ backgroundColor: '#4263EB', borderRadius: 8, padding: 10, alignItems: 'center', marginBottom: 8 }}
+                  style={{ backgroundColor: '#4263EB', borderRadius: 8, padding: 10, alignItems: 'center', marginTop: 8 }}
                   onPress={() => {
                     setContent(content + `\n[POPUP]${aiResponse}[/POPUP]`);
                     setAiModalVisible(false);
+                    setAiPrompt('');
                     setAiResponse('');
                   }}
                 >
-                  <Text style={{ color: '#FFF' }}>Notuma Pop-up Olarak Ekle</Text>
+                  <Text style={{ color: '#FFF' }}>Notuma pop-up olarak ekle</Text>
                 </TouchableOpacity>
-              </>
-            ) : null}
+              </View>
+            )}
             <TouchableOpacity
-              style={{ backgroundColor: '#868E96', borderRadius: 8, padding: 10, alignItems: 'center' }}
-              onPress={() => setAiModalVisible(false)}
+              style={{ backgroundColor: '#868E96', borderRadius: 8, padding: 10, alignItems: 'center', marginTop: 12 }}
+              onPress={() => {
+                setAiModalVisible(false);
+                setAiPrompt('');
+                setAiResponse('');
+              }}
             >
               <Text style={{ color: '#FFF' }}>Kapat</Text>
             </TouchableOpacity>
@@ -1097,6 +1402,46 @@ const styles = StyleSheet.create({
   optionTextDelete: {
     fontSize: 16,
     color: COLORS.error.main,
+  },
+  drawingArea: {
+    height: 300,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    margin: 16,
+    borderRadius: 8,
+  },
+  drawingTools: {
+    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5E5',
+  },
+  toolRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 16,
+  },
+  toolButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#F5F5F5',
+  },
+  colorPicker: {
+    flexDirection: 'row',
+    paddingVertical: 8,
+  },
+  colorButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    marginHorizontal: 4,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+  },
+  selectedColor: {
+    borderWidth: 2,
+    borderColor: '#000000',
   },
 });
 

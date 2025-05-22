@@ -40,6 +40,7 @@ import { COLORS, SHADOWS, SPACING } from '../constants/theme';
 import { CreateIcon, FolderIcon, DocumentIcon, ImageIcon, PdfIcon, CloseIcon, TrashIcon } from '../components/icons';
 import { folderService } from '../services/folderService';
 import { apiClient } from '../services/newApi';
+import { getSummary } from '../services/openai';
 
 const { height } = Dimensions.get('window');
 const HEADER_MAX_HEIGHT = Platform.OS === 'ios' ? 150 : 170;
@@ -84,7 +85,8 @@ const NotesScreen: React.FC = () => {
     moveNoteToFolder,
     updateNoteCover,
     loadNotes,
-    deleteNote
+    deleteNote,
+    updateNoteSummary
   } = useNotes();
   
   const { categories } = useCategories();
@@ -106,6 +108,7 @@ const NotesScreen: React.FC = () => {
   const [showAddNoteModal, setShowAddNoteModal] = useState(false);
   const [selectedNotesToAdd, setSelectedNotesToAdd] = useState<string[]>([]);
   const [folderNoteCounts, setFolderNoteCounts] = useState<{ [key: string]: number }>({});
+  const [summarizingNoteId, setSummarizingNoteId] = useState<string | null>(null);
 
   // Predefined cover options
   const coverOptions = [
@@ -609,7 +612,7 @@ const NotesScreen: React.FC = () => {
           <View style={{ marginBottom: 24 }}>
             <Text style={{ fontWeight: 'bold', fontSize: 17, marginBottom: 8 }}>Tüm Notlar</Text>
             {sortedItems().filter(note => !note.isFolder).map(note => (
-              <View key={note.id} style={{ position: 'relative' }}>
+              <View key={note.id} style={{ position: 'relative', marginBottom: 8 }}>
                 <NoteCard
                   note={{
                     id: note.id.toString(),
@@ -629,6 +632,30 @@ const NotesScreen: React.FC = () => {
                   }}
                   onPress={() => navigation.navigate('NoteDetail', { noteId: note.id.toString() })}
                 />
+                {/* Özetle butonu ve özet gösterimi */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, marginLeft: 8 }}>
+                  <TouchableOpacity
+                    style={{ backgroundColor: '#4C6EF5', borderRadius: 8, paddingVertical: 4, paddingHorizontal: 12, alignSelf: 'flex-start', opacity: summarizingNoteId === note.id ? 0.6 : 1 }}
+                    onPress={async () => {
+                      setSummarizingNoteId(note.id);
+                      try {
+                        const summary = await getSummary(note.content + '\nözetle');
+                        updateNoteSummary(note.id.toString(), summary);
+                        await loadNotes();
+                      } catch (e) {
+                        Alert.alert('Özet alınamadı', 'Bir hata oluştu.');
+                      } finally {
+                        setSummarizingNoteId(null);
+                      }
+                    }}
+                    disabled={summarizingNoteId === note.id}
+                  >
+                    <Text style={{ color: '#fff', fontWeight: 'bold' }}>{summarizingNoteId === note.id ? 'Özetleniyor...' : 'Özetle'}</Text>
+                  </TouchableOpacity>
+                  {note.summary && (
+                    <Text style={{ fontSize: 12, color: '#228be6', marginLeft: 8, fontStyle: 'italic', maxWidth: 180 }} numberOfLines={1} ellipsizeMode="tail">{note.summary}</Text>
+                  )}
+                </View>
                 <TouchableOpacity
                   style={{ position: 'absolute', top: 8, right: 8, zIndex: 10, backgroundColor: '#fff', borderRadius: 16, padding: 6, elevation: 2 }}
                   onPress={async () => {
@@ -649,7 +676,7 @@ const NotesScreen: React.FC = () => {
           <View style={{ marginBottom: 24 }}>
             {sortedItems().filter(note => !note.isFolder).length > 0 ? (
               sortedItems().filter(note => !note.isFolder).map(note => (
-                <View key={note.id} style={{ position: 'relative' }}>
+                <View key={note.id} style={{ position: 'relative', marginBottom: 8 }}>
                   <NoteCard
                     note={{
                       id: note.id.toString(),
@@ -669,6 +696,30 @@ const NotesScreen: React.FC = () => {
                     }}
                     onPress={() => navigation.navigate('NoteDetail', { noteId: note.id.toString() })}
                   />
+                  {/* Özetle butonu ve özet gösterimi */}
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, marginLeft: 8 }}>
+                    <TouchableOpacity
+                      style={{ backgroundColor: '#4C6EF5', borderRadius: 8, paddingVertical: 4, paddingHorizontal: 12, alignSelf: 'flex-start', opacity: summarizingNoteId === note.id ? 0.6 : 1 }}
+                      onPress={async () => {
+                        setSummarizingNoteId(note.id);
+                        try {
+                          const summary = await getSummary(note.content + '\nözetle');
+                          updateNoteSummary(note.id.toString(), summary);
+                          await loadNotes();
+                        } catch (e) {
+                          Alert.alert('Özet alınamadı', 'Bir hata oluştu.');
+                        } finally {
+                          setSummarizingNoteId(null);
+                        }
+                      }}
+                      disabled={summarizingNoteId === note.id}
+                    >
+                      <Text style={{ color: '#fff', fontWeight: 'bold' }}>{summarizingNoteId === note.id ? 'Özetleniyor...' : 'Özetle'}</Text>
+                    </TouchableOpacity>
+                    {note.summary && (
+                      <Text style={{ fontSize: 12, color: '#228be6', marginLeft: 8, fontStyle: 'italic', maxWidth: 180 }} numberOfLines={1} ellipsizeMode="tail">{note.summary}</Text>
+                    )}
+                  </View>
                   <TouchableOpacity
                     style={{ position: 'absolute', top: 8, right: 8, zIndex: 10, backgroundColor: '#fff', borderRadius: 16, padding: 6, elevation: 2 }}
                     onPress={async () => {
@@ -691,7 +742,7 @@ const NotesScreen: React.FC = () => {
           <View style={{ marginBottom: 24 }}>
             <Text style={{ fontWeight: 'bold', fontSize: 17, marginBottom: 8 }}>Klasörsüz Notlar</Text>
             {notes.filter(note => !note.isFolder && (note.folderId === null || note.folderId === undefined)).map(note => (
-              <View key={note.id} style={{ position: 'relative' }}>
+              <View key={note.id} style={{ position: 'relative', marginBottom: 8 }}>
                 <NoteCard
                   note={{
                     id: note.id.toString(),
@@ -711,6 +762,30 @@ const NotesScreen: React.FC = () => {
                   }}
                   onPress={() => navigation.navigate('NoteDetail', { noteId: note.id.toString() })}
                 />
+                {/* Özetle butonu ve özet gösterimi */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, marginLeft: 8 }}>
+                  <TouchableOpacity
+                    style={{ backgroundColor: '#4C6EF5', borderRadius: 8, paddingVertical: 4, paddingHorizontal: 12, alignSelf: 'flex-start', opacity: summarizingNoteId === note.id ? 0.6 : 1 }}
+                    onPress={async () => {
+                      setSummarizingNoteId(note.id);
+                      try {
+                        const summary = await getSummary(note.content + '\nözetle');
+                        updateNoteSummary(note.id.toString(), summary);
+                        await loadNotes();
+                      } catch (e) {
+                        Alert.alert('Özet alınamadı', 'Bir hata oluştu.');
+                      } finally {
+                        setSummarizingNoteId(null);
+                      }
+                    }}
+                    disabled={summarizingNoteId === note.id}
+                  >
+                    <Text style={{ color: '#fff', fontWeight: 'bold' }}>{summarizingNoteId === note.id ? 'Özetleniyor...' : 'Özetle'}</Text>
+                  </TouchableOpacity>
+                  {note.summary && (
+                    <Text style={{ fontSize: 12, color: '#228be6', marginLeft: 8, fontStyle: 'italic', maxWidth: 180 }} numberOfLines={1} ellipsizeMode="tail">{note.summary}</Text>
+                  )}
+                </View>
                 <TouchableOpacity
                   style={{ position: 'absolute', top: 8, right: 8, zIndex: 10, backgroundColor: '#fff', borderRadius: 16, padding: 6, elevation: 2 }}
                   onPress={async () => {
