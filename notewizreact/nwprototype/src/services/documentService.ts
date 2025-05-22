@@ -60,7 +60,16 @@ class DocumentService {
 
   async getDocuments(): Promise<Document[]> {
     const response = await apiClient.get(ENDPOINTS.DOCUMENTS);
-    return Array.isArray(response.data) ? response.data.map(this.transformApiDocument) : [];
+    if (Array.isArray(response.data)) {
+      return response.data.map(this.transformApiDocument);
+    } else if (Array.isArray(response.data.documents)) {
+      return response.data.documents.map(this.transformApiDocument);
+    } else if (Array.isArray(response.data.data)) {
+      return response.data.data.map(this.transformApiDocument);
+    } else {
+      console.error('API response is not an array:', response.data);
+      return [];
+    }
   }
 
   async getDocument(id: string): Promise<Document> {

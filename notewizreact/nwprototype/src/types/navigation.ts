@@ -31,6 +31,10 @@ export type RootStackParamList = {
     documentId: number;
     title: string;
   };
+  PdfDetailScreen: { documentId: string };
+  PdfList: undefined;
+  PdfDetail: { documentId: string };
+  PdfDrawing: { documentId: string };
   ShareNote: {
     noteId: number;
     refreshOnFocus?: boolean;
@@ -42,6 +46,7 @@ export type RootStackParamList = {
   ForgotPassword: undefined;
   OCR: undefined;
   FolderDetail: { folderId: string };
+  PdfViewerScreen: { pdfUrl: string };
 };
 
 export type RootStackScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<
@@ -56,10 +61,6 @@ export type NoteDetailScreenRouteProp = NativeStackScreenProps<RootStackParamLis
 // DocumentUploadScreen için özel tipler
 export type DocumentUploadScreenNavigationProp = NativeStackScreenProps<RootStackParamList, 'DocumentUpload'>['navigation'];
 export type DocumentUploadScreenRouteProp = NativeStackScreenProps<RootStackParamList, 'DocumentUpload'>['route'];
-
-// DocumentViewScreen için özel tipler
-export type DocumentViewScreenNavigationProp = NativeStackScreenProps<RootStackParamList, 'DocumentView'>['navigation'];
-export type DocumentViewScreenRouteProp = NativeStackScreenProps<RootStackParamList, 'DocumentView'>['route'];
 
 // ShareNoteScreen için özel tipler
 export type ShareNoteScreenNavigationProp = NativeStackScreenProps<RootStackParamList, 'ShareNote'>['navigation'];

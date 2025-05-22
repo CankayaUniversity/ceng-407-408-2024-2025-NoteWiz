@@ -572,51 +572,125 @@ const NotesScreen: React.FC = () => {
         onSelectCategory={setSelectedCategory}
       />
 
-      {/* Klasörler yatay scroll */}
-      <View style={{ marginTop: 16, marginBottom: 8 }}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 12 }}>
-          <View style={{ flexDirection: 'row', width: '100%', justifyContent: (sortedItems().filter(item => item.isFolder).length <= 4 ? 'space-between' : 'flex-start'), flex: 1 }}>
-            {sortedItems().filter(item => item.isFolder).map(folder => (
-              <View key={folder.id} style={{ alignItems: 'center', marginRight: 16, minWidth: 70 }}>
-                <TouchableOpacity 
-                  style={{ alignItems: 'center' }}
-                  onPress={() => navigation.navigate('FolderDetail', { folderId: folder.id.toString() })}
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.listContent}>
+        {/* Klasörler */}
+        {currentFolder === null && folders.length > 0 && (
+          <View style={{ marginBottom: 24 }}>
+            <Text style={{ fontWeight: 'bold', fontSize: 17, marginBottom: 8 }}>Klasörler</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+              {folders.map(folder => (
+                <View key={folder.id} style={{ alignItems: 'center', marginRight: 16, minWidth: 70, marginBottom: 12 }}>
+                  <TouchableOpacity 
+                    style={{ alignItems: 'center' }}
+                    onPress={() => navigation.navigate('FolderDetail', { folderId: folder.id.toString() })}
+                  >
+                    {/* Klasör ikonu */}
+                    {folder.icon && typeof folder.icon === 'string' ? (
+                      <Icon name={folder.icon} size={32} color={folder.color || COLORS.primary.main} />
+                    ) : (
+                      <FolderIcon size={32} color={folder.color || COLORS.primary.main} />
+                    )}
+                    <Text style={{ fontSize: 14, fontWeight: 'bold', marginTop: 4 }}>{folder.name || folder.title}</Text>
+                    {/* Not sayısı badge */}
+                    <View style={{ backgroundColor: '#228be6', borderRadius: 10, minWidth: 20, height: 20, alignItems: 'center', justifyContent: 'center', marginTop: 2, paddingHorizontal: 6 }}>
+                      <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 12 }}>{folderNoteCounts[folder.id] ?? 0}</Text>
+                    </View>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleDeleteFolder(String(folder.id))} style={{ marginTop: 2 }}>
+                    <Text style={{ color: '#FA5252', fontSize: 12 }}>Sil</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+        {/* Klasörsüz Notlar yerine Tüm Notlar başlığıyla, currentFolder === null iken tüm notları göster */}
+        {currentFolder === null && sortedItems().filter(note => !note.isFolder).length > 0 && (
+          <View style={{ marginBottom: 24 }}>
+            <Text style={{ fontWeight: 'bold', fontSize: 17, marginBottom: 8 }}>Tüm Notlar</Text>
+            {sortedItems().filter(note => !note.isFolder).map(note => (
+              <View key={note.id} style={{ position: 'relative' }}>
+                <NoteCard
+                  note={{
+                    id: note.id.toString(),
+                    title: note.title,
+                    content: note.content || '',
+                    isImportant: note.isPinned || false,
+                    updatedAt: new Date(note.updatedAt),
+                    isPdf: note.isPdf,
+                    pdfUrl: note.pdfUrl,
+                    pdfName: note.pdfName,
+                    coverImage: note.coverImage && note.coverImage.uri ? { uri: note.coverImage.uri } : undefined
+                  }}
+                  category={{
+                    id: note.category?.toString() || '',
+                    name: categories.find(c => c.id.toString() === note.category?.toString())?.name || '',
+                    color: categories.find(c => c.id.toString() === note.category?.toString())?.color
+                  }}
+                  onPress={() => navigation.navigate('NoteDetail', { noteId: note.id.toString() })}
+                />
+                <TouchableOpacity
+                  style={{ position: 'absolute', top: 8, right: 8, zIndex: 10, backgroundColor: '#fff', borderRadius: 16, padding: 6, elevation: 2 }}
+                  onPress={async () => {
+                    Alert.alert('Notu Sil', 'Bu notu silmek istediğine emin misin?', [
+                      { text: 'İptal', style: 'cancel' },
+                      { text: 'Sil', style: 'destructive', onPress: async () => { await deleteNote(note.id); await loadNotes(); } }
+                    ]);
+                  }}
                 >
-                  {/* Klasör ikonu */}
-                  {folder.icon && typeof folder.icon === 'string' ? (
-                    <Icon name={folder.icon} size={32} color={folder.color || COLORS.primary.main} />
-                  ) : (
-                    <FolderIcon size={32} color={folder.color || COLORS.primary.main} />
-                  )}
-                  <Text style={{ fontSize: 14, fontWeight: 'bold', marginTop: 4 }}>{folder.name || folder.title}</Text>
-                  {/* Not sayısı badge */}
-                  <View style={{ backgroundColor: '#228be6', borderRadius: 10, minWidth: 20, height: 20, alignItems: 'center', justifyContent: 'center', marginTop: 2, paddingHorizontal: 6 }}>
-                    <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 12 }}>{folderNoteCounts[folder.id] ?? 0}</Text>
-                  </View>
-                </TouchableOpacity>
-                {/* Klasör silme butonu */}
-                <TouchableOpacity onPress={() => handleDeleteFolder(String(folder.id))} style={{ marginTop: 2 }}>
-                  <Text style={{ color: '#FA5252', fontSize: 12 }}>Sil</Text>
+                  <TrashIcon size={20} color="#FA5252" />
                 </TouchableOpacity>
               </View>
             ))}
-            {/* Klasör ekleme butonu */}
-            <TouchableOpacity onPress={() => setShowAddFolderModal(true)} style={{ alignItems: 'center', justifyContent: 'center', marginRight: 8, minWidth: 70 }}>
-              <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#e7f5ff', alignItems: 'center', justifyContent: 'center' }}>
-                <CreateIcon size={20} color={COLORS.primary.main} />
-              </View>
-              <Text style={{ fontSize: 12, color: COLORS.primary.main, marginTop: 4 }}>Ekle</Text>
-            </TouchableOpacity>
           </View>
-        </ScrollView>
-      </View>
-
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.listContent}>
-        {/* Klasörsüz Notlar */}
-        {sortedItems().filter(note => !note.isFolder && !note.folderId).length > 0 && (
+        )}
+        {/* Eğer klasör içindeysek sadece o klasörün notlarını göster */}
+        {currentFolder !== null && (
+          <View style={{ marginBottom: 24 }}>
+            {sortedItems().filter(note => !note.isFolder).length > 0 ? (
+              sortedItems().filter(note => !note.isFolder).map(note => (
+                <View key={note.id} style={{ position: 'relative' }}>
+                  <NoteCard
+                    note={{
+                      id: note.id.toString(),
+                      title: note.title,
+                      content: note.content || '',
+                      isImportant: note.isPinned || false,
+                      updatedAt: new Date(note.updatedAt),
+                      isPdf: note.isPdf,
+                      pdfUrl: note.pdfUrl,
+                      pdfName: note.pdfName,
+                      coverImage: note.coverImage && note.coverImage.uri ? { uri: note.coverImage.uri } : undefined
+                    }}
+                    category={{
+                      id: note.category?.toString() || '',
+                      name: categories.find(c => c.id.toString() === note.category?.toString())?.name || '',
+                      color: categories.find(c => c.id.toString() === note.category?.toString())?.color
+                    }}
+                    onPress={() => navigation.navigate('NoteDetail', { noteId: note.id.toString() })}
+                  />
+                  <TouchableOpacity
+                    style={{ position: 'absolute', top: 8, right: 8, zIndex: 10, backgroundColor: '#fff', borderRadius: 16, padding: 6, elevation: 2 }}
+                    onPress={async () => {
+                      Alert.alert('Notu Sil', 'Bu notu silmek istediğine emin misin?', [
+                        { text: 'İptal', style: 'cancel' },
+                        { text: 'Sil', style: 'destructive', onPress: async () => { await deleteNote(note.id); await loadNotes(); } }
+                      ]);
+                    }}
+                  >
+                    <TrashIcon size={20} color="#FA5252" />
+                  </TouchableOpacity>
+                </View>
+              ))
+            ) : (
+              <Text style={{ color: '#888', fontStyle: 'italic' }}>Bu klasörde hiç not yok.</Text>
+            )}
+          </View>
+        )}
+        {notes.filter(note => !note.isFolder && (note.folderId === null || note.folderId === undefined)).length > 0 && (
           <View style={{ marginBottom: 24 }}>
             <Text style={{ fontWeight: 'bold', fontSize: 17, marginBottom: 8 }}>Klasörsüz Notlar</Text>
-            {sortedItems().filter(note => !note.isFolder && !note.folderId).map(note => (
+            {notes.filter(note => !note.isFolder && (note.folderId === null || note.folderId === undefined)).map(note => (
               <View key={note.id} style={{ position: 'relative' }}>
                 <NoteCard
                   note={{

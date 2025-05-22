@@ -20,6 +20,7 @@ import { COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '../constants/theme';
 import { PdfIcon, CloseIcon } from '../components/icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../config/api';
+import RNFS from 'react-native-fs';
 
 type DocumentUploadScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'DocumentUpload'>;
 
@@ -29,6 +30,9 @@ const DocumentUploadScreen = () => {
   const { token } = useAuth();
   const [uploadProgress, setUploadProgress] = useState(0);
   const { createNote } = useNotes();
+
+  const cleanFileName = (name: string) =>
+    name.replace(/[()]/g, '').replace(/\s+/g, '_');
 
   const handleDocumentPick = async () => {
     try {
@@ -64,25 +68,27 @@ const DocumentUploadScreen = () => {
 
   const handleUpload = async (file: any) => {
     try {
-      console.log('Upload başladı:', { uri: file.uri, name: file.name });
-      
-      // Token'ı AsyncStorage'dan al
       const token = await AsyncStorage.getItem('userToken');
-      if (!token) {
-        throw new Error('Oturum açmanız gerekiyor');
-      }
-
       const formData = new FormData();
-      formData.append('file', {
-        uri: file.uri,
+      let uploadUri = file.uri;
+      // Eğer content:// ile başlıyorsa, temp dosyaya kopyala
+      if (uploadUri.startsWith('content://')) {
+        const destPath = `${RNFS.TemporaryDirectoryPath || RNFS.CachesDirectoryPath}/${Date.now()}_${file.name}`;
+        await RNFS.copyFile(uploadUri, destPath);
+        uploadUri = destPath.startsWith('file://') ? destPath : `file://${destPath}`;
+      }
+      const fileData = {
+        uri: Platform.OS === 'android'
+          ? uploadUri.startsWith('file://') ? uploadUri : `file://${uploadUri}`
+          : uploadUri,
         type: file.type,
-        name: file.name,
-      });
-
-      console.log('FormData hazırlandı, istek gönderiliyor...');
-      
-      // Android emülatör için doğru IP
-      const response = await fetch(`${API_URL}/api/Document/upload`, {
+        name: cleanFileName(file.name),
+      };
+      console.log('FormData file:', fileData);
+      formData.append('file', fileData);
+      const apiUrl = `${API_URL}/api/Document/upload`;
+      console.log('PDF upload API URL:', apiUrl);
+      const response = await fetch(apiUrl, {
         method: 'POST',
         body: formData,
         headers: {
@@ -90,46 +96,38 @@ const DocumentUploadScreen = () => {
           'Authorization': `Bearer ${token}`,
         },
       });
-
-      console.log('Response status:', response.status);
       const responseText = await response.text();
-      console.log('Response text:', responseText);
-
+      console.log('Upload response status:', response.status);
+      console.log('Upload response text:', responseText);
       let data;
       try {
         data = JSON.parse(responseText);
       } catch (parseError) {
-        console.error('JSON parse hatası:', parseError);
-        throw new Error('Sunucudan geçersiz yanıt alındı');
+        data = null;
       }
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Yükleme başarısız');
+      if (response.ok && data && data.fileUrl) {
+        // Backend'den dönen URL ile not oluştur
+        const backendPdf = {
+          title: data.document?.title || file.name || 'PDF Document',
+          content: 'PDF Document',
+          isPdf: true,
+          pdfUrl: data.fileUrl, // backend url
+          pdfName: data.document?.fileName || file.name,
+          color: '#4C6EF5',
+          tags: '',
+          isImportant: false,
+          folderId: null,
+          isLocalOnly: false
+        };
+        await createNote(backendPdf);
+        Alert.alert('Başarılı', 'PDF sunucuda saklandı ve eklendi.');
+      } else {
+        Alert.alert('Hata', 'PDF sunucuya yüklenemedi.');
       }
-
-      if (data && data.document) {
-        try {
-          await createNote({
-            title: data.document.title || data.document.fileName || 'PDF Document',
-            content: 'PDF Document',
-            isPdf: true,
-            pdfUrl: data.fileUrl,
-            pdfName: data.document.fileName,
-            color: '#4C6EF5',
-            tags: [],
-            isImportant: false,
-            folderId: null
-          });
-        } catch (e) {
-          console.error('Not eklenirken hata:', e);
-        }
-      }
-
-      Alert.alert('Başarılı', 'Dosya başarıyla yüklendi');
       navigation.goBack();
     } catch (err) {
       console.error('Yükleme hatası:', err);
-      Alert.alert('Hata', 'Dosya yüklenirken bir hata oluştu: ' + err.message);
+      Alert.alert('Hata', 'PDF eklenirken bir hata oluştu: ' + err.message);
     }
   };
 

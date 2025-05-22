@@ -300,6 +300,14 @@ const HomeScreen = () => {
           <ImageIcon size={32} color={COLORS.primary.main} />
           <Text style={styles.cardText}>Görselden Not</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => navigation.navigate('PdfList')}
+        >
+          <DocumentIcon size={32} color={COLORS.primary.main} />
+          <Text style={styles.cardText}>PDF'lerim</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -446,6 +454,18 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.sizes.lg,
     fontWeight: '600',
     lineHeight: 24,
+  },
+  button: {
+    backgroundColor: '#4C6EF5',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    minWidth: 160,
+  },
+  buttonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
 

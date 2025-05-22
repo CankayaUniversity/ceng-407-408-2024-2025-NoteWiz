@@ -117,3 +117,15 @@ D:\backup\a\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.d
 D:\backup\a\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\refint\NoteWiz.Core.dll
 D:\backup\a\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.pdb
 D:\backup\a\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\ref\NoteWiz.Core.dll
+C:\Users\d-disal\n\notewizback\NoteWiz\src\NoteWiz.Core\bin\Debug\net9.0\NoteWiz.Core.deps.json
+C:\Users\d-disal\n\notewizback\NoteWiz\src\NoteWiz.Core\bin\Debug\net9.0\NoteWiz.Core.dll
+C:\Users\d-disal\n\notewizback\NoteWiz\src\NoteWiz.Core\bin\Debug\net9.0\NoteWiz.Core.pdb
+C:\Users\d-disal\n\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\d-disal\n\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.AssemblyInfoInputs.cache
+C:\Users\d-disal\n\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.AssemblyInfo.cs
+C:\Users\d-disal\n\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.csproj.CoreCompileInputs.cache
+C:\Users\d-disal\n\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.sourcelink.json
+C:\Users\d-disal\n\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.dll
+C:\Users\d-disal\n\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\refint\NoteWiz.Core.dll
+C:\Users\d-disal\n\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\NoteWiz.Core.pdb
+C:\Users\d-disal\n\notewizback\NoteWiz\src\NoteWiz.Core\obj\Debug\net9.0\ref\NoteWiz.Core.dll
