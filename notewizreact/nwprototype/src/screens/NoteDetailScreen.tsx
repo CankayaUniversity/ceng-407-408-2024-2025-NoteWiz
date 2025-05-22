@@ -756,7 +756,7 @@ const NoteDetailScreen = () => {
             setAiModalVisible(true);
           }}
         >
-          <Text style={{ color: '#fff', fontWeight: 'bold' }}>AI'ye Soru Sor</Text>
+          <Text style={{ color: '#fff', fontWeight: 'bold' }}>Not ile ilgili AI'ya Soru Sor</Text>
         </TouchableOpacity>
       </View>
       <KeyboardAvoidingView
@@ -1115,8 +1115,7 @@ const NoteDetailScreen = () => {
                 setAiLoading(true);
                 setAiResponse('');
                 try {
-                  const fullPrompt = `"${selectedText}"
-\nKullanıcıdan gelen soru: ${aiPrompt}`;
+                  const fullPrompt = `"${selectedText}"\nKullanıcıdan gelen soru: ${aiPrompt}`;
                   const result = await askAI(fullPrompt);
                   setAiResponse(result);
                 } catch (e) {

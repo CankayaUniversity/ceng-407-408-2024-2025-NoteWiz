@@ -41,6 +41,7 @@ import { CreateIcon, FolderIcon, DocumentIcon, ImageIcon, PdfIcon, CloseIcon, Tr
 import { folderService } from '../services/folderService';
 import { apiClient } from '../services/newApi';
 import { getSummary } from '../services/openai';
+import { Folder } from '../services/folderService';
 
 const { height } = Dimensions.get('window');
 const HEADER_MAX_HEIGHT = Platform.OS === 'ios' ? 150 : 170;
@@ -66,7 +67,7 @@ const getColorFromId = (id: string): string => {
 // We can use the Note interface for folders as well since the Note type 
 // already includes isFolder and parentFolderId properties.
 // Just creating a type alias for clarity
-type Folder = Note;
+// type Folder = Note;
 
 // UpdateCoverDTO should match the type definition from the noteService
 // imported through the NoteContext
@@ -102,14 +103,15 @@ const NotesScreen: React.FC = () => {
   const [newFolderName, setNewFolderName] = useState('');
   const [newFolderColor, setNewFolderColor] = useState('#4C6EF5');
   const [newFolderIcon, setNewFolderIcon] = useState('folder');
-  const folderColors = ['#4C6EF5','#FFD43B','#63E6BE','#FF8787','#845EF7','#FFA94D'];
-  const folderIcons = ['folder','archive','star','description','insert-drive-file'];
+  const [folderColors, setFolderColors] = useState(['#4C6EF5','#FFD43B','#63E6BE','#FF8787','#845EF7','#FFA94D']);
+  const [folderIcons, setFolderIcons] = useState(['folder','archive','star','description','insert-drive-file']);
   const [selectedFolderForAdd, setSelectedFolderForAdd] = useState<Folder | null>(null);
   const [showAddNoteModal, setShowAddNoteModal] = useState(false);
   const [selectedNotesToAdd, setSelectedNotesToAdd] = useState<string[]>([]);
   const [folderNoteCounts, setFolderNoteCounts] = useState<{ [key: string]: number }>({});
   const [summarizingNoteId, setSummarizingNoteId] = useState<string | null>(null);
   const [aiResponses, setAiResponses] = useState<{ [noteId: string]: string }>({});
+  const [folders, setFolders] = useState<Folder[]>([]);
 
   // Predefined cover options
   const coverOptions = [
@@ -409,22 +411,30 @@ const NotesScreen: React.FC = () => {
     );
   };
 
-  // Klasörleri ve notları ayıran fonksiyonlar
-  const folders = notes.filter(n => n.isFolder);
-  const notesWithoutFolder = notes.filter(n => !n.folderId && !n.isFolder);
-  const notesByFolder = folders.map(folder => ({
-    folder,
-    notes: notes.filter(n => n.folderId && n.folderId.toString() === folder.id.toString() && !n.isFolder)
-  }));
+  // Klasörleri backend'den çek
+  const loadFolders = useCallback(async () => {
+    try {
+      const data = await folderService.getFolders();
+      setFolders(data);
+    } catch (err) {
+      setFolders([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadFolders();
+  }, [loadFolders]);
 
   // Klasör ekleme fonksiyonu
   const handleAddFolder = async () => {
     if (!newFolderName.trim()) return;
     try {
       await folderService.addFolder(newFolderName, newFolderColor);
-      await loadNotes(); // Klasör ekledikten sonra notes'u backendden tekrar çek
+      await loadFolders();
       setShowAddFolderModal(false);
       setNewFolderName('');
+      setNewFolderColor('#4C6EF5');
+      setNewFolderIcon('folder');
     } catch (err) {
       Alert.alert('Klasör eklenemedi', 'Bir hata oluştu.');
     }
@@ -432,18 +442,15 @@ const NotesScreen: React.FC = () => {
 
   // Klasör silme fonksiyonu
   const handleDeleteFolder = async (folderId: string) => {
+    // Önce UI'dan hemen kaldır
+    const prevFolders = [...folders];
+    setFolders(folders.filter(f => f.id !== folderId));
     try {
-      // Önce klasördeki notların folderId'sini null yap
-      const notesInFolder = notes.filter(n => n.folderId && String(n.folderId) === String(folderId));
-      for (const note of notesInFolder) {
-        await moveNoteToFolder(note.id, null);
-      }
-      // Sonra klasörü sil
       await folderService.deleteFolder(Number(folderId));
-      // Klasörleri tekrar çek veya state'ten çıkar
-      // setFolders(folders.filter(f => f.id !== folderId));
+      // Başarılıysa bir şey yapmaya gerek yok
     } catch (err) {
       Alert.alert('Klasör silinemedi', 'Bir hata oluştu.');
+      setFolders(prevFolders); // Hata olursa eski state'i geri yükle
     }
   };
 
@@ -571,47 +578,80 @@ const NotesScreen: React.FC = () => {
       {renderHeader()}
 
       {/* Category Filter */}
-      <CategoryFilter
-        selectedCategory={selectedCategory}
-        onSelectCategory={setSelectedCategory}
-      />
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, marginTop: 4 }}>
+        <Text style={{ color: '#4C6EF5', fontSize: 13, marginRight: 8 }}> Kategoriye göre Filtrele:</Text>
+        <CategoryFilter
+          selectedCategory={selectedCategory}
+          onSelectCategory={setSelectedCategory}
+        />
+      </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.listContent}>
         {/* Klasörler */}
         {currentFolder === null && folders.length > 0 && (
           <View style={{ marginBottom: 24 }}>
             <Text style={{ fontWeight: 'bold', fontSize: 17, marginBottom: 8 }}>Klasörler</Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-              {folders.map(folder => (
-                <View key={folder.id} style={{ alignItems: 'center', marginRight: 16, minWidth: 70, marginBottom: 12 }}>
-                  <TouchableOpacity 
-                    style={{ alignItems: 'center' }}
-                    onPress={() => navigation.navigate('FolderDetail', { folderId: folder.id.toString() })}
-                  >
-                    {/* Klasör ikonu */}
-                    {folder.icon && typeof folder.icon === 'string' ? (
-                      <Icon name={folder.icon} size={32} color={folder.color || COLORS.primary.main} />
-                    ) : (
-                      <FolderIcon size={32} color={folder.color || COLORS.primary.main} />
-                    )}
-                    <Text style={{ fontSize: 14, fontWeight: 'bold', marginTop: 4 }}>{folder.name || folder.title}</Text>
-                    {/* Not sayısı badge */}
-                    <View style={{ backgroundColor: '#228be6', borderRadius: 10, minWidth: 20, height: 20, alignItems: 'center', justifyContent: 'center', marginTop: 2, paddingHorizontal: 6 }}>
-                      <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 12 }}>{folderNoteCounts[folder.id] ?? 0}</Text>
-                    </View>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => handleDeleteFolder(String(folder.id))} style={{ marginTop: 2 }}>
-                    <Text style={{ color: '#FA5252', fontSize: 12 }}>Sil</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: 'row' }} contentContainerStyle={{ alignItems: 'center', paddingVertical: 4 }}>
+              {folders.map(folder => {
+                console.log('folder:', folder);
+                return (
+                  <View key={folder.id} style={{
+                    width: 90,
+                    alignItems: 'center',
+                    marginRight: 16,
+                    backgroundColor: '#f4f6fa',
+                    borderRadius: 12,
+                    padding: 10,
+                    shadowColor: '#000',
+                    shadowOpacity: 0.08,
+                    shadowRadius: 4,
+                    elevation: 2
+                  }}>
+                    <TouchableOpacity 
+                      style={{ alignItems: 'center' }}
+                      onPress={() => navigation.navigate('FolderDetail', { folderId: folder.id.toString() })}
+                    >
+                      {/* Klasör ikonu */}
+                      {folder.icon && typeof folder.icon === 'string' ? (
+                        <Icon name={folder.icon} size={32} color={folder.color || COLORS.primary.main} />
+                      ) : (
+                        <FolderIcon size={32} color={folder.color || COLORS.primary.main} />
+                      )}
+                      <Text style={{ fontSize: 13, fontWeight: 'bold', marginTop: 6, textAlign: 'center' }}>{folder.name}</Text>
+                      {/* Not sayısı badge */}
+                      <View style={{ backgroundColor: '#228be6', borderRadius: 10, minWidth: 20, height: 20, alignItems: 'center', justifyContent: 'center', marginTop: 2, paddingHorizontal: 6 }}>
+                        <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 12 }}>{folderNoteCounts[folder.id] ?? 0}</Text>
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => handleDeleteFolder(String(folder.id))} style={{ marginTop: 2 }}>
+                      <Text style={{ color: '#FA5252', fontSize: 12 }}>Sil</Text>
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
+              {/* Artı butonu klasörlerin hemen yanında */}
+              <TouchableOpacity 
+                style={[styles.addButton, { marginRight: 8 }]}
+                onPress={() => setShowAddFolderModal(true)}
+              >
+                <CreateIcon size={24} color={COLORS.primary.main} />
+              </TouchableOpacity>
+            </ScrollView>
           </View>
         )}
         {/* Klasörsüz Notlar yerine Tüm Notlar başlığıyla, currentFolder === null iken tüm notları göster */}
         {currentFolder === null && sortedItems().filter(note => !note.isFolder).length > 0 && (
           <View style={{ marginBottom: 24 }}>
-            <Text style={{ fontWeight: 'bold', fontSize: 17, marginBottom: 8 }}>Tüm Notlar</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <Text style={{ fontWeight: 'bold', fontSize: 17 }}>Tüm Notlar</Text>
+              <TouchableOpacity
+                style={{ alignItems: 'center' }}
+                onPress={handleCreateNote}
+              >
+                <CreateIcon size={28} color={COLORS.primary.main} />
+                <Text style={{ color: COLORS.primary.main, fontSize: 13, marginTop: 2 }}>Not Ekle</Text>
+              </TouchableOpacity>
+            </View>
             {sortedItems().filter(note => !note.isFolder).map(note => (
               <View key={note.id} style={{ position: 'relative', marginBottom: 8 }}>
                 <NoteCard
@@ -743,7 +783,16 @@ const NotesScreen: React.FC = () => {
         )}
         {notes.filter(note => !note.isFolder && (note.folderId === null || note.folderId === undefined)).length > 0 && (
           <View style={{ marginBottom: 24 }}>
-            <Text style={{ fontWeight: 'bold', fontSize: 17, marginBottom: 8 }}>Klasörsüz Notlar</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <Text style={{ fontWeight: 'bold', fontSize: 17 }}>Klasörsüz Notlar</Text>
+              <TouchableOpacity
+                style={{ alignItems: 'center' }}
+                onPress={handleCreateNote}
+              >
+                <CreateIcon size={28} color={COLORS.primary.main} />
+                <Text style={{ color: COLORS.primary.main, fontSize: 13, marginTop: 2 }}>Not Ekle</Text>
+              </TouchableOpacity>
+            </View>
             {notes.filter(note => !note.isFolder && (note.folderId === null || note.folderId === undefined)).map(note => (
               <View key={note.id} style={{ position: 'relative', marginBottom: 8 }}>
                 <NoteCard
@@ -808,131 +857,7 @@ const NotesScreen: React.FC = () => {
       </ScrollView>
 
       {/* FAB Menu */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={toggleFABMenu}
-      >
-        {showFABMenu ? (
-          <CloseIcon size={24} color="#FFFFFF" />
-        ) : (
-          <CreateIcon size={24} color="#FFFFFF" />
-        )}
-      </TouchableOpacity>
-
-      {/* FAB Menu Options */}
-      {showFABMenu && (
-        <View style={styles.fabMenu}>
-          <TouchableOpacity
-            style={styles.fabMenuItem}
-            onPress={handleCreateNote}
-          >
-            <View style={[styles.fabMenuIcon, { backgroundColor: '#4C6EF5' }]}>
-              <DocumentIcon size={20} color="#FFFFFF" />
-            </View>
-            <Text style={styles.fabMenuText}>New Note</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.fabMenuItem}
-            onPress={handlePickPdf}
-          >
-            <View style={[styles.fabMenuIcon, { backgroundColor: '#FA5252' }]}>
-              <PdfIcon size={20} color="#FFFFFF" />
-            </View>
-            <Text style={styles.fabMenuText}>New PDF</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.fabMenuItem}
-            onPress={handleCreateFolder}
-          >
-            <View style={[styles.fabMenuIcon, { backgroundColor: '#40C057' }]}>
-              <FolderIcon size={20} color="#FFFFFF" />
-            </View>
-            <Text style={styles.fabMenuText}>New Folder</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.fabMenuItem}
-            onPress={handleImportFile}
-          >
-            <View style={[styles.fabMenuIcon, { backgroundColor: '#FD7E14' }]}>
-              <ImageIcon size={20} color="#FFFFFF" />
-            </View>
-            <Text style={styles.fabMenuText}>Import File</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* Cover Picker Modal */}
-      <Modal
-        visible={showCoverPicker}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowCoverPicker(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Cover</Text>
-              <TouchableOpacity
-                onPress={() => setShowCoverPicker(false)}
-              >
-                <CloseIcon size={24} color="#333" />
-              </TouchableOpacity>
-            </View>
-            
-            <FlatList
-              data={coverOptions}
-              keyExtractor={(item) => item.id}
-              numColumns={2}
-              renderItem={({ item }) => {
-                const note = selectedNoteId ? 
-                  (notes.find(n => n.id.toString() === selectedNoteId) || null) : 
-                  null;
-                return (
-                  <TouchableOpacity
-                    style={styles.coverOption}
-                    onPress={() => handleCoverSelect(note, item.id)}
-                  >
-                    <View style={styles.coverPreview}>
-                      {item.image && item.image !== '' ? (
-                        <Image
-                          source={item.image}
-                          style={styles.coverImage}
-                          resizeMode="cover"
-                        />
-                      ) : (
-                        <View style={[
-                          styles.noCoverPlaceholder, 
-                          item.id !== 'none' ? { backgroundColor: item.color } : undefined
-                        ]}>
-                          <Text style={[
-                            styles.noCoverText, 
-                            item.id !== 'none' ? { color: '#FFFFFF' } : undefined
-                          ]}>
-                            {item.id === 'none' ? 'No Cover' : item.title[0]}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                    <Text style={styles.coverTitle}>{item.title}</Text>
-                  </TouchableOpacity>
-                );
-              }}
-            />
-          </View>
-        </View>
-      </Modal>
-
-      {/* Background overlay when FAB menu is open */}
-      {showFABMenu && (
-        <TouchableOpacity
-          style={styles.overlay}
-          activeOpacity={1}
-          onPress={toggleFABMenu}
-        />
-      )}
+      {/* FAB veya sağ alt köşedeki artı butonunu kaldır */}
 
       {/* Klasör ekleme modalı */}
       <Modal visible={showAddFolderModal} transparent animationType="slide">
@@ -1186,6 +1111,28 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.text.primary,
     textAlign: 'center',
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: SPACING.md,
+    paddingTop: Platform.OS === 'ios' ? 40 : 20,
+  },
+  addButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: SPACING.md,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
   },
 });
 
