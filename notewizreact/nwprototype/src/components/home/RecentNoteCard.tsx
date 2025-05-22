@@ -1,22 +1,30 @@
 // src/components/home/RecentNoteCard.tsx
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, useWindowDimensions } from 'react-native';
 import Animated, { FadeInRight } from 'react-native-reanimated';
 
 interface RecentNoteCardProps {
   note: any; // Note tipini kendi yapınıza göre güncelleyin
   index: number;
   onPress: () => void;
+  categoryColor?: string;
 }
 
-export const RecentNoteCard: React.FC<RecentNoteCardProps> = ({ note, index, onPress }) => {
+export const RecentNoteCard: React.FC<RecentNoteCardProps> = ({ note, index, onPress, categoryColor }) => {
+  const { width } = useWindowDimensions();
+  // 2 kart yan yana, aralarda padding: 8, toplam 3*8=24px boşluk, kalan genişliği böl
+  const cardWidth = (width - 8 * 3) / 2;
   return (
     <Animated.View
       entering={FadeInRight.delay(100 + index * 100)}
-      style={styles.recentCardContainer}
+      style={[styles.recentCardContainer, { width: cardWidth }]}
     >
       <TouchableOpacity
-        style={styles.recentCard}
+        style={[
+          styles.recentCard,
+          categoryColor && { backgroundColor: categoryColor + '20' },
+          { width: '100%' }
+        ]}
         onPress={onPress}
         activeOpacity={0.7}
       >
@@ -24,7 +32,7 @@ export const RecentNoteCard: React.FC<RecentNoteCardProps> = ({ note, index, onP
           {note.title}
         </Text>
         <View style={styles.recentCardFooter}>
-          <Text style={styles.recentCardCategory}>{note.category}</Text>
+          <Text style={[styles.recentCardCategory, categoryColor && { color: categoryColor }]}>{note.category}</Text>
           <Text style={styles.recentCardDate}>
             {new Date(note.updatedAt).toLocaleDateString()}
           </Text>
@@ -36,7 +44,6 @@ export const RecentNoteCard: React.FC<RecentNoteCardProps> = ({ note, index, onP
 
 const styles = StyleSheet.create({
   recentCardContainer: {
-    width: '50%',
     padding: 8,
   },
   recentCard: {
@@ -44,17 +51,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     height: 140,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
+    borderLeftWidth: 4,
+    borderLeftColor: '#4C6EF5',
   },
   recentCardTitle: {
     fontSize: 15,

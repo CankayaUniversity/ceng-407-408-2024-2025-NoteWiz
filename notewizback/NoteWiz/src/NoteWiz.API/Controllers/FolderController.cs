@@ -4,6 +4,7 @@ using NoteWiz.Infrastructure.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 
 namespace NoteWiz.API.Controllers
 {
@@ -19,9 +20,9 @@ namespace NoteWiz.API.Controllers
 
         // GET: api/folder
         [HttpGet]
-        public IActionResult GetFolders()
+        public async Task<ActionResult<IEnumerable<Folder>>> GetFolders()
         {
-            var folders = _context.Folders.ToList();
+            var folders = await _context.Folders.ToListAsync();
             return Ok(folders);
         }
 

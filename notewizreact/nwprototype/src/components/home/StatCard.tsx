@@ -2,19 +2,22 @@
 import React, { ReactNode } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import Animated, { FadeInRight } from 'react-native-reanimated';
+import { useWindowDimensions } from 'react-native';
 
 interface StatCardProps {
   icon: ReactNode;
   number: number;
   label: string;
   delay?: number;
+  isLast?: boolean;
+  width?: number;
 }
 
-export const StatCard: React.FC<StatCardProps> = ({ icon, number, label, delay = 0 }) => {
+export const StatCard: React.FC<StatCardProps> = ({ icon, number, label, delay = 0, isLast = false, width }) => {
   return (
     <Animated.View 
       entering={FadeInRight.delay(delay)}
-      style={styles.statCard}
+      style={[styles.statCard, !isLast && { marginRight: 20 }, width ? { width } : {}]}
     >
       <View style={styles.iconContainer}>
         {icon}
@@ -28,40 +31,42 @@ export const StatCard: React.FC<StatCardProps> = ({ icon, number, label, delay =
 const styles = StyleSheet.create({
   statCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginRight: 12,
-    width: 120,
+    borderRadius: 18,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+    marginRight: 20,
+    minHeight: 90,
     alignItems: 'center',
+    justifyContent: 'center',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
+        shadowOpacity: 0.06,
+        shadowRadius: 6,
       },
       android: {
-        elevation: 4,
+        elevation: 1,
       },
     }),
   },
   iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(76, 110, 245, 0.1)',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(76, 110, 245, 0.06)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   number: {
-    fontSize: 20,
+    fontSize: 17,
     fontWeight: 'bold',
     color: '#1A1A1A',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   label: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#666666',
   },
 });

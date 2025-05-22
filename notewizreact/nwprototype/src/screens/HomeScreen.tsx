@@ -14,6 +14,7 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  useWindowDimensions,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -29,7 +30,7 @@ import { apiClient } from '../services/newApi';
 import FriendRequestsScreen from './FriendRequestsScreen';
 
 const { width, height } = Dimensions.get('window');
-const HEADER_HEIGHT = Platform.OS === 'ios' ? 280 : 300;
+const HEADER_HEIGHT = Platform.OS === 'ios' ? 340 : 360;
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -41,13 +42,17 @@ const HomeScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [friendCount, setFriendCount] = useState(0);
   const [requestCount, setRequestCount] = useState(0);
+  const { width: screenWidth } = useWindowDimensions();
+  const statCardMargin = 20;
+  const statCardCount = 4;
+  const statCardWidth = (screenWidth - statCardMargin * (statCardCount - 1) - 40) / statCardCount; // 40: yatay padding
 
   const filteredNotes = notes;
 
   const importantNotes = filteredNotes.filter(note => note.isImportant);
   const recentNotes = [...filteredNotes]
     .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-    .slice(0, 6);
+    .slice(0, 2);
 
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
@@ -128,59 +133,50 @@ const HomeScreen = () => {
               icon={<NotesIcon size={24} color="#4A66D7" />}
               number={notes.length}
               label="Total Notes"
+              width={statCardWidth}
             />
             <StatCard
               icon={<StarIcon size={24} color="#FFD700" />}
               number={importantNotes.length}
               label="Important"
+              width={statCardWidth}
             />
             <StatCard
               icon={<TimeIcon size={24} color="#4A66D7" />}
               number={recentNotes.length}
               label="Recent"
+              width={statCardWidth}
             />
             <StatCard
               icon={<StarIcon size={24} color="#4A66D7" />}
               number={friendCount}
               label="Friends"
+              isLast={true}
+              width={statCardWidth}
             />
           </ScrollView>
 
-          <View style={{ gap: 10, marginHorizontal: 16, marginTop: 8 }}>
+          <View style={styles.friendButtonsRow}>
             <TouchableOpacity
-              style={{ backgroundColor: '#4C6EF5', padding: 12, borderRadius: 8, alignItems: 'center' }}
+              style={styles.friendButton}
               onPress={() => navigation.navigate('FriendSearch')}
             >
-              <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 16 }}>Arkadaş Ekle</Text>
+              <Text style={styles.friendButtonText}>Arkadaş Ekle</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={{ backgroundColor: '#4C6EF5', padding: 12, borderRadius: 8, alignItems: 'center' }}
+              style={styles.friendButton}
               onPress={() => navigation.navigate('FriendsList')}
             >
-              <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 16 }}>Arkadaşlarım</Text>
+              <Text style={styles.friendButtonText}>Arkadaşlarım</Text>
             </TouchableOpacity>
-          </View>
-
-          <View style={{ alignItems: 'center', marginTop: 12, marginBottom: 8 }}>
             <TouchableOpacity
-              style={{ backgroundColor: '#4C6EF5', padding: 12, borderRadius: 8, alignItems: 'center', minWidth: 160 }}
+              style={[styles.friendButton, { position: 'relative' }]}
               onPress={() => navigation.navigate('FriendRequests')}
             >
-              <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 16 }}>Gelen İstekler</Text>
+              <Text style={styles.friendButtonText}>Gelen İstekler</Text>
               {requestCount > 0 && (
-                <View style={{
-                  position: 'absolute',
-                  top: -8,
-                  right: -8,
-                  backgroundColor: 'red',
-                  borderRadius: 10,
-                  width: 24,
-                  height: 24,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  zIndex: 10
-                }}>
-                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 14 }}>{requestCount}</Text>
+                <View style={styles.requestBadge}>
+                  <Text style={styles.requestBadgeText}>{requestCount}</Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -231,18 +227,23 @@ const HomeScreen = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recent Notes</Text>
           <View style={styles.recentNotesGrid}>
-            {recentNotes.map((note, index) => (
-              <RecentNoteCard
-                key={`${note.id}_${index}`}
-                note={note}
-                index={index}
-                onPress={() => navigation.navigate('NoteDetail', { noteId: note.id })}
-              />
-            ))}
+            {recentNotes.map((note, index) => {
+              const category = note.tags?.[0] || 'other';
+              const categoryColor = COLORS.categories[category as keyof typeof COLORS.categories] || COLORS.categories.other;
+              return (
+                <RecentNoteCard
+                  key={`${note.id}_${index}`}
+                  note={note}
+                  index={index}
+                  onPress={() => navigation.navigate('NoteDetail', { noteId: note.id })}
+                  categoryColor={categoryColor}
+                />
+              );
+            })}
           </View>
         </View>
 
-        <View style={styles.bottomSpacing} />
+        {/* <View style={styles.bottomSpacing} /> */}
       </ScrollView>
 
       <FloatingActionButton
@@ -385,9 +386,11 @@ const styles = StyleSheet.create({
   },
   statsContainer: {
     marginBottom: 24,
+    overflow: 'visible',
   },
   statsContent: {
     paddingRight: 20,
+    overflow: 'visible',
   },
   scrollView: {
     flex: 1,
@@ -395,10 +398,12 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingTop: 24,
+    paddingBottom: 0,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 12,
     paddingHorizontal: 20,
+    marginTop: 8,
   },
   sectionTitle: {
     fontSize: 20,
@@ -415,7 +420,7 @@ const styles = StyleSheet.create({
     marginHorizontal: -8,
   },
   bottomSpacing: {
-    height: 100,
+    height: 0,
   },
   fab: {
     position: 'absolute',
@@ -466,6 +471,44 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  friendButtonsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 8,
+    marginHorizontal: 0,
+  },
+  friendButton: {
+    flex: 1,
+    backgroundColor: '#4C6EF5',
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 4,
+  },
+  friendButtonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
+  requestBadge: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: 'red',
+    borderRadius: 10,
+    width: 22,
+    height: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  requestBadgeText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 13,
   },
 });
 
