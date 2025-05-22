@@ -33,6 +33,7 @@ import { ColorPicker } from '../components/drawing/ColorPicker';
 
 import { COLORS, SHADOWS, SPACING } from '../constants/theme';
 import Animated, { useSharedValue } from 'react-native-reanimated';
+import { Modal as RNModal } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -58,6 +59,9 @@ interface TextNoteItem {
 type DrawingScreenRouteProp = RouteProp<RootStackParamList, 'Drawing'>;
 type DrawingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Drawing'>;
 
+// Temel renkler
+const BASIC_COLORS = ['#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#FFFFFF'];
+
 const DrawingScreen: React.FC = () => {
   const route = useRoute<DrawingScreenRouteProp>();
   const navigation = useNavigation<DrawingScreenNavigationProp>();
@@ -70,6 +74,10 @@ const DrawingScreen: React.FC = () => {
   // Renk, kalem kalınlığı
   const [selectedColor, setSelectedColor] = useState<string>('#000000');
   const [selectedStrokeWidth, setSelectedStrokeWidth] = useState<number>(3);
+  const selectedColorRef = useRef(selectedColor);
+  const selectedStrokeWidthRef = useRef(selectedStrokeWidth);
+  useEffect(() => { selectedColorRef.current = selectedColor; }, [selectedColor]);
+  useEffect(() => { selectedStrokeWidthRef.current = selectedStrokeWidth; }, [selectedStrokeWidth]);
 
   // METİN NOTLARI
   const [textNotes, setTextNotes] = useState<TextNoteItem[]>([]);
@@ -85,6 +93,9 @@ const DrawingScreen: React.FC = () => {
   // Araç seçimi için state'e 'move' ekle
   const [selectedTool, setSelectedTool] = useState<'pen' | 'highlighter' | 'eraser' | 'move'>('pen');
   const dragOffsetRef = useRef<{ [key: string]: { x: number; y: number } }>({});
+
+  // State: renk seçici modalı açık mı?
+  const [colorPickerVisible, setColorPickerVisible] = useState(false);
 
   // PanResponder => çizim
   const panResponder = useRef(
@@ -123,8 +134,8 @@ const DrawingScreen: React.FC = () => {
           const finalPath = generatePath(currentPoints.current);
           const newStroke: Stroke = {
             path: finalPath,
-            color: selectedColor,
-            strokeWidth: selectedStrokeWidth,
+            color: selectedColorRef.current,
+            strokeWidth: selectedStrokeWidthRef.current,
           };
           setStrokes((prev) => [...prev, newStroke]);
         }
@@ -174,7 +185,8 @@ const DrawingScreen: React.FC = () => {
       const drawingData = JSON.stringify({
         strokes,
         canvasWidth: width,
-        canvasHeight: height
+        canvasHeight: height,
+        textNotes,
       });
 
       // Backend'e kaydet
@@ -199,6 +211,7 @@ const DrawingScreen: React.FC = () => {
         const lastDrawing = drawings[drawings.length - 1];
         const drawingData = JSON.parse(lastDrawing.drawingData);
         setStrokes(drawingData.strokes);
+        setTextNotes(drawingData.textNotes || []);
       }
     } catch (error) {
       console.error('Error loading drawing:', error);
@@ -256,6 +269,17 @@ const DrawingScreen: React.FC = () => {
         onSave={saveDrawingData}
         canUndo={canUndo}
       />
+
+      {/* Sol üstte küçük renk paleti */}
+      <View style={styles.colorPaletteBar}>
+        {BASIC_COLORS.map((color) => (
+          <TouchableOpacity
+            key={color}
+            style={[styles.colorDot, { backgroundColor: color, borderWidth: selectedColor === color ? 2 : 1, borderColor: selectedColor === color ? '#4C6EF5' : '#E5E5E5' }]}
+            onPress={() => setSelectedColor(color)}
+          />
+        ))}
+      </View>
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -356,7 +380,7 @@ const DrawingScreen: React.FC = () => {
                 )}
                 {/* Metin alanı */}
                 <TouchableOpacity
-                  style={{ flex: 1, marginLeft: selectedTool === 'move' ? 24 : 0 }}
+                  style={{ flex: 1, marginLeft: 24 }}
                   onPress={() => handleNotePress(note)}
                   activeOpacity={0.8}
                 >
@@ -381,26 +405,14 @@ const DrawingScreen: React.FC = () => {
           >
             <Text style={{ color: selectedTool === 'move' ? '#FFF' : '#333', fontSize: 18 }}>🖐️</Text>
           </TouchableOpacity>
-          <ColorPicker
-            selectedColor={selectedColor}
-            onSelectColor={setSelectedColor}
-          />
+          <TouchableOpacity
+            style={styles.fabInline}
+            onPress={handleAddTextNote}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.fabText}>+T</Text>
+          </TouchableOpacity>
         </View>
-
-        <DrawingToolbar
-          position={position}
-          selectedTool={selectedTool as 'pen' | 'eraser' | 'highlighter'}
-          onToolSelect={(tool) => setSelectedTool(tool)}
-        />
-
-        {/* Metin ekleme butonu */}
-        <TouchableOpacity
-          style={[styles.fab, { bottom: 140 }]}
-          onPress={handleAddTextNote}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.fabText}>+T</Text>
-        </TouchableOpacity>
       </KeyboardAvoidingView>
 
       {/* NOT DÜZENLEME MODAL */}
@@ -567,5 +579,38 @@ const styles = StyleSheet.create({
     backgroundColor: '#EEE',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  colorPickerInline: {
+    marginLeft: 8,
+    marginRight: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    maxWidth: 120,
+    maxHeight: 32,
+  },
+  fabInline: {
+    marginLeft: 8,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#4C6EF5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...SHADOWS.md,
+  },
+  colorPaletteBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    marginTop: 2,
+    marginBottom: 2,
+    gap: 8,
+  },
+  colorDot: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    marginHorizontal: 2,
   },
 });
