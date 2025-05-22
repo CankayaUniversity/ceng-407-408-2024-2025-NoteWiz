@@ -82,11 +82,22 @@ const DrawingScreen: React.FC = () => {
   // Reanimated shared value (DrawingToolbar için)
   const position = useSharedValue<number>(0);
 
+  // Araç seçimi için state'e 'move' ekle
+  const [selectedTool, setSelectedTool] = useState<'pen' | 'highlighter' | 'eraser' | 'move'>('pen');
+  const dragOffsetRef = useRef<{ [key: string]: { x: number; y: number } }>({});
+
   // PanResponder => çizim
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponder: () => {
+        // Eğer bir metin bloğu sürükleniyorsa çizim PanResponder'ı devreye girmesin
+        if (editingNote) return false;
+        return true;
+      },
+      onMoveShouldSetPanResponder: () => {
+        if (editingNote) return false;
+        return true;
+      },
 
       onPanResponderGrant: (evt: GestureResponderEvent) => {
         currentPoints.current = [];
@@ -229,6 +240,11 @@ const DrawingScreen: React.FC = () => {
     setTempContent('');
   };
 
+  // Not silme fonksiyonu
+  const handleDeleteNote = (noteId: string) => {
+    setTextNotes((prev) => prev.filter((item) => item.id !== noteId));
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
@@ -246,7 +262,7 @@ const DrawingScreen: React.FC = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         {/* Ana çizim alanı */}
-        <View style={styles.drawingArea} {...panResponder.panHandlers}>
+        <View style={styles.drawingArea} {...(selectedTool !== 'move' ? panResponder.panHandlers : {})}>
           <Svg style={StyleSheet.absoluteFill}>
             {strokes.map((stroke, idx) => (
               <Path
@@ -272,32 +288,99 @@ const DrawingScreen: React.FC = () => {
           </Svg>
 
           {/* Metin notlarını ekranda absolute View olarak göster */}
-          {textNotes.map((note) => (
-            <TouchableOpacity
-              key={note.id}
-              style={[
-                styles.noteItem,
-                {
-                  left: note.x,
-                  top: note.y,
-                },
-              ]}
-              onPress={() => handleNotePress(note)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.noteText}>{note.content}</Text>
-            </TouchableOpacity>
-          ))}
+          {textNotes.map((note) => {
+            // Sadece 'move' aracı seçiliyken handle için PanResponder aktif olsun
+            const handlePanResponder = selectedTool === 'move'
+              ? PanResponder.create({
+                  onStartShouldSetPanResponder: () => true,
+                  onPanResponderGrant: (evt, gestureState) => {
+                    if (evt && evt.persist) evt.persist();
+                    if (!evt || !evt.nativeEvent) return;
+                    dragOffsetRef.current[note.id] = {
+                      x: evt.nativeEvent.locationX,
+                      y: evt.nativeEvent.locationY,
+                    };
+                  },
+                  onPanResponderMove: (evt, gestureState) => {
+                    if (evt && evt.persist) evt.persist();
+                    if (!evt || !evt.nativeEvent) return;
+                    const offset = dragOffsetRef.current[note.id] || { x: 0, y: 0 };
+                    setTextNotes((prev) =>
+                      prev.map((item) =>
+                        item.id === note.id
+                          ? {
+                              ...item,
+                              x: evt.nativeEvent.pageX - offset.x,
+                              y: evt.nativeEvent.pageY - offset.y - (Platform.OS === 'ios' ? 0 : StatusBar.currentHeight || 0),
+                            }
+                          : item
+                      )
+                    );
+                  },
+                  onPanResponderRelease: () => {},
+                })
+              : undefined;
+
+            return (
+              <View
+                key={note.id}
+                style={[
+                  styles.noteItem,
+                  {
+                    left: note.x,
+                    top: note.y,
+                    minWidth: 80,
+                    minHeight: 40,
+                    // Genişlik: içeriğe göre ayarlanacak
+                    width: Math.max(80, note.content.length * 8 + 24), // 8px/karakter + handle
+                  },
+                ]}
+              >
+                {/* Sürükleme alanı sadece el aracı seçiliyken görünür ve aktif olur */}
+                {selectedTool === 'move' && (
+                  <View
+                    style={styles.dragHandle}
+                    {...(handlePanResponder ? handlePanResponder.panHandlers : {})}
+                  >
+                    <Text style={{ fontWeight: 'bold', fontSize: 16 }}>☰</Text>
+                  </View>
+                )}
+                {/* Silme butonu sadece el aracı seçiliyken sağ üstte görünür */}
+                {selectedTool === 'move' && (
+                  <TouchableOpacity
+                    style={styles.deleteHandle}
+                    onPress={() => handleDeleteNote(note.id)}
+                  >
+                    <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>×</Text>
+                  </TouchableOpacity>
+                )}
+                {/* Metin alanı */}
+                <TouchableOpacity
+                  style={{ flex: 1, marginLeft: selectedTool === 'move' ? 24 : 0 }}
+                  onPress={() => handleNotePress(note)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.noteText}>{note.content}</Text>
+                </TouchableOpacity>
+              </View>
+            );
+          })}
         </View>
 
         {/* Tools */}
         <View style={styles.toolsContainer}>
           <DrawingTools
-            selectedTool="pen"
-            onSelectTool={() => {}}
+            selectedTool={selectedTool as 'pen' | 'eraser' | 'highlighter'}
+            onSelectTool={(tool) => setSelectedTool(tool)}
             strokeWidth={selectedStrokeWidth}
             onStrokeWidthChange={setSelectedStrokeWidth}
           />
+          <TouchableOpacity
+            style={[styles.moveToolButton, selectedTool === 'move' && { backgroundColor: '#4C6EF5' }]}
+            onPress={() => setSelectedTool('move')}
+          >
+            <Text style={{ color: selectedTool === 'move' ? '#FFF' : '#333', fontSize: 18 }}>🖐️</Text>
+          </TouchableOpacity>
           <ColorPicker
             selectedColor={selectedColor}
             onSelectColor={setSelectedColor}
@@ -306,8 +389,8 @@ const DrawingScreen: React.FC = () => {
 
         <DrawingToolbar
           position={position}
-          selectedTool="pen"
-          onToolSelect={() => {}}
+          selectedTool={selectedTool as 'pen' | 'eraser' | 'highlighter'}
+          onToolSelect={(tool) => setSelectedTool(tool)}
         />
 
         {/* Metin ekleme butonu */}
@@ -330,7 +413,7 @@ const DrawingScreen: React.FC = () => {
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Not Düzenle</Text>
             <TextInput
-              style={styles.modalInput}
+              style={[styles.modalInput, { width: Math.max(120, tempContent.length * 8) }]}
               multiline
               value={tempContent}
               onChangeText={setTempContent}
@@ -392,14 +475,39 @@ const styles = StyleSheet.create({
   },
   noteItem: {
     position: 'absolute',
-    minWidth: 80,
-    minHeight: 40,
     padding: 8,
     backgroundColor: '#FFFDF8',
     borderWidth: 1,
     borderColor: '#E5E5E5',
     borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
     ...SHADOWS.sm,
+  },
+  dragHandle: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2,
+    backgroundColor: '#EEE',
+    borderTopLeftRadius: 8,
+  },
+  deleteHandle: {
+    position: 'absolute',
+    right: -18,
+    top: -12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2,
+    backgroundColor: '#F03E3E',
+    borderRadius: 12,
+    elevation: 2,
   },
   noteText: {
     fontSize: 14,
@@ -451,5 +559,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 10,
+  },
+  moveToolButton: {
+    marginLeft: 12,
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#EEE',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
