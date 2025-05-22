@@ -55,12 +55,15 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loadNotes = useCallback(async () => {
     try {
       setLoading(true);
-      const [notes, folders] = await Promise.all([
-        noteService.getNotes(),
-        folderService.getFolders()
-      ]);
-      // Notlar ve klasörleri tek dizide birleştir
-      setNotes([...notes, ...folders]);
+      const res = await apiClient.get('/notes');
+      console.log('API notes response:', res.data);
+      if (Array.isArray(res.data)) {
+        setNotes(res.data);
+      } else if (Array.isArray(res.data.notes)) {
+        setNotes(res.data.notes);
+      } else {
+        setNotes([]);
+      }
     } catch (err) {
       setError('Failed to load notes');
       console.error(err);
@@ -248,8 +251,17 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
   }, []);
 
-  const updateNoteSummary = useCallback((noteId: string, summary: string) => {
-    setNotes(prev => prev.map(note => note.id === noteId ? { ...note, summary } : note));
+  const updateNoteSummary = useCallback(async (noteId: string, summary: string) => {
+    try {
+      // Backend'e PATCH isteği gönder
+      await apiClient.patch(`/notes/${noteId}/summary`, summary, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      // Local state'i de güncelle
+      setNotes(prev => prev.map(note => note.id === noteId ? { ...note, summary } : note));
+    } catch (err) {
+      console.error('Summary güncellenemedi:', err);
+    }
   }, []);
 
   return (
