@@ -873,7 +873,7 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.HasOne("NoteWiz.Core.Entities.Note", "Note")
                         .WithMany("FolderNotes")
                         .HasForeignKey("NoteId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Folder");
@@ -982,7 +982,7 @@ namespace NoteWiz.Infrastructure.Migrations
                     b.HasOne("NoteWiz.Core.Entities.Note", "Note")
                         .WithMany("NoteDrawings")
                         .HasForeignKey("NoteId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Note");

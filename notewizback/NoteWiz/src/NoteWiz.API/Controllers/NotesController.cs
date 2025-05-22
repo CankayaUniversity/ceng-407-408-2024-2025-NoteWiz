@@ -86,7 +86,8 @@ namespace NoteWiz.API.Controllers
                             FullName = sw.SharedWithUser.FullName ?? string.Empty,
                             CreatedAt = sw.SharedWithUser.CreatedAt
                         } : null
-                    }).ToList() ?? new List<NoteShareResponseDTO>()
+                    }).ToList() ?? new List<NoteShareResponseDTO>(),
+                    FolderId = n.FolderId
                 }).ToList();
 
                 return Ok(noteDTOs);
@@ -129,7 +130,8 @@ namespace NoteWiz.API.Controllers
                         FullName = sw.SharedWithUser.FullName ?? string.Empty,
                         CreatedAt = sw.SharedWithUser.CreatedAt
                     } : null
-                }).ToList() ?? new List<NoteShareResponseDTO>()
+                }).ToList() ?? new List<NoteShareResponseDTO>(),
+                FolderId = n.FolderId
             });
             return Ok(noteDTOs);
         }
@@ -165,7 +167,8 @@ namespace NoteWiz.API.Controllers
                         FullName = sw.SharedWithUser.FullName ?? string.Empty,
                         CreatedAt = sw.SharedWithUser.CreatedAt
                     } : null
-                }).ToList() ?? new List<NoteShareResponseDTO>()
+                }).ToList() ?? new List<NoteShareResponseDTO>(),
+                FolderId = n.FolderId
             });
             return Ok(noteDTOs);
         }
@@ -224,7 +227,8 @@ namespace NoteWiz.API.Controllers
                 }).ToList() ?? new List<NoteShareResponseDTO>(),
                 IsPdf = isPdf,
                 PdfUrl = pdfUrl,
-                DocumentId = documentId
+                DocumentId = documentId,
+                FolderId = note.FolderId
             });
         }
 
@@ -274,7 +278,8 @@ namespace NoteWiz.API.Controllers
                         FullName = sw.SharedWithUser.FullName ?? string.Empty,
                         CreatedAt = sw.SharedWithUser.CreatedAt
                     } : null
-                }).ToList() ?? new List<NoteShareResponseDTO>()
+                }).ToList() ?? new List<NoteShareResponseDTO>(),
+                FolderId = note.FolderId
             });
         }
 
@@ -339,7 +344,8 @@ namespace NoteWiz.API.Controllers
                         FullName = sw.SharedWithUser.FullName ?? string.Empty,
                         CreatedAt = sw.SharedWithUser.CreatedAt
                     } : null
-                }).ToList() ?? new List<NoteShareResponseDTO>()
+                }).ToList() ?? new List<NoteShareResponseDTO>(),
+                FolderId = note.FolderId
             });
         }
 
@@ -462,7 +468,8 @@ namespace NoteWiz.API.Controllers
                             FullName = sw.SharedWithUser.FullName ?? string.Empty,
                             CreatedAt = sw.SharedWithUser.CreatedAt
                         } : null
-                    }).ToList() ?? new List<NoteShareResponseDTO>()
+                    }).ToList() ?? new List<NoteShareResponseDTO>(),
+                    FolderId = n.FolderId
                 }).ToList();
 
                 return Ok(noteDtos);
@@ -481,6 +488,18 @@ namespace NoteWiz.API.Controllers
             var note = await _noteService.GetNoteByIdAsync(noteId);
             if (note == null) return NotFound();
             note.CategoryId = newCategoryId;
+            note.UpdatedAt = DateTime.UtcNow;
+            await _noteService.UpdateNoteAsync(note);
+            return Ok(note);
+        }
+
+        // PATCH: api/notes/{noteId}/move-to-folder
+        [HttpPatch("{noteId}/move-to-folder")]
+        public async Task<IActionResult> MoveNoteToFolder(int noteId, [FromBody] int folderId)
+        {
+            var note = await _noteService.GetNoteByIdAsync(noteId);
+            if (note == null) return NotFound();
+            note.FolderId = folderId;
             note.UpdatedAt = DateTime.UtcNow;
             await _noteService.UpdateNoteAsync(note);
             return Ok(note);

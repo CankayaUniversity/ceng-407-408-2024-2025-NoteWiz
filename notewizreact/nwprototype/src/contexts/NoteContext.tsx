@@ -152,8 +152,8 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const deleteNote = useCallback(async (id: number | string) => {
     try {
       setLoading(true);
-      await noteService.deleteNote(id);
-      setNotes(prev => prev.filter(note => note.id !== id));
+      await noteService.deleteNote(id.toString());
+      setNotes(prev => prev.filter(note => note.id !== id.toString()));
     } catch (err) {
       setError('Failed to delete note');
       console.error(err);
@@ -166,8 +166,8 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateNoteCover = useCallback(async (id: number | string, coverData: UpdateCoverDTO) => {
     try {
       setLoading(true);
-      const updatedNote = await noteService.updateCover(id, coverData);
-      setNotes(prev => prev.map(note => note.id === id ? updatedNote : note));
+      const updatedNote = await noteService.updateCover(id.toString(), coverData);
+      setNotes(prev => prev.map(note => note.id === id.toString() ? updatedNote : note));
       return updatedNote;
     } catch (err) {
       setError('Failed to update note cover');
@@ -181,7 +181,7 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const shareNote = useCallback(async (id: number | string, userId: number | string, canEdit: boolean) => {
     try {
       setLoading(true);
-      await noteService.shareNote(id, userId, canEdit);
+      await noteService.shareNote(id.toString(), userId.toString(), canEdit);
     } catch (err) {
       setError('Failed to share note');
       console.error(err);
@@ -200,11 +200,11 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const folderNote: CreateNoteDTO = {
         title: folder.title,
         content: "",
-        tags: [],
+        tags: '',
         color: "#EFEFEF",
         isPinned: false,
         isFolder: true,
-        folderId: folder.parentFolderId
+        folderId: folder.parentFolderId !== null && folder.parentFolderId !== undefined ? folder.parentFolderId.toString() : null
       };
       
       const createdFolder = await noteService.createNote(folderNote);
@@ -219,25 +219,18 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const moveNoteToFolder = useCallback(async (noteId: number | string, folderId: number | string | null) => {
     if (!isAuthenticated) return;
-    
     try {
       setLoading(true);
-      // First, update the note's folderId
-      const noteData: UpdateNoteDTO = {
-        folderId: folderId
-      };
-      
-      // Update the note in the API
-      const updatedNote = await noteService.updateNote(noteId, noteData);
-      
-      // If moving to a folder, also add the relationship to FolderNotes
+      // folderId'yi string olarak gönder
+      const folderIdStr = folderId === null || folderId === undefined ? '0' : folderId.toString();
+      await apiClient.patch(`/notes/${noteId}/move-to-folder`, folderIdStr, {
+        headers: { 'Content-Type': 'application/json' }
+      });
       if (folderId) {
         await apiClient.post(`/folder/${folderId}/notes/${noteId}`);
       }
-      
-      // Update the local state
       setNotes(prev => prev.map(note => 
-        note.id === noteId ? { ...note, folderId } : note
+        note.id === noteId.toString() ? { ...note, folderId: folderId ? folderId.toString() : null } : note
       ));
     } catch (err) {
       setError('Failed to move note');

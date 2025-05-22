@@ -27,5 +27,6 @@ namespace NoteWiz.Core.DTOs
         public bool IsPdf { get; set; }
         public string? PdfUrl { get; set; }
         public string? Summary { get; set; }
+        public int? FolderId { get; set; }
     }
 } 

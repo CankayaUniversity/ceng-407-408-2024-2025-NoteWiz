@@ -63,7 +63,7 @@ namespace NoteWiz.Infrastructure.Data
                 .HasOne(nd => nd.Note)
                 .WithMany(n => n.NoteDrawings)
                 .HasForeignKey(nd => nd.NoteId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Configure relationship between Note and NoteImage
             modelBuilder.Entity<NoteImage>()
@@ -186,7 +186,7 @@ namespace NoteWiz.Infrastructure.Data
                 .HasOne(fn => fn.Note)
                 .WithMany(n => n.FolderNotes)
                 .HasForeignKey(fn => fn.NoteId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Configure FriendshipRequest relationships
             modelBuilder.Entity<FriendshipRequest>()
@@ -200,6 +200,8 @@ namespace NoteWiz.Infrastructure.Data
                 .WithMany(u => u.FriendshipRequestsReceived)
                 .HasForeignKey(f => f.ReceiverId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            
         }
     }
 } 
