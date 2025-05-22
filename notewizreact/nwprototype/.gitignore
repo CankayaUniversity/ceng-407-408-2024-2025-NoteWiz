@@ -72,3 +72,6 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+notewizback/NoteWiz/src/NoteWiz.API/appsettings.Development.json
+notewizback/NoteWiz/src/NoteWiz.API/appsettings.json

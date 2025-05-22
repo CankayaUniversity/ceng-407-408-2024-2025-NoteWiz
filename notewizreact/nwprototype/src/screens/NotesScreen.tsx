@@ -109,6 +109,7 @@ const NotesScreen: React.FC = () => {
   const [selectedNotesToAdd, setSelectedNotesToAdd] = useState<string[]>([]);
   const [folderNoteCounts, setFolderNoteCounts] = useState<{ [key: string]: number }>({});
   const [summarizingNoteId, setSummarizingNoteId] = useState<string | null>(null);
+  const [aiResponses, setAiResponses] = useState<{ [noteId: string]: string }>({});
 
   // Predefined cover options
   const coverOptions = [
@@ -640,8 +641,7 @@ const NotesScreen: React.FC = () => {
                       setSummarizingNoteId(note.id);
                       try {
                         const summary = await getSummary(note.content + '\nözetle');
-                        updateNoteSummary(note.id.toString(), summary);
-                        await loadNotes();
+                        setAiResponses(prev => ({ ...prev, [note.id]: summary }));
                       } catch (e) {
                         Alert.alert('Özet alınamadı', 'Bir hata oluştu.');
                       } finally {
@@ -652,8 +652,10 @@ const NotesScreen: React.FC = () => {
                   >
                     <Text style={{ color: '#fff', fontWeight: 'bold' }}>{summarizingNoteId === note.id ? 'Özetleniyor...' : 'Özetle'}</Text>
                   </TouchableOpacity>
-                  {note.summary && (
-                    <Text style={{ fontSize: 12, color: '#228be6', marginLeft: 8, fontStyle: 'italic', maxWidth: 180 }} numberOfLines={1} ellipsizeMode="tail">{note.summary}</Text>
+                  {aiResponses[note.id] && (
+                    <Text style={{ fontSize: 12, color: '#228be6', marginLeft: 8, fontStyle: 'italic', maxWidth: 180 }} numberOfLines={1} ellipsizeMode="tail">
+                      {aiResponses[note.id]}
+                    </Text>
                   )}
                 </View>
                 <TouchableOpacity
@@ -704,8 +706,7 @@ const NotesScreen: React.FC = () => {
                         setSummarizingNoteId(note.id);
                         try {
                           const summary = await getSummary(note.content + '\nözetle');
-                          updateNoteSummary(note.id.toString(), summary);
-                          await loadNotes();
+                          setAiResponses(prev => ({ ...prev, [note.id]: summary }));
                         } catch (e) {
                           Alert.alert('Özet alınamadı', 'Bir hata oluştu.');
                         } finally {
@@ -716,8 +717,10 @@ const NotesScreen: React.FC = () => {
                     >
                       <Text style={{ color: '#fff', fontWeight: 'bold' }}>{summarizingNoteId === note.id ? 'Özetleniyor...' : 'Özetle'}</Text>
                     </TouchableOpacity>
-                    {note.summary && (
-                      <Text style={{ fontSize: 12, color: '#228be6', marginLeft: 8, fontStyle: 'italic', maxWidth: 180 }} numberOfLines={1} ellipsizeMode="tail">{note.summary}</Text>
+                    {aiResponses[note.id] && (
+                      <Text style={{ fontSize: 12, color: '#228be6', marginLeft: 8, fontStyle: 'italic', maxWidth: 180 }} numberOfLines={1} ellipsizeMode="tail">
+                        {aiResponses[note.id]}
+                      </Text>
                     )}
                   </View>
                   <TouchableOpacity
@@ -770,8 +773,7 @@ const NotesScreen: React.FC = () => {
                       setSummarizingNoteId(note.id);
                       try {
                         const summary = await getSummary(note.content + '\nözetle');
-                        updateNoteSummary(note.id.toString(), summary);
-                        await loadNotes();
+                        setAiResponses(prev => ({ ...prev, [note.id]: summary }));
                       } catch (e) {
                         Alert.alert('Özet alınamadı', 'Bir hata oluştu.');
                       } finally {
@@ -782,8 +784,10 @@ const NotesScreen: React.FC = () => {
                   >
                     <Text style={{ color: '#fff', fontWeight: 'bold' }}>{summarizingNoteId === note.id ? 'Özetleniyor...' : 'Özetle'}</Text>
                   </TouchableOpacity>
-                  {note.summary && (
-                    <Text style={{ fontSize: 12, color: '#228be6', marginLeft: 8, fontStyle: 'italic', maxWidth: 180 }} numberOfLines={1} ellipsizeMode="tail">{note.summary}</Text>
+                  {aiResponses[note.id] && (
+                    <Text style={{ fontSize: 12, color: '#228be6', marginLeft: 8, fontStyle: 'italic', maxWidth: 180 }} numberOfLines={1} ellipsizeMode="tail">
+                      {aiResponses[note.id]}
+                    </Text>
                   )}
                 </View>
                 <TouchableOpacity
