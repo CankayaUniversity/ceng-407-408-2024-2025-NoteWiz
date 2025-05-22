@@ -1,6 +1,6 @@
 // src/contexts/NotesContext.tsx
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { notesService } from '../services/newApi';
+import { notesService, apiClient } from '../services/newApi';
 import { useAuth } from './AuthContext';
 
 // Note type definition
@@ -180,36 +180,26 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const moveNoteToFolder = async (noteId: number, folderId: number | null) => {
     if (!isAuthenticated) return;
-    
     let originalFolderId: number | null = null;
-    
     try {
       const note = notes.find(n => n.id === noteId);
       if (!note) {
         console.error('Note not found');
         return;
       }
-
       originalFolderId = note.folderId;
-
-      // Update the note's folderId in the local state
+      // Local state'i güncelle
       setNotes(prevNotes =>
         prevNotes.map(n => n.id === noteId ? { ...n, folderId } : n)
       );
-
-      // Update the note in the API with all required fields
-      await notesService.updateNote(noteId, {
-        title: note.title || "Untitled Note",
-        content: note.content || "",
-        color: note.color || "#FFFFFF",
-        isPinned: note.isPinned ?? false,
-        folderId: folderId,
-        tags: Array.isArray(note.tags) ? note.tags : [],
-        isPrivate: note.isPrivate ?? true
+      // Yeni backend endpointini kullan
+      const folderValue = folderId === null ? 0 : folderId;
+      await apiClient.patch(`/notes/${noteId}/move-to-folder`, folderValue, {
+        headers: { 'Content-Type': 'application/json' }
       });
     } catch (error) {
       console.error('Error moving note to folder:', error);
-      // Revert the local state if the API call fails
+      // Hata olursa local state'i geri al
       setNotes(prevNotes =>
         prevNotes.map(n => n.id === noteId ? { ...n, folderId: originalFolderId } : n)
       );

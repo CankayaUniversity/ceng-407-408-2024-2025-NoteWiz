@@ -125,17 +125,14 @@ const NotesScreen: React.FC = () => {
 
   // All notes and folders in the current directory
   const getCurrentItems = useCallback((): NoteOrFolder[] => {
-    let items: NoteOrFolder[] = [];
     if (currentFolder === null) {
-      items = notes.filter(note => !note.folderId);
-    } else {
-      items = notes.filter(note => {
-        const noteFolderId = note.folderId !== undefined && note.folderId !== null ? String(note.folderId) : '';
-        return noteFolderId === currentFolder;
-      });
-      // Eğer FolderNotes ilişkisiyle de not ekliyorsan, onları da ekle
-      // items = [...items, ...folderNotesFromManyToMany];
+      return notes; // Kök dizindeyken tüm notlar ve klasörler
     }
+    let items: NoteOrFolder[] = [];
+    items = notes.filter(note => {
+      const noteFolderId = note.folderId !== undefined && note.folderId !== null ? String(note.folderId) : '';
+      return noteFolderId === currentFolder;
+    });
     // Duplicate'ları kaldır (id'ye göre tekilleştir)
     return Array.from(new Map(items.map(note => [note.id, note])).values());
   }, [notes, currentFolder]);
@@ -465,6 +462,7 @@ const NotesScreen: React.FC = () => {
       await moveNoteToFolder(noteId, folder.id);
     }
     await loadNotes();
+    await loadFolders();
     setSelectedNotesToAdd([]);
     setSelectedFolderForAdd(null);
     setShowAddNoteModal(false);
@@ -474,6 +472,7 @@ const NotesScreen: React.FC = () => {
   const handleRemoveNoteFromFolder = async (noteId: string) => {
     await moveNoteToFolder(noteId, null);
     await loadNotes();
+    await loadFolders();
   };
 
   // Klasör not sayılarını backend'den çek
@@ -491,7 +490,7 @@ const NotesScreen: React.FC = () => {
       setFolderNoteCounts(counts);
     };
     fetchCounts();
-  }, [folders.length]);
+  }, [folders, notes]);
 
   // Render header with breadcrumb navigation
   const renderHeader = () => {
@@ -551,6 +550,23 @@ const NotesScreen: React.FC = () => {
     }, [loadNotes])
   );
 
+  // Klasörsüz notları belirleyen yardımcı fonksiyon
+  const isFolderless = (note: any) => {
+    console.log('[Klasörsüz Notlar DEBUG]', 'note.id:', note.id, 'title:', note.title, 'folderId:', note.folderId, 'typeof:', typeof note.folderId);
+    if (note.isFolder) return false;
+    // folderId'yi normalize et
+    let folderId = note.folderId;
+    if (typeof folderId === 'string') folderId = folderId.trim();
+    return (
+      folderId === null ||
+      folderId === undefined ||
+      folderId === '' ||
+      folderId === 0 ||
+      folderId === '0' ||
+      folderId === 'null'
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar
@@ -588,9 +604,11 @@ const NotesScreen: React.FC = () => {
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.listContent}>
         {/* Klasörler */}
-        {currentFolder === null && folders.length > 0 && (
+        {currentFolder === null && (
           <View style={{ marginBottom: 24 }}>
-            <Text style={{ fontWeight: 'bold', fontSize: 17, marginBottom: 8 }}>Klasörler</Text>
+            {folders.length > 0 && (
+              <Text style={{ fontWeight: 'bold', fontSize: 17, marginBottom: 8 }}>Klasörler</Text>
+            )}
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: 'row' }} contentContainerStyle={{ alignItems: 'center', paddingVertical: 4 }}>
               {folders.map(folder => {
                 console.log('folder:', folder);
@@ -652,7 +670,8 @@ const NotesScreen: React.FC = () => {
                 <Text style={{ color: COLORS.primary.main, fontSize: 13, marginTop: 2 }}>Not Ekle</Text>
               </TouchableOpacity>
             </View>
-            {sortedItems().filter(note => !note.isFolder).map(note => (
+            {/* Tüm notlar: sadece !note.isFolder filtresiyle */}
+            {notes.filter(note => !note.isFolder).map(note => (
               <View key={note.id} style={{ position: 'relative', marginBottom: 8 }}>
                 <NoteCard
                   note={{
@@ -781,7 +800,7 @@ const NotesScreen: React.FC = () => {
             )}
           </View>
         )}
-        {notes.filter(note => !note.isFolder && (note.folderId === null || note.folderId === undefined)).length > 0 && (
+        {notes.filter(isFolderless).length > 0 && (
           <View style={{ marginBottom: 24 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
               <Text style={{ fontWeight: 'bold', fontSize: 17 }}>Klasörsüz Notlar</Text>
@@ -793,7 +812,7 @@ const NotesScreen: React.FC = () => {
                 <Text style={{ color: COLORS.primary.main, fontSize: 13, marginTop: 2 }}>Not Ekle</Text>
               </TouchableOpacity>
             </View>
-            {notes.filter(note => !note.isFolder && (note.folderId === null || note.folderId === undefined)).map(note => (
+            {notes.filter(isFolderless).map(note => (
               <View key={note.id} style={{ position: 'relative', marginBottom: 8 }}>
                 <NoteCard
                   note={{

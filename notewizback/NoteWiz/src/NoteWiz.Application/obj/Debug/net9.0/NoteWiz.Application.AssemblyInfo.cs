@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("NoteWiz.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8d20b5ecd256e364c0c3c9584c3b0447177f661d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1689d4174d98007502d4d124aa31f486c14652c4")]
 [assembly: System.Reflection.AssemblyProductAttribute("NoteWiz.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("NoteWiz.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
