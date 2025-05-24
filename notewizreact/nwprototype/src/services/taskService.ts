@@ -6,9 +6,9 @@ export interface Task {
   title: string;
   description?: string;
   dueDate?: string;
-  priority: 'low' | 'medium' | 'high';
+  priority: 'low' | 'medium' | 'high' | 1 | 2 | 3;
   categoryId?: string;
-  completed: boolean;
+  isCompleted: boolean;
   reminder?: string;
   createdAt: string;
   updatedAt: string;
@@ -20,7 +20,7 @@ export interface CreateTaskDto {
   dueDate?: string;
   priority: 'low' | 'medium' | 'high';
   categoryId?: string;
-  completed?: boolean;
+  isCompleted?: boolean;
   reminder?: string;
 }
 

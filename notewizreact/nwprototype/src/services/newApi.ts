@@ -2,27 +2,11 @@ import axios, { AxiosRequestConfig } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import EventEmitter from '../utils/EventEmitter';
-
-// Base URL configuration
-let API_BASE_URL = 'http://localhost:5263/api';
-
-if (Platform.OS === 'android') {
-  if (__DEV__) {
-    API_BASE_URL = 'http://10.0.2.2:5263/api';
-  } else {
-    API_BASE_URL = 'https://api.notewiz.com/api';
-  }
-} else if (Platform.OS === 'ios') {
-  if (__DEV__) {
-    API_BASE_URL = 'http://localhost:5263/api';
-  } else {
-    API_BASE_URL = 'https://api.notewiz.com/api';
-  }
-}
+import { API_URL } from '../config/api';
 
 // Create axios instance
 const axiosConfig: AxiosRequestConfig = {
-  baseURL: API_BASE_URL,
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
@@ -38,11 +22,22 @@ export const apiClient = axios.create(axiosConfig);
 // Request interceptor for adding auth token
 apiClient.interceptors.request.use(
   async (config) => {
-    const token = await AsyncStorage.getItem('userToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      console.log('API Request:', {
+        url: config.url,
+        method: config.method,
+        headers: config.headers,
+        data: config.data
+      });
+      return config;
+    } catch (error) {
+      console.error('Request interceptor error:', error);
+      return config;
     }
-    return config;
   },
   (error) => {
     console.error('Request error:', error);
@@ -52,9 +47,26 @@ apiClient.interceptors.request.use(
 
 // Response interceptor for handling errors
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('API Response:', {
+      status: response.status,
+      data: response.data
+    });
+    return response;
+  },
   async (error) => {
     console.error('Response error:', error);
+    if (error.response) {
+      // Sunucudan yanıt geldi ama hata kodu var
+      console.error('API Error:', error.response.status, error.response.data);
+    } else if (error.request) {
+      // İstek yapıldı ama yanıt alınamadı
+      console.error('Network Error:', error.message);
+    } else {
+      // İstek oluşturulurken hata oluştu
+      console.error('Request Error:', error.message);
+    }
+    
     if (error.response?.status === 401) {
       await AsyncStorage.removeItem('userToken');
       EventEmitter.emit('unauthorized');

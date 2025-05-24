@@ -13,6 +13,7 @@ export interface Task {
   userId: number;
   createdAt: string;
   updatedAt: string;
+  priority?: 'low' | 'medium' | 'high' | 1 | 2 | 3;
 }
 
 interface TasksContextType {
@@ -79,6 +80,8 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const priorityMap = { low: 3, medium: 2, high: 1 };
+
   const updateTask = async (id: number, taskData: Partial<Task>): Promise<Task> => {
     if (!isAuthenticated) return null as any;
     try {
@@ -87,6 +90,8 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         description: taskData.description || '',
         dueDate: taskData.dueDate,
         reminder: (taskData as any).reminder,
+        isCompleted: taskData.isCompleted,
+        priority: typeof taskData.priority === 'string' ? priorityMap[taskData.priority] : taskData.priority,
       };
       const updatedTask = await tasksService.updateTask(id, apiTaskData);
       setTasks(prevTasks => 

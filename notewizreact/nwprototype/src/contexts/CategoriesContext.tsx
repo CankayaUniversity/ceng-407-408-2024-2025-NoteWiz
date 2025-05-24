@@ -1,57 +1,7 @@
 // src/contexts/CategoriesContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
 import { useAuth } from './AuthContext';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_URL } from '../config/api';
-
-// API base URL - Doğru port numarası
-const API_BASE_URL = API_URL;
-
-// Axios instance oluştur
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  },
-  // Timeout süresini artır
-  timeout: 10000
-});
-
-// Request interceptor - her istekte token'ı ekle
-api.interceptors.request.use(async (config) => {
-  try {
-    const token = await AsyncStorage.getItem('userToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  } catch (error) {
-    console.error('Token alınırken hata:', error);
-    return config;
-  }
-});
-
-// Response interceptor - hata yönetimi
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.code === 'ECONNABORTED') {
-      console.error('İstek zaman aşımına uğradı');
-    } else if (error.response) {
-      // Sunucudan yanıt geldi ama hata kodu var
-      console.error('API Hatası:', error.response.status, error.response.data);
-    } else if (error.request) {
-      // İstek yapıldı ama yanıt alınamadı
-      console.error('Ağ Hatası:', error.message);
-    } else {
-      // İstek oluşturulurken hata oluştu
-      console.error('İstek Hatası:', error.message);
-    }
-    return Promise.reject(error);
-  }
-);
+import { apiClient } from '../services/newApi';
 
 // Kategori tipi
 export interface Category {
@@ -61,28 +11,14 @@ export interface Category {
   icon?: string;
 }
 
-// Not tipi
-export interface Note {
-  id: number;
-  title: string;
-  content: string;
-  categoryId: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
 // Context tipi
 interface CategoriesContextType {
   categories: Category[];
-  notes: Note[];
   loading: boolean;
   error: string | null;
-  addCategory: (name: string, color: string) => Promise<void>;
+  addCategory: (name: string, color: string) => Promise<Category>;
   deleteCategory: (id: number) => Promise<void>;
   updateCategory: (id: number, name: string, color: string) => Promise<void>;
-  addNote: (title: string, content: string, categoryId: number) => Promise<void>;
-  deleteNote: (id: number) => Promise<void>;
-  moveNote: (noteId: number, newCategoryId: number) => Promise<void>;
 }
 
 // Context oluşturma
@@ -93,7 +29,6 @@ export const CategoriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [categories, setCategories] = useState<Category[]>([
     { id: 1, name: 'Work', color: '#4C6EF5' }
   ]);
-  const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -113,11 +48,9 @@ export const CategoriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       setCategories([]);
       return;
     }
-    
     setLoading(true);
     try {
-      const response = await api.get('/api/categories');
-      // API yanıtını kontrol et
+      const response = await apiClient.get('/categories');
       if (response.data && Array.isArray(response.data)) {
         setCategories(response.data);
       } else {
@@ -133,43 +66,31 @@ export const CategoriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   };
 
-  // Notları getir
-  const fetchNotes = async () => {
-    try {
-      const response = await api.get('/api/notes');
-      // API yanıtını kontrol et
-      if (response.data && Array.isArray(response.data)) {
-        setNotes(response.data);
-      } else {
-        console.warn('API yanıtı beklenen formatta değil:', response.data);
-        setNotes([]);
-      }
-    } catch (err) {
-      console.error('Notlar yüklenirken hata:', err);
-      setError('Notlar yüklenirken bir hata oluştu.');
-      setNotes([]);
-    }
-  };
-
   // Kategori ekle
-  const addCategory = async (name: string, color: string) => {
-    if (!user || !isAuthenticated) return;
+  const addCategory = async (name: string, color: string): Promise<Category> => {
+    if (!user || !isAuthenticated) throw new Error('Not authenticated');
     setLoading(true);
     try {
+      console.log('[addCategory] Başladı:', { name, color });
       // Sadece name gönder
-      const response = await api.post('/api/categories', { name });
+      const response = await apiClient.post('/categories', { name });
+      console.log('[addCategory] API yanıtı:', response.status, response.data);
       // API yanıtını kontrol et
       if (response.data) {
-        setCategories(prevCategories => [...prevCategories, response.data]);
+        const newCategory = response.data;
+        setCategories(prevCategories => [...prevCategories, newCategory]);
+        console.log('[addCategory] Yeni kategori eklendi:', newCategory);
+        return newCategory;
       } else {
         throw new Error('API yanıtı geçersiz');
       }
     } catch (err) {
-      console.error('Kategori eklenirken hata:', err);
+      console.error('[addCategory] Hata:', err);
       setError('Kategori eklenirken bir hata oluştu.');
       throw err;
     } finally {
       setLoading(false);
+      console.log('[addCategory] Bitti');
     }
   };
 
@@ -179,7 +100,7 @@ export const CategoriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     
     setLoading(true);
     try {
-      await api.delete(`/api/categories/${id}`);
+      await apiClient.delete(`/categories/${id}`);
       setCategories(prevCategories => prevCategories.filter(category => category.id !== id));
     } catch (err) {
       console.error('Kategori silinirken hata:', err);
@@ -196,7 +117,7 @@ export const CategoriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     
     setLoading(true);
     try {
-      const response = await api.put(`/api/categories/${id}`, { name, color });
+      const response = await apiClient.put(`/categories/${id}`, { name, color });
       // API yanıtını kontrol et
       if (response.data) {
         setCategories(prevCategories => 
@@ -214,75 +135,15 @@ export const CategoriesProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   };
 
-  // Not ekle
-  const addNote = async (title: string, content: string, categoryId: number) => {
-    if (!user || !isAuthenticated) return;
-    
-    setLoading(true);
-    try {
-      const response = await api.post('/api/notes', { title, content, categoryId });
-      // API yanıtını kontrol et
-      if (response.data) {
-        setNotes(prevNotes => [...prevNotes, response.data]);
-      } else {
-        throw new Error('API yanıtı geçersiz');
-      }
-    } catch (err) {
-      console.error('Not eklenirken hata:', err);
-      setError('Not eklenirken bir hata oluştu.');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Not sil
-  const deleteNote = async (id: number) => {
-    if (!isAuthenticated) return;
-    
-    setLoading(true);
-    try {
-      await api.delete(`/api/notes/${id}`);
-      setNotes(prevNotes => prevNotes.filter(note => note.id !== id));
-    } catch (err) {
-      console.error('Not silinirken hata:', err);
-      setError('Not silinirken bir hata oluştu.');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Not taşı
-  const moveNote = async (noteId: number, newCategoryId: number) => {
-    if (!isAuthenticated) return;
-    
-    setLoading(true);
-    try {
-      const response = await api.patch(`/api/notes/${noteId}/move`, { newCategoryId });
-      // API yanıtını kontrol et
-      if (response.data) {
-        setNotes(prevNotes => prevNotes.map(note => note.id === noteId ? response.data : note));
-      } else {
-        throw new Error('API yanıtı geçersiz');
-      }
-    } catch (err) {
-      console.error('Not taşınırken hata:', err);
-      setError('Not taşınırken bir hata oluştu.');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // İlk yüklemede kategorileri ve notları getir
-  useEffect(() => {
-    fetchCategories();
-    fetchNotes();
-  }, []);
-
   return (
-    <CategoriesContext.Provider value={{ categories, notes, loading, error, addCategory, deleteCategory, updateCategory, addNote, deleteNote, moveNote }}>
+    <CategoriesContext.Provider value={{
+      categories,
+      loading,
+      error,
+      addCategory,
+      deleteCategory,
+      updateCategory
+    }}>
       {children}
     </CategoriesContext.Provider>
   );

@@ -4,7 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { StatusBar, Platform, TouchableOpacity, Text } from 'react-native';
+import { StatusBar, Platform, TouchableOpacity, Text, LogBox } from 'react-native';
 import { COLORS, SHADOWS } from './src/constants/theme';
 import notifee from '@notifee/react-native';
 import { NoteProvider } from './src/contexts/NoteContext';
@@ -13,6 +13,10 @@ import { DocumentProvider } from './src/contexts/DocumentContext';
 import { ShareProvider } from './src/contexts/ShareContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import NetInfo from '@react-native-community/netinfo';
+import { AppState } from 'react-native';
+import { drawingService } from './src/services/drawingService';
+import { useNotes } from './src/contexts/NoteContext';
 
 // Screens
 import WelcomeScreen from './src/screens/WelcomeScreen';
@@ -59,6 +63,13 @@ import { AuthProvider } from './src/contexts/AuthContext';
 import { CategoriesProvider } from './src/contexts/CategoriesContext';
 import { TasksProvider } from './src/contexts/TasksContext';
 import { NotificationProvider } from './src/contexts/NotificationContext';
+
+// TypeScript'e window.syncPendingNotes özelliğini tanıt
+declare global {
+  interface Window {
+    syncPendingNotes?: () => Promise<void>;
+  }
+}
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -128,6 +139,10 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Development mode warnings'ı gizle
+    LogBox.ignoreLogs(['Warning: ...']); // Geliştirme uyarılarını gizle
+    LogBox.ignoreAllLogs(); // Tüm uyarıları gizle (geliştirme aşamasında)
+
     const checkNotificationPermission = async () => {
       const settings = await notifee.requestPermission();
 
@@ -140,6 +155,39 @@ const App = () => {
 
     checkNotificationPermission();
     setIsLoading(false);
+  }, []);
+
+  // Pending sync için global tetikleyici
+  useEffect(() => {
+    let syncInProgress = false;
+    const syncAll = async () => {
+      if (syncInProgress) return;
+      syncInProgress = true;
+      try {
+        if ((globalThis as any).syncPendingNotes) await (globalThis as any).syncPendingNotes();
+        await drawingService.syncPendingDrawings();
+      } catch (e) {}
+      finally {
+        syncInProgress = false;
+      }
+    };
+    // NetInfo ile online olunca sync
+    const unsubscribeNetInfo = NetInfo.addEventListener(state => {
+      if (state.isConnected) {
+        syncAll();
+      }
+    });
+    // AppState ile uygulama aktif olunca sync
+    const handleAppState = (nextState: string) => {
+      if (nextState === 'active') {
+        syncAll();
+      }
+    };
+    const appStateListener = AppState.addEventListener('change', handleAppState);
+    return () => {
+      unsubscribeNetInfo();
+      appStateListener.remove();
+    };
   }, []);
 
   return (
