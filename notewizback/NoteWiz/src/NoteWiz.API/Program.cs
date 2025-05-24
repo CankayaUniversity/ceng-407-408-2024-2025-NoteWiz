@@ -34,7 +34,7 @@ if (File.Exists(envPath))
 // Kestrel sunucusunu yapılandır
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(5263);
+    options.ListenAnyIP(5263); // Tüm IP'lerden erişime izin ver
 });
 
 // Loglama servislerini ekle
@@ -254,9 +254,11 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.SetIsOriginAllowed(origin => true)
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials()
+              .WithExposedHeaders("Content-Disposition");
     });
 });
 
@@ -337,7 +339,7 @@ if (app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-// Use CORS
+// Use CORS - UseAuthentication'dan önce olmalı
 app.UseCors();
 
 // Use authentication and authorization

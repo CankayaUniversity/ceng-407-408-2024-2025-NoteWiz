@@ -20,6 +20,7 @@ namespace NoteWiz.Infrastructure.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly string _apiKey;
         private readonly string _model;
+        private const string OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 
         public DeepSeekAIService(
             HttpClient httpClient,
@@ -32,12 +33,20 @@ namespace NoteWiz.Infrastructure.Services
             _configuration = configuration;
             _unitOfWork = unitOfWork;
             
-            _apiKey = _configuration["AI:ApiKey"];
-            _model = _configuration["AI:Model"] ?? "gpt-4";
+            _apiKey = _configuration["AppSettings:AI:ApiKey"] ?? _configuration["AI:ApiKey"];
+            _model = _configuration["AppSettings:AI:Model"] ?? _configuration["AI:Model"] ?? "gpt-4";
+            
+            if (string.IsNullOrEmpty(_apiKey))
+            {
+                _logger.LogError("OpenAI API key is not configured");
+                throw new InvalidOperationException("OpenAI API key is not configured");
+            }
             
             _httpClient.DefaultRequestHeaders.Accept.Clear();
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+            
+            _logger.LogInformation("DeepSeekAIService initialized with model: {Model}", _model);
         }
 
         public async Task<AIChatResponse> GetResponseAsync(AIChatRequest request)
@@ -47,6 +56,14 @@ namespace NoteWiz.Infrastructure.Services
             
             try
             {
+                if (string.IsNullOrEmpty(request.Prompt))
+                {
+                    response.ErrorMessage = "Prompt cannot be empty";
+                    return response;
+                }
+
+                _logger.LogDebug("Sending request to OpenAI API. Prompt: {Prompt}", request.Prompt);
+                
                 var requestBody = new
                 {
                     model = _model,
@@ -61,23 +78,41 @@ namespace NoteWiz.Infrastructure.Services
                 var jsonRequest = JsonConvert.SerializeObject(requestBody);
                 var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
                 
-                var httpResponse = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", content);
+                _logger.LogDebug("Request body: {RequestBody}", jsonRequest);
+                
+                var httpResponse = await _httpClient.PostAsync(OPENAI_API_URL, content);
+                var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                
+                _logger.LogDebug("OpenAI API Response Status: {StatusCode}", httpResponse.StatusCode);
+                _logger.LogDebug("OpenAI API Response Content: {Content}", responseContent);
                 
                 if (httpResponse.IsSuccessStatusCode)
                 {
-                    var jsonResponse = await httpResponse.Content.ReadAsStringAsync();
-                    dynamic responseData = JsonConvert.DeserializeObject(jsonResponse);
-                    
-                    response.IsSuccess = true;
-                    response.ResponseText = responseData.choices[0].message.content.ToString();
-                    response.TokensUsed = responseData.usage.total_tokens;
+                    try
+                    {
+                        dynamic responseData = JsonConvert.DeserializeObject(responseContent);
+                        
+                        response.IsSuccess = true;
+                        response.ResponseText = responseData.choices[0].message.content.ToString();
+                        response.TokensUsed = responseData.usage.total_tokens;
+                        _logger.LogInformation("Successfully received response from OpenAI API. Tokens used: {Tokens}", response.TokensUsed);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error parsing OpenAI API response");
+                        response.ErrorMessage = "Error parsing API response";
+                    }
                 }
                 else
                 {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    _logger.LogError($"OpenAI API Error: {httpResponse.StatusCode}, {errorContent}");
-                    response.ErrorMessage = $"API Error: {httpResponse.StatusCode}, {errorContent}";
+                    _logger.LogError("OpenAI API Error: {StatusCode}, {Content}", httpResponse.StatusCode, responseContent);
+                    response.ErrorMessage = $"API Error: {httpResponse.StatusCode}, {responseContent}";
                 }
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "Network error while calling OpenAI API");
+                response.ErrorMessage = "Network error while calling API";
             }
             catch (Exception ex)
             {
@@ -110,11 +145,12 @@ namespace NoteWiz.Infrastructure.Services
                 
                 await _unitOfWork.AIInteractionLogs.AddAsync(aiLog);
                 await _unitOfWork.SaveChangesAsync();
+                _logger.LogDebug("Successfully logged AI interaction for user {UserId}", userId);
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error logging AI interaction");
+                _logger.LogError(ex, "Error logging AI interaction for user {UserId}", userId);
                 return false;
             }
         }
@@ -127,9 +163,23 @@ namespace NoteWiz.Infrastructure.Services
 
         public async Task<string> AskQuestionAsync(string question)
         {
+            if (string.IsNullOrEmpty(question))
+            {
+                _logger.LogWarning("Empty question received");
+                return string.Empty;
+            }
+
+            _logger.LogDebug("Asking question: {Question}", question);
             var request = new AIChatRequest { Prompt = question };
             var response = await GetResponseAsync(request);
-            return response?.ResponseText ?? string.Empty;
+            
+            if (!response.IsSuccess)
+            {
+                _logger.LogError("Failed to get AI response: {Error}", response.ErrorMessage);
+                return $"Error: {response.ErrorMessage}";
+            }
+            
+            return response.ResponseText;
         }
     }
 } 

@@ -28,6 +28,11 @@ namespace NoteWiz.API.Controllers
         {
             try
             {
+                if (string.IsNullOrEmpty(request?.Prompt))
+                {
+                    return BadRequest(new { error = "Prompt cannot be empty" });
+                }
+
                 var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
                 var response = await _aiService.GetResponseAsync(request);
                 
@@ -55,6 +60,11 @@ namespace NoteWiz.API.Controllers
         {
             try
             {
+                if (string.IsNullOrEmpty(request?.Prompt))
+                {
+                    return BadRequest(new { error = "Prompt cannot be empty" });
+                }
+
                 var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
                 
                 // Add context about the note to the prompt
@@ -81,16 +91,39 @@ namespace NoteWiz.API.Controllers
         [HttpPost("ask")]
         public async Task<IActionResult> Ask([FromBody] AIQuestionRequest request)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-            var answer = await _aiService.AskQuestionAsync(request.Question);
+            try
+            {
+                if (string.IsNullOrEmpty(request?.Question))
+                {
+                    return BadRequest(new { error = "Question cannot be empty" });
+                }
 
-            // Loglama için AIChatRequest ve AIChatResponse oluştur
-            var aiRequest = new AIChatRequest { Prompt = request.Question };
-            var aiResponse = new AIChatResponse { ResponseText = answer, IsSuccess = true, Timestamp = DateTime.UtcNow };
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                var answer = await _aiService.AskQuestionAsync(request.Question);
 
-            await _aiService.LogInteractionAsync(userId, aiRequest, aiResponse);
+                if (answer.StartsWith("Error:"))
+                {
+                    return BadRequest(new { error = answer });
+                }
 
-            return Ok(new { answer });
+                // Loglama için AIChatRequest ve AIChatResponse oluştur
+                var aiRequest = new AIChatRequest { Prompt = request.Question };
+                var aiResponse = new AIChatResponse 
+                { 
+                    ResponseText = answer, 
+                    IsSuccess = true, 
+                    Timestamp = DateTime.UtcNow 
+                };
+
+                await _aiService.LogInteractionAsync(userId, aiRequest, aiResponse);
+
+                return Ok(new { answer });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in AI ask endpoint");
+                return StatusCode(500, new { error = "An error occurred while processing your request" });
+            }
         }
     }
 

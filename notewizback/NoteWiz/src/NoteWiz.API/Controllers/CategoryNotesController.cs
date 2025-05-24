@@ -21,6 +21,7 @@ namespace NoteWiz.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetCategories()
         {
+            Console.WriteLine("[LOG] GetCategories endpoint hit!");
             try 
             {
                 var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
@@ -37,6 +38,7 @@ namespace NoteWiz.API.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"[LOG] GetCategories error: {ex.Message}");
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
@@ -61,8 +63,12 @@ namespace NoteWiz.API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryDto dto)
         {
+            Console.WriteLine("[LOG] CreateCategory endpoint hit!");
             if (string.IsNullOrWhiteSpace(dto.Name))
+            {
+                Console.WriteLine("[LOG] CreateCategory: Name is required");
                 return BadRequest("Name is required");
+            }
 
             var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
             var category = new Category
@@ -72,6 +78,7 @@ namespace NoteWiz.API.Controllers
             };
             _context.Categories.Add(category);
             await _context.SaveChangesAsync();
+            Console.WriteLine($"[LOG] CreateCategory: Category created with id {category.Id}");
             return Ok(category);
         }
 

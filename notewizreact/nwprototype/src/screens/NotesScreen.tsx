@@ -42,6 +42,7 @@ import { folderService } from '../services/folderService';
 import { apiClient } from '../services/newApi';
 import { getSummary } from '../services/openai';
 import { Folder } from '../services/folderService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { height } = Dimensions.get('window');
 const HEADER_MAX_HEIGHT = Platform.OS === 'ios' ? 150 : 170;
@@ -112,6 +113,7 @@ const NotesScreen: React.FC = () => {
   const [summarizingNoteId, setSummarizingNoteId] = useState<string | null>(null);
   const [aiResponses, setAiResponses] = useState<{ [noteId: string]: string }>({});
   const [folders, setFolders] = useState<Folder[]>([]);
+  const [hasPending, setHasPending] = useState(false);
 
   // Predefined cover options
   const coverOptions = [
@@ -552,7 +554,7 @@ const NotesScreen: React.FC = () => {
 
   // Klasörsüz notları belirleyen yardımcı fonksiyon
   const isFolderless = (note: any) => {
-    console.log('[Klasörsüz Notlar DEBUG]', 'note.id:', note.id, 'title:', note.title, 'folderId:', note.folderId, 'typeof:', typeof note.folderId);
+    //console.log('[Klasörsüz Notlar DEBUG]', 'note.id:', note.id, 'title:', note.title, 'folderId:', note.folderId, 'typeof:', typeof note.folderId);
     if (note.isFolder) return false;
     // folderId'yi normalize et
     let folderId = note.folderId;
@@ -567,6 +569,18 @@ const NotesScreen: React.FC = () => {
     );
   };
 
+  // Pending not/çizim kontrolü
+  useEffect(() => {
+    const checkPending = async () => {
+      const pendingNotes = await AsyncStorage.getItem('pendingNotes');
+      const pendingDrawings = await AsyncStorage.getItem('pendingDrawings');
+      const hasPendingNotes = pendingNotes && JSON.parse(pendingNotes).length > 0;
+      const hasPendingDrawings = pendingDrawings && JSON.parse(pendingDrawings).length > 0;
+      setHasPending(!!hasPendingNotes || !!hasPendingDrawings);
+    };
+    checkPending();
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar
@@ -574,6 +588,12 @@ const NotesScreen: React.FC = () => {
         backgroundColor="transparent"
         barStyle="light-content"
       />
+      {/* Pending uyarı bannerı */}
+      {hasPending && (
+        <View style={{ backgroundColor: '#FFD43B', padding: 10, alignItems: 'center' }}>
+          <Text style={{ color: '#333', fontWeight: 'bold' }}>Bekleyen not veya çizim(ler) var. İnternete bağlanınca otomatik olarak gönderilecek.</Text>
+        </View>
+      )}
 
       {/* Animated Header */}
       <Animated.View style={[styles.header, headerStyle]}>
@@ -661,7 +681,9 @@ const NotesScreen: React.FC = () => {
         {currentFolder === null && sortedItems().filter(note => !note.isFolder).length > 0 && (
           <View style={{ marginBottom: 24 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <Text style={{ fontWeight: 'bold', fontSize: 17 }}>Tüm Notlar</Text>
+              <Text style={{ fontWeight: 'bold', fontSize: 17 }}>
+                {searchQuery ? 'Arama Sonuçları' : 'Tüm Notlar'}
+              </Text>
               <TouchableOpacity
                 style={{ alignItems: 'center' }}
                 onPress={handleCreateNote}
@@ -670,8 +692,7 @@ const NotesScreen: React.FC = () => {
                 <Text style={{ color: COLORS.primary.main, fontSize: 13, marginTop: 2 }}>Not Ekle</Text>
               </TouchableOpacity>
             </View>
-            {/* Tüm notlar: sadece !note.isFolder filtresiyle */}
-            {notes.filter(note => !note.isFolder).map(note => (
+            {sortedItems().filter(note => !note.isFolder).map(note => (
               <View key={note.id} style={{ position: 'relative', marginBottom: 8 }}>
                 <NoteCard
                   note={{

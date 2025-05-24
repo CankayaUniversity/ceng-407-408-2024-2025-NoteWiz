@@ -24,6 +24,7 @@ import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../types/navigation';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { drawingService } from '../services/drawingService';
+import NetInfo from '@react-native-community/netinfo';
 
 // Bizim bileşenler
 import { DrawingHeader } from '../components/drawing/DrawingHeader';

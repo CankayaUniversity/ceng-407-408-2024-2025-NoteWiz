@@ -67,6 +67,14 @@ const TaskDetailScreen = () => {
   const [showReminderPicker, setShowReminderPicker] = useState(false);
   
   const priorityMap = { low: 3, medium: 2, high: 1 };
+  const reversePriorityMap = { 1: 'high', 2: 'medium', 3: 'low' } as const;
+  const [priority, setPriority] = useState<'low' | 'medium' | 'high'>(
+    editingTask?.priority
+      ? typeof editingTask.priority === 'number'
+        ? reversePriorityMap[editingTask.priority as 1 | 2 | 3] || 'low'
+        : (editingTask.priority as 'low' | 'medium' | 'high')
+      : 'low'
+  );
 
   useEffect(() => {
     // Başlık ekran başlığını ayarla
@@ -121,6 +129,7 @@ const TaskDetailScreen = () => {
         description,
         dueDate: dueDate ? dueDate.toISOString() : undefined,
         isCompleted,
+        priority,
         reminder: hasReminder && reminderDate ? reminderDate.toISOString() : undefined,
       };
 
@@ -133,8 +142,8 @@ const TaskDetailScreen = () => {
             ...updatedTask,
             id: String(updatedTask.id),
             reminder: reminderDate.toISOString(),
-            priority: 'medium',
-            completed: updatedTask.isCompleted,
+            priority: priority,
+            isCompleted: updatedTask.isCompleted,
           });
         } else {
           await NotificationService.cancelNotification(`task-${updatedTask.id}`);
@@ -149,8 +158,8 @@ const TaskDetailScreen = () => {
             ...newTask,
             id: String(newTask.id),
             reminder: reminderDate.toISOString(),
-            priority: 'medium',
-            completed: newTask.isCompleted,
+            priority: priority,
+            isCompleted: newTask.isCompleted,
           });
         }
       }

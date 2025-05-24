@@ -146,12 +146,12 @@ const TasksScreen = () => {
     navigation.navigate('TaskDetail', {});
   };
 
-  const handleEditTask = (taskId: string) => {
+  const handleEditTask = (taskId: number) => {
     console.log('Edit task button pressed:', taskId);
-    navigation.navigate('TaskDetail', { taskId });
+    navigation.navigate('TaskDetail', { taskId: String(taskId) });
   };
 
-  const handleDeleteTask = (taskId: string) => {
+  const handleDeleteTask = (taskId: number) => {
     Alert.alert(
       'Görevi Sil',
       'Bu görevi silmek istediğinizden emin misiniz?',
@@ -175,7 +175,11 @@ const TasksScreen = () => {
   // Görev kartı bileşeni
   const TaskCard = ({ task }: { task: Task }) => {
     // İlgili kategoriyi bul
-    const category = categories.find(cat => String(cat.id) === task.categoryId);
+    const category = categories.find(cat => {
+      // Eğer task.categoryId yoksa veya undefined ise eşleşme olmasın
+      if (typeof (task as any).categoryId === 'undefined') return false;
+      return cat.id === (task as any).categoryId;
+    });
     
     return (
       <TouchableOpacity
@@ -183,7 +187,7 @@ const TasksScreen = () => {
           styles.taskCard,
           task.isCompleted && styles.completedTaskCard
         ]}
-        onPress={() => handleEditTask(task.id.toString())}
+        onPress={() => handleEditTask(task.id)}
         activeOpacity={0.7}
       >
         <TouchableOpacity
@@ -191,7 +195,13 @@ const TasksScreen = () => {
             styles.checkbox,
             task.isCompleted && styles.checkedBox
           ]}
-          onPress={() => updateTask(task.id, { isCompleted: !task.isCompleted })}
+          onPress={() => updateTask(task.id, {
+            isCompleted: !task.isCompleted,
+            title: task.title,
+            description: task.description,
+            dueDate: task.dueDate,
+            priority: task.priority
+          })}
         >
           {task.isCompleted && <View style={styles.checkmark} />}
         </TouchableOpacity>

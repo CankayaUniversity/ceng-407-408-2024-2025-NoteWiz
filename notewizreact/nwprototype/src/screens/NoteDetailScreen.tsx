@@ -737,6 +737,8 @@ const NoteDetailScreen = () => {
     setContent(prev => prev + ' ' + word);
   };
 
+  const [editMode, setEditMode] = useState(false);
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -759,6 +761,24 @@ const NoteDetailScreen = () => {
           <Text style={{ color: '#fff', fontWeight: 'bold' }}>Not ile ilgili AI'ya Soru Sor</Text>
         </TouchableOpacity>
       </View>
+      {/* Edit/Görünüm butonu */}
+      <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', paddingHorizontal: 16 }}>
+        {editMode ? (
+          <TouchableOpacity
+            style={{ backgroundColor: '#868E96', borderRadius: 8, paddingVertical: 6, paddingHorizontal: 16, marginBottom: 8 }}
+            onPress={() => setEditMode(false)}
+          >
+            <Text style={{ color: '#fff', fontWeight: 'bold' }}>Kaydet</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={{ backgroundColor: '#4C6EF5', borderRadius: 8, paddingVertical: 6, paddingHorizontal: 16, marginBottom: 8 }}
+            onPress={() => setEditMode(true)}
+          >
+            <Text style={{ color: '#fff', fontWeight: 'bold' }}>Düzenle</Text>
+          </TouchableOpacity>
+        )}
+      </View>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -768,17 +788,124 @@ const NoteDetailScreen = () => {
           contentContainerStyle={{ paddingBottom: 140 }}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Cover image */}
-          {coverImage && (
-            typeof coverImage === 'string' && coverImage.startsWith('#') ? (
-              <View style={[styles.coverImage, { backgroundColor: coverImage }]} />
-            ) : (
-              <Image
-                source={typeof coverImage === 'string' ? { uri: coverImage } : coverImage}
-                style={styles.coverImage}
-                resizeMode="cover"
+          {/* Edit Mode: Sadece edit alanı ve kelime seçme */}
+          {editMode ? (
+            <View style={{ backgroundColor: '#fff', borderRadius: 8, margin: 8, borderWidth: 2, borderColor: 'red', padding: 12 }}>
+              <TextInput
+                style={[styles.contentInput, { marginBottom: 8, borderWidth: 0 }]}
+                placeholder="İçerik yazın..."
+                value={content}
+                onChangeText={setContent}
+                multiline
+                editable={canEdit}
               />
-            )
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                {words.map((word, idx) => {
+                  // Seçili aralıkta mı?
+                  let isSelected = false;
+                  if (wordSelectStart !== null && wordSelectEnd !== null) {
+                    const start = Math.min(wordSelectStart, wordSelectEnd);
+                    const end = Math.max(wordSelectStart, wordSelectEnd);
+                    isSelected = idx >= start && idx <= end;
+                  }
+                  return (
+                    <TouchableOpacity
+                      key={idx}
+                      onPress={() => handleWordPress(idx)}
+                      style={{
+                        backgroundColor: isSelected ? '#FFE066' : 'transparent',
+                        borderRadius: 4,
+                        margin: 1,
+                        paddingHorizontal: 2,
+                      }}
+                    >
+                      <Text style={{ fontSize: 16, color: '#222' }}>{word}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          ) : (
+            <>
+              {/* Sadece güzel görünümlü alanlar */}
+              {/* Cover image */}
+              {coverImage && (
+                typeof coverImage === 'string' && coverImage.startsWith('#') ? (
+                  <View style={[styles.coverImage, { backgroundColor: coverImage }]} />
+                ) : (
+                  <Image
+                    source={typeof coverImage === 'string' ? { uri: coverImage } : coverImage}
+                    style={styles.coverImage}
+                    resizeMode="cover"
+                  />
+                )
+              )}
+              {/* Kategori, başlık, renderNoteContent */}
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                style={styles.categoryContainer}
+              >
+                {(categories.length > 0 ? categories : DEFAULT_CATEGORIES).map((cat: any, idx: number) => (
+                  <TouchableOpacity
+                    key={`${cat.id || cat.name}_${idx}`}
+                    style={[
+                      styles.categoryButton,
+                      categoryId === cat.id && styles.categoryButtonActive,
+                    ]}
+                    onPress={async () => {
+                      console.log('Kategoriye tıklandı:', cat);
+                      if (!cat.id) {
+                        setAddingCategory(true);
+                        try {
+                          await addCategory(cat.name, cat.color || '#868E96');
+                          setTimeout(() => {
+                            const added = categories.find((c) => c.name === cat.name);
+                            if (added) {
+                              console.log('Yeni eklenen kategori bulundu:', added);
+                              setCategoryId(added.id);
+                            }
+                          }, 500);
+                        } finally {
+                          setAddingCategory(false);
+                        }
+                      } else {
+                        console.log('Mevcut kategori seçildi, id:', cat.id);
+                        setCategoryId(cat.id);
+                      }
+                    }}
+                    disabled={addingCategory}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryText,
+                        categoryId === cat.id && styles.categoryTextActive,
+                      ]}
+                    >
+                      {cat.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+                {/* Diğer/Kategori Ekle tuşu */}
+                <TouchableOpacity
+                  style={[styles.categoryButton, { borderStyle: 'dashed', borderWidth: 1, borderColor: '#868E96' }]}
+                  onPress={() => setShowAddCategoryModal(true)}
+                >
+                  <Text style={styles.categoryText}>+ Kategori Ekle</Text>
+                </TouchableOpacity>
+              </ScrollView>
+              <TextInput
+                style={styles.titleInput}
+                placeholder={isPdf ? "PDF Title" : "Title"}
+                value={title}
+                onChangeText={setTitle}
+                maxLength={100}
+                editable={canEdit}
+              />
+              <View style={{ paddingHorizontal: 16, paddingTop: 8, minHeight: 300 }}>
+                {renderNoteContent(content)}
+              </View>
+            </>
           )}
 
           {/* Star button for marking important */}
@@ -804,71 +931,6 @@ const NoteDetailScreen = () => {
               </TouchableOpacity>
             )}
           </View>
-
-          {/* Category selector - moved above title */}
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            style={styles.categoryContainer}
-          >
-            {(categories.length > 0 ? categories : DEFAULT_CATEGORIES).map((cat: any, idx: number) => (
-              <TouchableOpacity
-                key={`${cat.id || cat.name}_${idx}`}
-                style={[
-                  styles.categoryButton,
-                  categoryId === cat.id && styles.categoryButtonActive,
-                ]}
-                onPress={async () => {
-                  console.log('Kategoriye tıklandı:', cat);
-                  if (!cat.id) {
-                    setAddingCategory(true);
-                    try {
-                      await addCategory(cat.name, cat.color || '#868E96');
-                      setTimeout(() => {
-                        const added = categories.find((c) => c.name === cat.name);
-                        if (added) {
-                          console.log('Yeni eklenen kategori bulundu:', added);
-                          setCategoryId(added.id);
-                        }
-                      }, 500);
-                    } finally {
-                      setAddingCategory(false);
-                    }
-                  } else {
-                    console.log('Mevcut kategori seçildi, id:', cat.id);
-                    setCategoryId(cat.id);
-                  }
-                }}
-                disabled={addingCategory}
-              >
-                <Text
-                  style={[
-                    styles.categoryText,
-                    categoryId === cat.id && styles.categoryTextActive,
-                  ]}
-                >
-                  {cat.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-            {/* Diğer/Kategori Ekle tuşu */}
-            <TouchableOpacity
-              style={[styles.categoryButton, { borderStyle: 'dashed', borderWidth: 1, borderColor: '#868E96' }]}
-              onPress={() => setShowAddCategoryModal(true)}
-            >
-              <Text style={styles.categoryText}>+ Kategori Ekle</Text>
-            </TouchableOpacity>
-          </ScrollView>
-
-          {/* Title input */}
-          <TextInput
-            style={styles.titleInput}
-            placeholder={isPdf ? "PDF Title" : "Title"}
-            value={title}
-            onChangeText={setTitle}
-            maxLength={100}
-            editable={canEdit}
-          />
 
           {/* Seçili metni göster */}
           {wordSelectedText !== '' && (
@@ -918,47 +980,8 @@ const NoteDetailScreen = () => {
             </View>
           )}
 
-          {/* Content alanı */}
-          <View style={{ backgroundColor: '#fff', borderRadius: 8, margin: 8, borderWidth: 1, borderColor: '#eee', padding: 12 }}>
-            <TextInput
-              style={[styles.contentInput, { marginBottom: 8, borderWidth: 0 }]}
-              placeholder="İçerik yazın..."
-              value={content}
-              onChangeText={setContent}
-              multiline
-              editable={canEdit}
-            />
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-              {words.map((word, idx) => {
-                // Seçili aralıkta mı?
-                let isSelected = false;
-                if (wordSelectStart !== null && wordSelectEnd !== null) {
-                  const start = Math.min(wordSelectStart, wordSelectEnd);
-                  const end = Math.max(wordSelectStart, wordSelectEnd);
-                  isSelected = idx >= start && idx <= end;
-                }
-                return (
-                  <TouchableOpacity
-                    key={idx}
-                    onPress={() => handleWordPress(idx)}
-                    style={{
-                      backgroundColor: isSelected ? '#FFE066' : 'transparent',
-                      borderRadius: 4,
-                      margin: 1,
-                      paddingHorizontal: 2,
-                    }}
-                  >
-                    <Text style={{ fontSize: 16, color: '#222' }}>{word}</Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
-
           {/* İçerik ve resimler (renderNoteContent) */}
-          <View style={{ paddingHorizontal: 16, paddingTop: 8, minHeight: 300 }}>
-            {renderNoteContent(content)}
-          </View>
+          
 
           {/* PDF Viewer + Drawing Canvas veya normal içerik + çizim */}
           <View style={{ position: 'relative', minHeight: 300, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ccc' }}>

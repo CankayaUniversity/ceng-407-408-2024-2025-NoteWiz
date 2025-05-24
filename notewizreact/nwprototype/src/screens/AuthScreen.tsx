@@ -43,7 +43,7 @@ const AuthScreen: React.FC = () => {
   const [fullName, setFullName] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { login, signup } = useAuth();
+  const { login, signup, isOffline } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   // Animasyon değerleri
@@ -77,13 +77,20 @@ const AuthScreen: React.FC = () => {
     setIsLoading(true);
     try {
       if (isLogin) {
+        console.log('🔑 Login attempt:', { email, isOffline });
         const success = await login(email, password, rememberMe);
         if (success) {
+          console.log('✅ Login successful, navigating to MainApp');
           navigation.replace('MainApp');
+        } else if (isOffline) {
+          console.log('❌ Offline login failed');
+          Alert.alert('Offline Login', 'Offline giriş başarısız. Lütfen doğru e-posta ve şifreyi girin veya internete bağlanın.');
         }
       } else {
+        console.log('📝 Signup attempt:', { email, fullName });
         const success = await signup(email, password, fullName);
         if (success) {
+          console.log('✅ Signup successful');
           Alert.alert(
             'Başarılı',
             'Hesabınız başarıyla oluşturuldu!',
@@ -92,6 +99,7 @@ const AuthScreen: React.FC = () => {
         }
       }
     } catch (error: any) {
+      console.error('❌ Auth error:', error);
       let errorMessage = 'Bir hata oluştu. Lütfen tekrar deneyin.';
       
       if (error.message) {
@@ -155,18 +163,25 @@ const AuthScreen: React.FC = () => {
       />
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100%',
+        }}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.content}>
-          <Animated.View style={[styles.logoContainer, logoStyle]}>
+        <View style={styles.centeredContainer}>
+          <View style={styles.logoContainer}>
             <AnimatedLogo />
             <Text style={styles.appName}>NoteWiz</Text>
-            <Text style={styles.tagline}>
-              Your thoughts, beautifully organized
-            </Text>
-          </Animated.View>
-
+            <Text style={styles.tagline}>Your thoughts, beautifully organized</Text>
+          </View>
+          {isOffline && (
+            <View style={styles.offlineBanner}>
+              <Text style={styles.offlineText}>Çevrimdışısınız. Sadece önceden giriş yapmış kullanıcılar giriş yapabilir.</Text>
+            </View>
+          )}
           <Animated.View 
             entering={FadeInUp.duration(1000).springify()} 
             style={[styles.formContainer, formStyle]}
@@ -180,7 +195,6 @@ const AuthScreen: React.FC = () => {
                 autoCapitalize="words"
               />
             )}
-
             <AuthInput
               icon="mail"
               placeholder="Email"
@@ -189,7 +203,6 @@ const AuthScreen: React.FC = () => {
               keyboardType="email-address"
               autoCapitalize="none"
             />
-
             <AuthInput
               icon="lock"
               placeholder="Password"
@@ -197,7 +210,6 @@ const AuthScreen: React.FC = () => {
               onChangeText={setPassword}
               secureTextEntry
             />
-
             {isLogin && (
               <View style={styles.rememberContainer}>
                 <TouchableOpacity
@@ -210,13 +222,11 @@ const AuthScreen: React.FC = () => {
                   ]} />
                   <Text style={styles.rememberText}>Remember me</Text>
                 </TouchableOpacity>
-
                 <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword" as never)}>
                   <Text style={{ color: '#4C6EF5', textAlign: 'right', marginTop: 12 }}>Şifremi Unuttum?</Text>
                 </TouchableOpacity>
               </View>
             )}
-
             <TouchableOpacity
               style={[styles.authButton, isLoading && styles.authButtonDisabled]}
               onPress={handleAuth}
@@ -230,19 +240,6 @@ const AuthScreen: React.FC = () => {
                 </Text>
               )}
             </TouchableOpacity>
-
-            {/* NOT: Sosyal medya butonları Firebase'e özel olduğu için kaldırıldı ya da güncellenebilir */}
-            {/* <View style={styles.dividerContainer}>
-              <View style={styles.divider} />
-              <Text style={styles.dividerText}>or continue with</Text>
-              <View style={styles.divider} />
-            </View>
-
-            <View style={styles.socialButtons}>
-              <SocialButton type="google" onPress={() => {}} />
-              <SocialButton type="apple" onPress={() => {}} />
-            </View> */}
-
             <TouchableOpacity
               style={styles.switchButton}
               onPress={() => setIsLogin(!isLogin)}
@@ -270,7 +267,9 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   content: {
-    flex: 1,
+    width: '100%',
+    maxWidth: 500,
+    alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
@@ -295,6 +294,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: 24,
     padding: 24,
+    maxWidth: 400,
+    width: '100%',
+    alignSelf: 'center',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -392,6 +394,25 @@ const styles = StyleSheet.create({
     color: '#4C6EF5',
     fontSize: 14,
     fontWeight: '600',
+  },
+  offlineBanner: {
+    backgroundColor: '#ffb300',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  offlineText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  centeredContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '100%',
+    width: '100%',
   },
 });
 
