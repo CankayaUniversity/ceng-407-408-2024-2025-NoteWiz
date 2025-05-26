@@ -269,8 +269,16 @@ const NoteDetailScreen = () => {
     const fetchNote = async () => {
       if (!noteId) return;
       try {
-        const res = await apiClient.get(`/notes/${noteId}`);
-        const note = res.data;
+        let note;
+        // Önce notes array'inden notu bulmaya çalış (cache'den)
+        note = notes.find(n => n.id.toString() === noteId.toString());
+        
+        // Eğer notes array'inde bulunamazsa ve online ise API'den çek
+        if (!note) {
+          const res = await apiClient.get(`/notes/${noteId}`);
+          note = res.data;
+        }
+
         if (note) {
           setTitle(note.title || '');
           setContent(note.content || '');
@@ -280,14 +288,13 @@ const NoteDetailScreen = () => {
           setPdfUrl(note.pdfUrl || '');
           setPdfName(note.pdfName || '');
           setCoverImage(note.coverImage || null);
-          // ... diğer state'ler
         }
       } catch (err) {
-        console.error("Not API'den çekilemedi:", err);
+        console.error("Not yüklenemedi:", err);
       }
     };
     fetchNote();
-  }, [noteId]);
+  }, [noteId, notes]);
 
   // Kategori seçimini ilk açılışta notun kategorisine göre ayarla
   useEffect(() => {

@@ -3,6 +3,7 @@ import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
 import Slider from '@react-native-community/slider';
 import Icon from 'react-native-vector-icons/Feather';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import styles from './steyles';
 
 interface DrawingToolsProps {
@@ -47,7 +48,7 @@ export const DrawingTools: React.FC<DrawingToolsProps> = ({
           style={[styles.toolButton, selectedTool === 'eraser' && styles.toolButtonActive]}
           onPress={() => onSelectTool('eraser')}
         >
-          <Icon name="delete" size={24} color={selectedTool === 'eraser' ? "#4C6EF5" : "#666666"} />
+          <MaterialCommunityIcons name="eraser" size={24} color={selectedTool === 'eraser' ? "#4C6EF5" : "#666666"} />
           <Text style={[styles.toolText, selectedTool === 'eraser' && styles.toolTextActive]}>
             Eraser
           </Text>

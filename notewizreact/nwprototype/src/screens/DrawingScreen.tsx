@@ -18,6 +18,7 @@ import {
   Modal,
   TextInput,
   ScrollView,
+  Image,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
@@ -25,6 +26,8 @@ import { RootStackParamList } from '../types/navigation';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { drawingService } from '../services/drawingService';
 import NetInfo from '@react-native-community/netinfo';
+import { launchImageLibrary } from 'react-native-image-picker';
+import MlkitOcr from 'react-native-mlkit-ocr';
 
 // Bizim bileşenler
 import { DrawingHeader } from '../components/drawing/DrawingHeader';
@@ -53,6 +56,14 @@ interface Point {
 interface TextNoteItem {
   id: string;
   content: string;
+  x: number;
+  y: number;
+}
+
+// Resim notu yapısı
+interface ImageNoteItem {
+  id: string;
+  uri: string;
   x: number;
   y: number;
 }
@@ -95,6 +106,23 @@ const DrawingScreen: React.FC = () => {
   const [selectedTool, setSelectedTool] = useState<'pen' | 'highlighter' | 'eraser' | 'move'>('pen');
   const dragOffsetRef = useRef<{ [key: string]: { x: number; y: number } }>({});
 
+  // Tool seçimi değiştiğinde renk ve kalınlık ayarlarını güncelle
+  useEffect(() => {
+    if (selectedTool === 'eraser') {
+      // Silgi seçildiğinde beyaz renk ve daha kalın çizgi
+      setSelectedColor('#FFFFFF');
+      setSelectedStrokeWidth(selectedStrokeWidthRef.current * 2);
+    } else if (selectedTool === 'highlighter') {
+      // Highlighter seçildiğinde sarı renk ve yarı saydam
+      setSelectedColor('#FFFF00');
+      setSelectedStrokeWidth(selectedStrokeWidthRef.current * 1.5);
+    } else {
+      // Kalem seçildiğinde siyah renk
+      setSelectedColor('#000000');
+      setSelectedStrokeWidth(3);
+    }
+  }, [selectedTool]);
+
   // State: renk seçici modalı açık mı?
   const [colorPickerVisible, setColorPickerVisible] = useState(false);
 
@@ -112,26 +140,46 @@ const DrawingScreen: React.FC = () => {
       },
 
       onPanResponderGrant: (evt: GestureResponderEvent) => {
-        currentPoints.current = [];
-        const p: Point = {
-          x: evt.nativeEvent.locationX,
-          y: evt.nativeEvent.locationY,
-        };
-        currentPoints.current.push(p);
-        setCurrentPath(generatePath(currentPoints.current));
+        if (selectedTool === 'eraser') {
+          // Silgi aracı için, tıklanan noktadaki çizgileri sil
+          const point = {
+            x: evt.nativeEvent.locationX,
+            y: evt.nativeEvent.locationY,
+          };
+          eraseStrokesAtPoint(point);
+        } else {
+          // Kalem aracı için normal çizim işlemi
+          currentPoints.current = [];
+          const p: Point = {
+            x: evt.nativeEvent.locationX,
+            y: evt.nativeEvent.locationY,
+          };
+          currentPoints.current.push(p);
+          setCurrentPath(generatePath(currentPoints.current));
+        }
       },
 
       onPanResponderMove: (evt: GestureResponderEvent) => {
-        const p: Point = {
-          x: evt.nativeEvent.locationX,
-          y: evt.nativeEvent.locationY,
-        };
-        currentPoints.current.push(p);
-        setCurrentPath(generatePath(currentPoints.current));
+        if (selectedTool === 'eraser') {
+          // Silgi aracı için, hareket edilen noktadaki çizgileri sil
+          const point = {
+            x: evt.nativeEvent.locationX,
+            y: evt.nativeEvent.locationY,
+          };
+          eraseStrokesAtPoint(point);
+        } else {
+          // Kalem aracı için normal çizim işlemi
+          const p: Point = {
+            x: evt.nativeEvent.locationX,
+            y: evt.nativeEvent.locationY,
+          };
+          currentPoints.current.push(p);
+          setCurrentPath(generatePath(currentPoints.current));
+        }
       },
 
       onPanResponderRelease: () => {
-        if (currentPoints.current.length > 0) {
+        if (selectedTool !== 'eraser' && currentPoints.current.length > 0) {
           const finalPath = generatePath(currentPoints.current);
           const newStroke: Stroke = {
             path: finalPath,
@@ -188,6 +236,7 @@ const DrawingScreen: React.FC = () => {
         canvasWidth: width,
         canvasHeight: height,
         textNotes,
+        imageNotes,
       });
 
       // Backend'e kaydet
@@ -213,6 +262,7 @@ const DrawingScreen: React.FC = () => {
         const drawingData = JSON.parse(lastDrawing.drawingData);
         setStrokes(drawingData.strokes);
         setTextNotes(drawingData.textNotes || []);
+        setImageNotes(drawingData.imageNotes || []);
       }
     } catch (error) {
       console.error('Error loading drawing:', error);
@@ -259,6 +309,88 @@ const DrawingScreen: React.FC = () => {
     setTextNotes((prev) => prev.filter((item) => item.id !== noteId));
   };
 
+  // Silgi fonksiyonu - belirli bir noktadaki çizgileri siler
+  const eraseStrokesAtPoint = (point: Point) => {
+    setStrokes((prevStrokes) => {
+      return prevStrokes.filter((stroke) => {
+        // Çizgi yolunu noktalara ayır
+        const pathPoints = stroke.path.split(/[ML]/).filter(Boolean);
+        
+        // Her nokta için mesafeyi kontrol et
+        for (const pathPoint of pathPoints) {
+          const [x, y] = pathPoint.split(',').map(Number);
+          const distance = Math.sqrt(
+            Math.pow(x - point.x, 2) + Math.pow(y - point.y, 2)
+          );
+          
+          // Eğer nokta silgi kalınlığı içindeyse, çizgiyi sil
+          if (distance < selectedStrokeWidthRef.current * 2) {
+            return false;
+          }
+        }
+        return true;
+      });
+    });
+  };
+
+  // Resim notları için state
+  const [imageNotes, setImageNotes] = useState<ImageNoteItem[]>([]);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [showImageOptions, setShowImageOptions] = useState(false);
+
+  // Resim seçme fonksiyonu
+  const pickImage = async () => {
+    launchImageLibrary({ mediaType: 'photo', quality: 1 }, (response) => {
+      if (response.didCancel) {
+        return;
+      } else if (response.errorCode) {
+        Alert.alert('Hata', 'Resim seçilemedi: ' + response.errorMessage);
+        return;
+      } else if (response.assets && response.assets[0].uri) {
+        setSelectedImage(response.assets[0].uri);
+        setShowImageOptions(true);
+      }
+    });
+  };
+
+  // OCR işlemi
+  const runOcr = async (imageUri: string) => {
+    try {
+      const result = await MlkitOcr.detectFromUri(imageUri);
+      const extractedText = result.map(block => block.text).join('\n').trim();
+      if (!extractedText || extractedText.length < 3) {
+        Alert.alert('Görüntü çok bulanık veya metin algılanamadı', 'Lütfen daha net bir fotoğraf seçin.');
+      } else {
+        // Yeni metin notu ekle
+        const newNote: TextNoteItem = {
+          id: Date.now().toString(),
+          content: extractedText,
+          x: width / 2 - 50,
+          y: height / 2 - 50,
+        };
+        setTextNotes(prev => [...prev, newNote]);
+      }
+    } catch (err) {
+      Alert.alert('Hata', 'OCR sırasında bir hata oluştu.');
+    }
+  };
+
+  // Resim notu ekleme
+  const addImageNote = (uri: string) => {
+    const newImageNote: ImageNoteItem = {
+      id: Date.now().toString(),
+      uri: uri,
+      x: width / 2 - 100,
+      y: height / 2 - 100,
+    };
+    setImageNotes(prev => [...prev, newImageNote]);
+  };
+
+  // Resim notu silme
+  const handleDeleteImageNote = (noteId: string) => {
+    setImageNotes(prev => prev.filter(item => item.id !== noteId));
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
@@ -287,32 +419,76 @@ const DrawingScreen: React.FC = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         {/* Ana çizim alanı */}
-        <View style={styles.drawingArea} {...(selectedTool !== 'move' ? panResponder.panHandlers : {})}>
-          <Svg style={StyleSheet.absoluteFill}>
-            {strokes.map((stroke, idx) => (
-              <Path
-                key={idx}
-                d={stroke.path}
-                stroke={stroke.color}
-                strokeWidth={stroke.strokeWidth}
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            ))}
-            {currentPath !== '' && (
-              <Path
-                d={currentPath}
-                stroke={selectedColor}
-                strokeWidth={selectedStrokeWidth}
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            )}
-          </Svg>
+        <View style={styles.drawingArea}>
+          {/* Önce objeler (resim ve metin) */}
+          {imageNotes.map((note) => {
+            const handlePanResponder = selectedTool === 'move'
+              ? PanResponder.create({
+                  onStartShouldSetPanResponder: () => true,
+                  onPanResponderGrant: (evt) => {
+                    if (evt && evt.persist) evt.persist();
+                    if (!evt || !evt.nativeEvent) return;
+                    dragOffsetRef.current[note.id] = {
+                      x: evt.nativeEvent.locationX,
+                      y: evt.nativeEvent.locationY,
+                    };
+                  },
+                  onPanResponderMove: (evt) => {
+                    if (evt && evt.persist) evt.persist();
+                    if (!evt || !evt.nativeEvent) return;
+                    const offset = dragOffsetRef.current[note.id] || { x: 0, y: 0 };
+                    setImageNotes((prev) =>
+                      prev.map((item) =>
+                        item.id === note.id
+                          ? {
+                              ...item,
+                              x: evt.nativeEvent.pageX - offset.x,
+                              y: evt.nativeEvent.pageY - offset.y - (Platform.OS === 'ios' ? 0 : StatusBar.currentHeight || 0),
+                            }
+                          : item
+                      )
+                    );
+                  },
+                  onPanResponderRelease: () => {},
+                })
+              : undefined;
 
-          {/* Metin notlarını ekranda absolute View olarak göster */}
+            return (
+              <View
+                key={note.id}
+                style={[
+                  styles.imageNoteItem,
+                  {
+                    left: note.x,
+                    top: note.y,
+                  },
+                ]}
+                pointerEvents={selectedTool === 'move' ? 'auto' : 'none'}
+              >
+                {selectedTool === 'move' && (
+                  <View
+                    style={styles.dragHandle}
+                    {...(handlePanResponder ? handlePanResponder.panHandlers : {})}
+                  >
+                    <Text style={{ fontWeight: 'bold', fontSize: 16 }}>☰</Text>
+                  </View>
+                )}
+                {selectedTool === 'move' && (
+                  <TouchableOpacity
+                    style={styles.deleteHandle}
+                    onPress={() => handleDeleteImageNote(note.id)}
+                  >
+                    <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>×</Text>
+                  </TouchableOpacity>
+                )}
+                <Image
+                  source={{ uri: note.uri }}
+                  style={styles.noteImage}
+                  resizeMode="contain"
+                />
+              </View>
+            );
+          })}
           {textNotes.map((note) => {
             // Sadece 'move' aracı seçiliyken handle için PanResponder aktif olsun
             const handlePanResponder = selectedTool === 'move'
@@ -346,6 +522,12 @@ const DrawingScreen: React.FC = () => {
                 })
               : undefined;
 
+            // Dinamik boyutlandırma
+            const lines = note.content.split('\n');
+            const maxLineLength = Math.max(...lines.map(line => line.length), 10);
+            const boxWidth = Math.max(80, maxLineLength * 8 + 24);
+            const boxHeight = Math.max(40, lines.length * 20 + 16);
+
             return (
               <View
                 key={note.id}
@@ -356,10 +538,11 @@ const DrawingScreen: React.FC = () => {
                     top: note.y,
                     minWidth: 80,
                     minHeight: 40,
-                    // Genişlik: içeriğe göre ayarlanacak
-                    width: Math.max(80, note.content.length * 8 + 24), // 8px/karakter + handle
+                    width: boxWidth,
+                    height: boxHeight,
                   },
                 ]}
+                pointerEvents={selectedTool === 'move' ? 'auto' : 'none'}
               >
                 {/* Sürükleme alanı sadece el aracı seçiliyken görünür ve aktif olur */}
                 {selectedTool === 'move' && (
@@ -390,6 +573,34 @@ const DrawingScreen: React.FC = () => {
               </View>
             );
           })}
+          {/* SVG çizim katmanı en üstte */}
+          <Svg
+            style={StyleSheet.absoluteFill}
+            pointerEvents={selectedTool !== 'move' ? 'auto' : 'none'}
+            {...(selectedTool !== 'move' ? panResponder.panHandlers : {})}
+          >
+            {strokes.map((stroke, idx) => (
+              <Path
+                key={idx}
+                d={stroke.path}
+                stroke={stroke.color}
+                strokeWidth={stroke.strokeWidth}
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            ))}
+            {currentPath !== '' && (
+              <Path
+                d={currentPath}
+                stroke={selectedColor}
+                strokeWidth={selectedStrokeWidth}
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            )}
+          </Svg>
         </View>
 
         {/* Tools */}
@@ -412,6 +623,13 @@ const DrawingScreen: React.FC = () => {
             activeOpacity={0.8}
           >
             <Text style={styles.fabText}>+T</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.fabInline, { marginLeft: 8 }]}
+            onPress={pickImage}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.fabText}>+📷</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -444,6 +662,54 @@ const DrawingScreen: React.FC = () => {
                 }}
               >
                 <Text style={{ color: '#FFF' }}>Kapat</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Resim seçenekleri modalı */}
+      <Modal
+        visible={showImageOptions}
+        transparent
+        animationType="slide"
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Resmi nasıl eklemek istersiniz?</Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => {
+                  if (selectedImage) {
+                    addImageNote(selectedImage);
+                    setShowImageOptions(false);
+                    setSelectedImage(null);
+                  }
+                }}
+              >
+                <Text style={styles.modalButtonText}>Resim olarak ekle</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => {
+                  if (selectedImage) {
+                    runOcr(selectedImage);
+                    setShowImageOptions(false);
+                    setSelectedImage(null);
+                  }
+                }}
+              >
+                <Text style={styles.modalButtonText}>Metin olarak ekle (OCR)</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, { backgroundColor: '#868E96' }]}
+                onPress={() => {
+                  setShowImageOptions(false);
+                  setSelectedImage(null);
+                }}
+              >
+                <Text style={styles.modalButtonText}>İptal</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -613,5 +879,29 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     marginHorizontal: 2,
+  },
+  imageNoteItem: {
+    position: 'absolute',
+    padding: 8,
+    backgroundColor: '#FFF',
+    borderRadius: 8,
+    ...SHADOWS.sm,
+  },
+  noteImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 8,
+  },
+  modalButton: {
+    backgroundColor: '#4C6EF5',
+    borderRadius: 8,
+    padding: 12,
+    marginVertical: 8,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

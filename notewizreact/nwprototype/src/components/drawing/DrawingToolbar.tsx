@@ -2,6 +2,7 @@
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SharedValue } from 'react-native-reanimated';
 
 interface DrawingToolbarProps {
@@ -47,8 +48,8 @@ export const DrawingToolbar: React.FC<DrawingToolbarProps> = ({
         style={[styles.toolButton, selectedTool === 'eraser' && styles.toolButtonActive]}
         onPress={() => onToolSelect('eraser')}
       >
-        <Icon
-          name="delete"
+        <MaterialCommunityIcons
+          name="eraser"
           size={24}
           color={selectedTool === 'eraser' ? '#4C6EF5' : '#666666'}
         />

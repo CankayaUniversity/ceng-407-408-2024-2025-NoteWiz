@@ -161,30 +161,66 @@ const App = () => {
   useEffect(() => {
     let syncInProgress = false;
     const syncAll = async () => {
-      if (syncInProgress) return;
+      if (syncInProgress) {
+        console.log('[APP] Senkronizasyon zaten devam ediyor, yeni istek reddedildi');
+        return;
+      }
       syncInProgress = true;
+      console.log('[APP] Senkronizasyon başlatılıyor...');
       try {
-        if ((globalThis as any).syncPendingNotes) await (globalThis as any).syncPendingNotes();
-        await drawingService.syncPendingDrawings();
-      } catch (e) {}
-      finally {
+        if ((globalThis as any).syncPendingNotes) {
+          console.log('[APP] Not senkronizasyonu başlatılıyor');
+          try {
+            await (globalThis as any).syncPendingNotes();
+            console.log('[APP] Not senkronizasyonu başarıyla tamamlandı');
+          } catch (e) {
+            console.error('[APP] Not senkronizasyonu hatası:', e);
+          }
+        } else {
+          console.log('[APP] syncPendingNotes fonksiyonu bulunamadı');
+        }
+        console.log('[APP] Çizim senkronizasyonu başlatılıyor');
+        try {
+          await drawingService.syncPendingDrawings();
+          console.log('[APP] Çizim senkronizasyonu başarıyla tamamlandı');
+        } catch (e) {
+          console.error('[APP] Çizim senkronizasyonu hatası:', e);
+        }
+      } catch (e) {
+        console.error('[APP] Genel senkronizasyon hatası:', e);
+      } finally {
         syncInProgress = false;
+        console.log('[APP] Senkronizasyon tamamlandı');
       }
     };
+
     // NetInfo ile online olunca sync
     const unsubscribeNetInfo = NetInfo.addEventListener(state => {
+      console.log('[APP] Ağ durumu değişti:', state.isConnected ? 'online' : 'offline');
       if (state.isConnected) {
-        syncAll();
+        console.log('[APP] İnternet bağlantısı tespit edildi, senkronizasyon tetikleniyor');
+        // Kısa bir gecikme ekle
+        setTimeout(() => {
+          syncAll();
+        }, 1000);
       }
     });
+
     // AppState ile uygulama aktif olunca sync
     const handleAppState = (nextState: string) => {
+      console.log('[APP] Uygulama durumu değişti:', nextState);
       if (nextState === 'active') {
-        syncAll();
+        console.log('[APP] Uygulama aktif, senkronizasyon tetikleniyor');
+        // Kısa bir gecikme ekle
+        setTimeout(() => {
+          syncAll();
+        }, 1000);
       }
     };
+
     const appStateListener = AppState.addEventListener('change', handleAppState);
     return () => {
+      console.log('[APP] Senkronizasyon dinleyicileri temizleniyor');
       unsubscribeNetInfo();
       appStateListener.remove();
     };
