@@ -252,6 +252,136 @@ Relationships:
 
 ---
 
+### 📄 NotePdfPage
+Stores PDF pages that can be annotated.
+```csharp
+NotePdfPage
+- Id (int)
+- NoteId (FK)
+- PageNumber (int)
+- PdfUrl (string)
+- ThumbnailUrl (string)
+- CreatedAt (DateTime)
+- Annotations (string) // JSON containing annotations data
+
+Relationships:
+- Note (many-to-1)
+```
+
+---
+
+### 🖼️ NoteImage
+Stores images embedded into notes.
+```csharp
+NoteImage
+- Id (int)
+- NoteId (FK)
+- ImageUrl (string)
+- PositionX (int)
+- PositionY (int)
+- Width (int)
+- Height (int)
+- Rotation (float)
+- CreatedAt (DateTime)
+- UpdatedAt (DateTime?)
+- LayerIndex (int)
+
+Relationships:
+- Note (many-to-1)
+```
+
+---
+
+### 🎯 NoteTemplate
+Stores predefined note templates.
+```csharp
+NoteTemplate
+- Id (int)
+- Name (string)
+- Description (string)
+- PreviewImageUrl (string)
+- TemplateData (string) // JSON containing template configuration
+- IsPublic (bool)
+- CreatedAt (DateTime)
+- UpdatedAt (DateTime?)
+
+Relationships:
+- None
+```
+
+---
+
+### 🤖 NoteAISelection
+Stores AI analysis requests and results for selected areas.
+```csharp
+NoteAISelection
+- Id (int)
+- NoteId (FK)
+- SelectionX (int) // X coordinate of selection box
+- SelectionY (int) // Y coordinate of selection box
+- SelectionWidth (int) // Width of selection box
+- SelectionHeight (int) // Height of selection box
+- ScreenshotUrl (string) // URL of the captured screenshot
+- UserPrompt (string) // User's input prompt
+- AIResponse (string) // AI's response
+- ResponseType (string) // Type of response (text, popup, etc.)
+- CreatedAt (DateTime)
+- UpdatedAt (DateTime?)
+- Status (string) // Status of AI processing (pending, completed, failed)
+- ErrorMessage (string?) // Error message if processing failed
+
+Relationships:
+- Note (many-to-1)
+```
+
+---
+
+### 💬 NoteAIPopup
+Stores AI-generated popup content.
+```csharp
+NoteAIPopup
+- Id (int)
+- NoteId (FK)
+- Content (string)
+- PositionX (int)
+- PositionY (int)
+- Width (int)
+- Height (int)
+- IsPinned (bool)
+- CreatedAt (DateTime)
+- UpdatedAt (DateTime?)
+- Style (string) // JSON containing popup styling
+- Visibility (string) // Visibility state (visible, hidden, minimized)
+
+Relationships:
+- Note (many-to-1)
+```
+
+---
+
+### 🧠 AIInteractionLog
+Tracks AI interactions and responses.
+```csharp
+AIInteractionLog
+- Id (int)
+- UserId (FK)
+- NoteId (FK)
+- InteractionType (string) // Type of AI interaction
+- InputPrompt (string)
+- AIResponse (string)
+- ModelUsed (string) // AI model identifier
+- TokensUsed (int) // Number of tokens used
+- ProcessingTime (int) // Time taken in milliseconds
+- CreatedAt (DateTime)
+- Cost (decimal) // Cost of the AI request
+
+Relationships:
+- User (many-to-1)
+- Note (many-to-1)
+```
+
+---
+
 ## 🔌 API Endpoints Structure
 
 The API follows RESTful principles with the following endpoint structure:
@@ -281,6 +411,33 @@ The API follows RESTful principles with the following endpoint structure:
 - DELETE /api/notes/{id}
 - POST /api/notes/{id}/share
 - GET /api/notes/shared-with-me
+- GET /api/notes/pdf-pages
+- POST /api/notes/pdf-pages
+- GET /api/notes/pdf-pages/{id}
+- PUT /api/notes/pdf-pages/{id}
+- DELETE /api/notes/pdf-pages/{id}
+- GET /api/notes/images
+- POST /api/notes/images
+- GET /api/notes/images/{id}
+- PUT /api/notes/images/{id}
+- DELETE /api/notes/images/{id}
+- GET /api/notes/templates
+- POST /api/notes/templates
+- GET /api/notes/templates/{id}
+- PUT /api/notes/templates/{id}
+- DELETE /api/notes/templates/{id}
+- GET /api/notes/ai-selections
+- POST /api/notes/ai-selections
+- GET /api/notes/ai-selections/{id}
+- PUT /api/notes/ai-selections/{id}
+- DELETE /api/notes/ai-selections/{id}
+- GET /api/notes/ai-popups
+- POST /api/notes/ai-popups
+- GET /api/notes/ai-popups/{id}
+- PUT /api/notes/ai-popups/{id}
+- DELETE /api/notes/ai-popups/{id}
+- GET /api/notes/ai-interaction-logs
+- POST /api/notes/ai-interaction-logs
 
 ### Tasks
 - GET /api/tasks
@@ -316,11 +473,36 @@ SignalR will be used for real-time features:
     - UpdateNote(noteId, content)
     - AddDrawing(noteId, drawingData)
     - UserIsTyping(noteId, userName)
+    - UpdateNoteShare(noteId, shareData)
+    - RemoveNoteShare(noteId, userId)
+    - UpdateDrawing(noteId, drawingId, drawingData)
+    - DeleteDrawing(noteId, drawingId)
+    - AddImage(noteId, imageData)
+    - UpdateImage(noteId, imageId, imageData)
+    - DeleteImage(noteId, imageId)
+    - UpdateText(noteId, textId, textData)
+    - DeleteText(noteId, textId)
+    - UpdateCanvas(noteId, canvasData)
+    - UpdateNotePermissions(noteId, permissions)
 
 - NotificationHub (Real-time notifications)
   - Methods:
     - SendNotification(userId, notification)
     - MarkAsRead(notificationId)
+    - UpdateNotificationSettings(userId, settings)
+    - SendTaskReminder(userId, taskId)
+    - SendNoteShareNotification(userId, noteId)
+    - SendFriendRequest(userId, friendId)
+    - AcceptFriendRequest(userId, friendId)
+    - RejectFriendRequest(userId, friendId)
+
+- AIHub (AI-specific interactions)
+  - Methods:
+    - StartAIProcessing(noteId, selectionData)
+    - UpdateAIProcessingStatus(noteId, status)
+    - SendAIResponse(noteId, responseData)
+    - CancelAIProcessing(noteId)
+    - UpdateAISettings(userId, settings)
 ```
 
 ---
