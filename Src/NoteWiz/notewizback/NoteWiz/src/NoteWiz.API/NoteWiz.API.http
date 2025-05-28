@@ -1,0 +1,6 @@
+@NoteWiz.API_HostAddress = http://localhost:5263
+
+GET {{NoteWiz.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
