@@ -1,23 +1,23 @@
 # CENG-407-408-2024-2024 NoteWiz
 ## NoteWiz
 
-### Project Description
+## Project Description
 
-NoteWiz: Revolutionizing Digital Note-Taking
+# NoteWiz: Smart, Social, and AI-Powered Note-Taking
 
-NoteWiz is an innovative application designed to enhance the digital note-taking experience by leveraging artificial intelligence (AI) and natural language processing (NLP) technologies. It goes beyond traditional note-taking tools, helping users organize and comprehend their notes more efficiently.
+NoteWiz is a next-generation note-taking platform that combines artificial intelligence and real-time collaboration to boost your productivity. With advanced AI features, powerful drawing and annotation tools, and a social friend system, NoteWiz helps you organize, understand, and share your notes like never before.
 
-Features
+### Key Features
 
-*   AI-Powered Q&A: Users can ask questions about their notes and receive instant, AI-driven answers.
-    
-*    Cross-Device Access: Access notes seamlessly across multiple devices anytime, anywhere.
-    
- *   Sharing and Collaboration: Easily share notes with others and collaborate in real time.
-    
-NoteWiz aims to make the note-taking process smarter and more effective, becoming an indispensable tool for education, productivity, and personal organization.
+- **AI-Powered Summarization & Q&A:** Instantly summarize notes or get answers to your questions with integrated AI.
+- **Real-Time Collaboration:** Work together on notes, share with friends, and manage permissions easily.
+- **Drawing & Annotation:** Add drawings, images, and handwritten notes for richer content.
+- **Task & Notification System:** Stay organized with built-in tasks, reminders, and push notifications.
+- **Social Friend System:** Connect, share, and collaborate with friends securely.
 
-For more details and documentation, visit the [NoteWiz GitHub page](https://github.com/CankayaUniversity/ceng-407-408-2024-2025-NoteWiz/wiki).
+> NoteWiz is designed for students, professionals, and anyone who wants to take smarter, more interactive notes.
+
+> For more details and documentation, visit the [NoteWiz GitHub page](https://github.com/CankayaUniversity/ceng-407-408-2024-2025-NoteWiz/wiki).
 
 ## Team Members
 
