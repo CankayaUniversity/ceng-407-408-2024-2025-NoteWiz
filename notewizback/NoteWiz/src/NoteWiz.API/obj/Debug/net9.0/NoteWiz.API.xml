@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>NoteWiz.API</name>
+    </assembly>
+    <members>
+        <member name="M:NoteWiz.API.Controllers.AIController.Chat(NoteWiz.Core.Models.AI.AIChatRequest)">
+            <summary>
+            Sends a prompt to the AI and gets a response
+            </summary>
+        </member>
+        <member name="M:NoteWiz.API.Controllers.AIController.GetNoteSuggestions(System.Int32,NoteWiz.Core.Models.AI.AIChatRequest)">
+            <summary>
+            Gets AI suggestions for a note
+            </summary>
+        </member>
+    </members>
+</doc>

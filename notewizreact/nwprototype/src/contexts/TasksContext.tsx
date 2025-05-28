@@ -62,6 +62,8 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const priorityMap = { low: 3, medium: 2, high: 1 };
+
   const addTask = async (taskData: Partial<Task>): Promise<Task> => {
     if (!isAuthenticated) return null as any;
     try {
@@ -70,6 +72,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         description: taskData.description || "",
         dueDate: taskData.dueDate,
         reminder: (taskData as any).reminder,
+        priority: typeof taskData.priority === 'string' ? priorityMap[taskData.priority] : taskData.priority,
       };
       const createdTask = await tasksService.createTask(apiTaskData);
       setTasks(prevTasks => [...prevTasks, createdTask]);
@@ -79,8 +82,6 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       throw error;
     }
   };
-
-  const priorityMap = { low: 3, medium: 2, high: 1 };
 
   const updateTask = async (id: number, taskData: Partial<Task>): Promise<Task> => {
     if (!isAuthenticated) return null as any;

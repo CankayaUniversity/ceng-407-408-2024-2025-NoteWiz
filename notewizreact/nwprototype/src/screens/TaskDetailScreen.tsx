@@ -217,6 +217,33 @@ const TaskDetailScreen = () => {
         </View>
 
         <View style={styles.formSection}>
+          <Text style={styles.label}>Öncelik</Text>
+          <View style={styles.priorityButtons}>
+            <TouchableOpacity
+              style={[styles.priorityButton, priority === 'high' && styles.activePriorityButton]}
+              onPress={() => setPriority('high')}
+            >
+              <View style={[styles.priorityDot, { backgroundColor: '#FF3B30' }]} />
+              <Text style={styles.priorityText}>Yüksek</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.priorityButton, priority === 'medium' && styles.activePriorityButton]}
+              onPress={() => setPriority('medium')}
+            >
+              <View style={[styles.priorityDot, { backgroundColor: '#FF9500' }]} />
+              <Text style={styles.priorityText}>Orta</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.priorityButton, priority === 'low' && styles.activePriorityButton]}
+              onPress={() => setPriority('low')}
+            >
+              <View style={[styles.priorityDot, { backgroundColor: '#34C759' }]} />
+              <Text style={styles.priorityText}>Düşük</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.formSection}>
           <Text style={styles.label}>Görev Tarihi</Text>
           <View style={styles.dateTimeContainer}>
             <TouchableOpacity

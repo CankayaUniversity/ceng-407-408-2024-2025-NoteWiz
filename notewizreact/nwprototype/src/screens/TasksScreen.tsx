@@ -60,12 +60,15 @@ const formatDate = (date: Date | undefined) => {
 
 // Öncelik badge'i için renkler
 const getPriorityColor = (priority: Task['priority']) => {
-  switch(priority) {
-    case 'high': return '#FF3B30';
-    case 'medium': return '#FF9500';
-    case 'low': return '#34C759';
-    default: return '#FF9500';
-  }
+  if (priority === 'high' || priority === 1) return '#FF3B30';
+  if (priority === 'medium' || priority === 2) return '#FF9500';
+  return '#34C759';
+};
+
+const getPriorityLabel = (priority: Task['priority']) => {
+  if (priority === 'high' || priority === 1) return 'Yüksek';
+  if (priority === 'medium' || priority === 2) return 'Orta';
+  return 'Düşük';
 };
 
 const TasksScreen = () => {
@@ -258,8 +261,7 @@ const TasksScreen = () => {
               ]}
             >
               <Text style={styles.priorityText}>
-                {task.priority === 'high' ? 'Yüksek' : 
-                 task.priority === 'medium' ? 'Orta' : 'Düşük'}
+                {getPriorityLabel(task.priority)}
               </Text>
             </View>
           </View>

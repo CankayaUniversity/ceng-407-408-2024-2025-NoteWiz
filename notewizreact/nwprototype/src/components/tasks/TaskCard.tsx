@@ -43,12 +43,15 @@ const formatDate = (date: Date | undefined) => {
 
 // Öncelik badge'i için renkler
 const getPriorityColor = (priority: Task['priority']) => {
-  switch(priority) {
-    case 'high': return '#FF3B30';
-    case 'medium': return '#FF9500';
-    case 'low': return '#34C759';
-    default: return '#FF9500';
-  }
+  if (priority === 'high' || priority === 1) return '#FF3B30';
+  if (priority === 'medium' || priority === 2) return '#FF9500';
+  return '#34C759';
+};
+
+const getPriorityLabel = (priority: Task['priority']) => {
+  if (priority === 'high' || priority === 1) return 'Yüksek';
+  if (priority === 'medium' || priority === 2) return 'Orta';
+  return 'Düşük';
 };
 
 const TaskCard: React.FC<TaskCardProps> = ({ 
@@ -61,7 +64,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
     <TouchableOpacity
       style={[
         styles.taskCard,
-        task.completed && styles.completedTaskCard
+        task.isCompleted && styles.completedTaskCard
       ]}
       onPress={() => onEdit(task.id)}
       activeOpacity={0.7}
@@ -69,18 +72,18 @@ const TaskCard: React.FC<TaskCardProps> = ({
       <TouchableOpacity
         style={[
           styles.checkbox,
-          task.completed && styles.checkedBox
+          task.isCompleted && styles.checkedBox
         ]}
         onPress={() => onToggleComplete(task.id)}
       >
-        {task.completed && <View style={styles.checkmark} />}
+        {task.isCompleted && <View style={styles.checkmark} />}
       </TouchableOpacity>
       
       <View style={styles.taskContent}>
         <Text 
           style={[
             styles.taskTitle,
-            task.completed && styles.completedTaskText
+            task.isCompleted && styles.completedTaskText
           ]}
           numberOfLines={1}
         >
@@ -91,7 +94,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
           <Text 
             style={[
               styles.taskDescription,
-              task.completed && styles.completedTaskText
+              task.isCompleted && styles.completedTaskText
             ]}
             numberOfLines={1}
           >
@@ -128,8 +131,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
             ]}
           >
             <Text style={styles.priorityText}>
-              {task.priority === 'high' ? 'Yüksek' : 
-               task.priority === 'medium' ? 'Orta' : 'Düşük'}
+              {getPriorityLabel(task.priority)}
             </Text>
           </View>
         </View>
